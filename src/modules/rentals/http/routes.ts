@@ -14,6 +14,8 @@ import { ReturnLegalUseCase } from '../application/returnLegalUseCase.js';
 import { ResubmitToLegalUseCase } from '../application/resubmitToLegalUseCase.js';
 import { SignAndNumberUseCase } from '../application/signAndNumberUseCase.js';
 import { CancelRentalUseCase } from '../application/cancelRentalUseCase.js';
+import { ListRentalsUseCase } from '../application/listRentalsUseCase.js';
+import { GetRentalDetailUseCase } from '../application/getRentalDetailUseCase.js';
 import { rentalUploadMiddleware } from '../infra/fileStorage.js';
 import { AvailabilityService } from '../../agenda/application/availabilityService.js';
 import { PrismaReservationRepository } from '../../agenda/infra/prismaReservationRepository.js';
@@ -47,7 +49,32 @@ export function createRentalRouter(controller?: RentalController): Router {
       new ResubmitToLegalUseCase(prisma, new DocumentRenderer(prisma)),
       new SignAndNumberUseCase(prisma, new DocumentRenderer(prisma)),
       new CancelRentalUseCase(prisma),
+      new ListRentalsUseCase(prisma),
+      new GetRentalDetailUseCase(prisma),
+      prisma,
     );
+
+  // F2.8 — Consultas: Listado y Formulario de Nueva Solicitud (CAR-09, AC-09.1)
+  router.get(
+    '/solicitudes',
+    requireAuth,
+    requirePermission('rentals:read'),
+    (req, res, next) => ctrl.list(req, res, next),
+  );
+
+  router.get(
+    '/solicitudes/nueva',
+    requireAuth,
+    requirePermission('rentals:register'),
+    (req, res, next) => ctrl.renderNewForm(req, res, next),
+  );
+
+  router.post(
+    '/solicitudes/nueva',
+    requireAuth,
+    requirePermission('rentals:register'),
+    (req, res, next) => ctrl.register(req, res, next),
+  );
 
   // F2.1 — Registrar solicitud (CAR-01, AC-01.x)
   router.post(
@@ -55,6 +82,14 @@ export function createRentalRouter(controller?: RentalController): Router {
     requireAuth,
     requirePermission('rentals:register'),
     (req, res, next) => ctrl.register(req, res, next),
+  );
+
+  // F2.8 — Detalle de solicitud y timeline (CAR-09, AC-09.2 a AC-09.3)
+  router.get(
+    '/solicitudes/:id',
+    requireAuth,
+    requirePermission('rentals:read'),
+    (req, res, next) => ctrl.detail(req, res, next),
   );
 
   // F2.2 — Responder solicitud (CAR-03, AC-03.1, 03.3)

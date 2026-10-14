@@ -1,7 +1,9 @@
 import fs from 'node:fs';
 import type { Request, Response, NextFunction } from 'express';
+import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 import { ValidationError } from '../../../shared/errors.js';
+import { prisma } from '../../../infra/prisma.js';
 import {
   registerRentalSchema,
   respondRentalSchema,
@@ -13,6 +15,7 @@ import {
   resubmitToLegalSchema,
   signAndNumberSchema,
   cancelRentalSchema,
+  listRentalsQuerySchema,
 } from './schemas.js';
 import { RegisterRentalUseCase } from '../application/registerRentalUseCase.js';
 import { RespondRentalUseCase } from '../application/respondRentalUseCase.js';
@@ -27,6 +30,8 @@ import { ReturnLegalUseCase } from '../application/returnLegalUseCase.js';
 import { ResubmitToLegalUseCase } from '../application/resubmitToLegalUseCase.js';
 import { SignAndNumberUseCase } from '../application/signAndNumberUseCase.js';
 import { CancelRentalUseCase } from '../application/cancelRentalUseCase.js';
+import { ListRentalsUseCase } from '../application/listRentalsUseCase.js';
+import { GetRentalDetailUseCase } from '../application/getRentalDetailUseCase.js';
 import { resolveStoragePath } from '../infra/fileStorage.js';
 
 function parseBody<T extends z.ZodTypeAny>(schema: T, data: unknown): z.output<T> {
@@ -53,6 +58,9 @@ export class RentalController {
     private readonly resubmitToLegalUseCase?: ResubmitToLegalUseCase,
     private readonly signAndNumberUseCase?: SignAndNumberUseCase,
     private readonly cancelRentalUseCase?: CancelRentalUseCase,
+    private readonly listRentalsUseCase?: ListRentalsUseCase,
+    private readonly getRentalDetailUseCase?: GetRentalDetailUseCase,
+    private readonly prismaClient: PrismaClient = prisma,
   ) {}
 
   public async register(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -667,6 +675,145 @@ export class RentalController {
         status: result.rentalRequest.status,
         cancelReason: result.rentalRequest.cancelReason,
         previousStatus: result.previousStatus,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public async list(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const user = req.session?.user;
+      if (!user) {
+        res.status(401).json({ error: 'No autenticado' });
+        return;
+      }
+
+      const queryParsed = listRentalsQuerySchema.safeParse(req.query);
+      if (!queryParsed.success) {
+        const errorMessages = queryParsed.error.errors.map((e) => `${e.path.join('.')}: ${e.message}`);
+        throw new ValidationError(errorMessages.join(', '), queryParsed.error.errors);
+      }
+
+      const { status, search, q, spaceId, page, pageSize } = queryParsed.data;
+      const term = search || q;
+
+      const listUseCase = this.listRentalsUseCase ?? new ListRentalsUseCase(this.prismaClient);
+      const result = await listUseCase.execute({
+        status,
+        search: term,
+        spaceId,
+        page,
+        pageSize,
+      });
+
+      const formattedItems = result.items.map((item) => ({
+        ...item,
+        startsAtFormatted: item.startsAt ? new Date(item.startsAt).toLocaleString('es-CO') : '',
+        endsAtFormatted: item.endsAt ? new Date(item.endsAt).toLocaleString('es-CO') : '',
+        createdAtFormatted: item.createdAt ? new Date(item.createdAt).toLocaleString('es-CO') : '',
+        customerName: item.customer?.name,
+        customerDocument: item.customer?.documentNumber,
+        spaceName: item.space?.name,
+        venueName: item.space?.venue?.name,
+      }));
+
+      if (req.accepts('html') && !req.xhr && !req.path.startsWith('/api')) {
+        res.render('pages/solicitudes/index.njk', {
+          requests: formattedItems,
+          query: { q: term, status },
+          pagination: result.pagination,
+          currentUser: user,
+          user,
+        });
+        return;
+      }
+
+      res.status(200).json({
+        items: result.items,
+        pagination: result.pagination,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public async detail(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const user = req.session?.user;
+      if (!user) {
+        res.status(401).json({ error: 'No autenticado' });
+        return;
+      }
+
+      const id = String(req.params.id);
+      const detailUseCase = this.getRentalDetailUseCase ?? new GetRentalDetailUseCase(this.prismaClient);
+      const result = await detailUseCase.execute({
+        rentalRequestId: id,
+        actorRole: user.role,
+      });
+
+      const rental = result.rental;
+      const formattedRental = {
+        ...rental,
+        createdAtFormatted: rental.createdAt ? new Date(rental.createdAt).toLocaleString('es-CO') : '',
+        startsAtFormatted: rental.startsAt ? new Date(rental.startsAt).toLocaleString('es-CO') : '',
+        endsAtFormatted: rental.endsAt ? new Date(rental.endsAt).toLocaleString('es-CO') : '',
+        quotedAmountPesosFormatted: rental.quotedAmountPesos ? rental.quotedAmountPesos.toLocaleString('es-CO') : '0',
+        transitions: rental.stateTransitions.map((t) => ({
+          ...t,
+          occurredAtFormatted: t.occurredAt ? new Date(t.occurredAt).toLocaleString('es-CO') : '',
+          actorName: t.actor?.name,
+          actorRole: t.actor?.role,
+        })),
+      };
+
+      if (req.accepts('html') && !req.xhr && !req.path.startsWith('/api')) {
+        res.render('pages/solicitudes/detalle.njk', {
+          solicitud: formattedRental,
+          rental: formattedRental,
+          allowedTransitions: result.allowedTransitions,
+          currentUser: user,
+          user,
+          csrfToken: (res.locals.csrfToken as string) || '',
+        });
+        return;
+      }
+
+      res.status(200).json({
+        rental: result.rental,
+        allowedTransitions: result.allowedTransitions,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public async renderNewForm(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const user = req.session?.user;
+      if (!user) {
+        res.status(401).json({ error: 'No autenticado' });
+        return;
+      }
+
+      const [venues, spaces] = await Promise.all([
+        this.prismaClient.venue.findMany({ orderBy: { name: 'asc' } }),
+        this.prismaClient.space.findMany({
+          where: { active: true },
+          include: { venue: true },
+          orderBy: { name: 'asc' },
+        }),
+      ]);
+
+      res.render('pages/solicitudes/nueva.njk', {
+        venues,
+        spaces,
+        values: {},
+        errors: {},
+        currentUser: user,
+        user,
+        csrfToken: (res.locals.csrfToken as string) || '',
       });
     } catch (error) {
       next(error);

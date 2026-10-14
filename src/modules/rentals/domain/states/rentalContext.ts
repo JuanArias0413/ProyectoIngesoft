@@ -80,6 +80,10 @@ export class RentalContext implements IRentalContext {
     this.transitions = input.transitions ? [...input.transitions] : [];
   }
 
+  public allowedTransitions(): TransitionName[] {
+    return this.currentState.allowedTransitions();
+  }
+
   public can(transition: TransitionName, actorRole: UserRole): CanTransitionResult {
     return this.currentState.can(transition, actorRole);
   }

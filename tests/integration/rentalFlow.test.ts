@@ -1484,6 +1484,226 @@ describe('SGEC Release 1.0 — Rental Lifecycle & Flow Integration (rentalFlow.t
   });
 
   // =========================================================================
+  // CAR-09: Consulta de estado, listado y detalle con línea de tiempo (AC-09.1 a AC-09.3)
+  // =========================================================================
+  describe('CAR-09: Consulta de estado, listado y detalle con línea de tiempo', () => {
+    it('AC-09.1: listado paginado y con filtros por estado, búsqueda de texto libre y espacio', async () => {
+      const { agent } = await loginAs(app, UserRole.ADMIN_ASSISTANT);
+
+      // Crear 3 solicitudes con estados y datos distintivos
+      const r1 = await createRentalInState(RentalStatus.REGISTERED);
+      await prisma.rentalRequest.update({
+        where: { id: r1.rental.id },
+        data: { eventName: 'Festival de Cine Colombiano' },
+      });
+
+      const r2 = await createRentalInState(RentalStatus.RESPONDED);
+      await prisma.rentalRequest.update({
+        where: { id: r2.rental.id },
+        data: { eventName: 'Concierto Sinfónico Juvenil' },
+      });
+      await prisma.customer.update({
+        where: { id: r2.rental.customerId },
+        data: { name: 'Carlos Mario Restrepo', documentNumber: '99887766' },
+      });
+
+      const r3 = await createRentalInState(RentalStatus.LEGALIZED);
+      await prisma.rentalRequest.update({
+        where: { id: r3.rental.id },
+        data: { eventName: 'Conferencia Magistral TIC' },
+      });
+
+      // 1. Listado completo
+      const resAll = await agent
+        .get('/solicitudes')
+        .set('Accept', 'application/json');
+      expect(resAll.status).toBe(200);
+      expect(resAll.body.items).toHaveLength(3);
+      expect(resAll.body.pagination.totalItems).toBe(3);
+
+      // 2. Filtro por estado RESPONDED
+      const resResponded = await agent
+        .get('/solicitudes?status=RESPONDED')
+        .set('Accept', 'application/json');
+      expect(resResponded.status).toBe(200);
+      expect(resResponded.body.items).toHaveLength(1);
+      expect(resResponded.body.items[0].id).toBe(r2.rental.id);
+
+      // 3. Búsqueda por nombre de cliente (Carlos)
+      const resSearchCustomer = await agent
+        .get('/solicitudes?q=Carlos')
+        .set('Accept', 'application/json');
+      expect(resSearchCustomer.status).toBe(200);
+      expect(resSearchCustomer.body.items).toHaveLength(1);
+      expect(resSearchCustomer.body.items[0].id).toBe(r2.rental.id);
+
+      // 4. Búsqueda por evento (Festival)
+      const resSearchEvent = await agent
+        .get('/solicitudes?q=Festival')
+        .set('Accept', 'application/json');
+      expect(resSearchEvent.status).toBe(200);
+      expect(resSearchEvent.body.items).toHaveLength(1);
+      expect(resSearchEvent.body.items[0].id).toBe(r1.rental.id);
+
+      // 5. Búsqueda por número de contrato oficial
+      const contractNum = r3.contract!.number;
+      const resSearchContract = await agent
+        .get(`/solicitudes?q=${contractNum}`)
+        .set('Accept', 'application/json');
+      expect(resSearchContract.status).toBe(200);
+      expect(resSearchContract.body.items).toHaveLength(1);
+      expect(resSearchContract.body.items[0].id).toBe(r3.rental.id);
+
+      // 6. Paginación (pageSize = 2)
+      const resPage1 = await agent
+        .get('/solicitudes?page=1&pageSize=2')
+        .set('Accept', 'application/json');
+      expect(resPage1.status).toBe(200);
+      expect(resPage1.body.items).toHaveLength(2);
+      expect(resPage1.body.pagination.page).toBe(1);
+      expect(resPage1.body.pagination.pageSize).toBe(2);
+      expect(resPage1.body.pagination.totalItems).toBe(3);
+      expect(resPage1.body.pagination.totalPages).toBe(2);
+      expect(resPage1.body.pagination.hasNext).toBe(true);
+
+      const resPage2 = await agent
+        .get('/solicitudes?page=2&pageSize=2')
+        .set('Accept', 'application/json');
+      expect(resPage2.status).toBe(200);
+      expect(resPage2.body.items).toHaveLength(1);
+      expect(resPage2.body.pagination.hasNext).toBe(false);
+
+      // 7. Render HTML del listado
+      const resHtml = await agent
+        .get('/solicitudes')
+        .set('Accept', 'text/html');
+      expect(resHtml.status).toBe(200);
+      expect(resHtml.text).toContain('Solicitudes de Alquiler de Escenarios');
+      expect(resHtml.text).toContain('Festival de Cine Colombiano');
+
+      // 8. Render HTML del formulario de nueva solicitud
+      const resNewForm = await agent
+        .get('/solicitudes/nueva')
+        .set('Accept', 'text/html');
+      expect(resNewForm.status).toBe(200);
+      expect(resNewForm.text).toContain('Registrar Nueva Solicitud de Alquiler');
+    });
+
+    it('AC-09.2: detalle de solicitud con línea de tiempo completa, documentos, pago y revisiones', async () => {
+      const { agent } = await loginAs(app, UserRole.ADMIN_ASSISTANT);
+
+      // Crear solicitud en estado PAID para verificar relaciones ricas
+      const { rental } = await createRentalInState(RentalStatus.PAID);
+
+      const res = await agent
+        .get(`/solicitudes/${rental.id}`)
+        .set('Accept', 'application/json');
+
+      expect(res.status).toBe(200);
+      const data = res.body.rental;
+      expect(data.id).toBe(rental.id);
+      expect(data.status).toBe(RentalStatus.PAID);
+      expect(data.customer).toBeDefined();
+      expect(data.space).toBeDefined();
+      expect(data.space.venue).toBeDefined();
+      expect(data.contract).toBeDefined();
+      expect(data.payment).toBeDefined();
+      expect(data.payment.invoiceNumber).toBeDefined();
+      expect(data.requestDocuments.length).toBeGreaterThan(0);
+      expect(data.stateTransitions.length).toBeGreaterThan(0);
+
+      // Verificar que cada transición tiene actor y marca temporal
+      for (const t of data.stateTransitions) {
+        expect(t.transition).toBeDefined();
+        expect(t.actor).toBeDefined();
+        expect(t.actor.name).toBeDefined();
+        expect(t.occurredAt).toBeDefined();
+      }
+
+      // Render HTML del detalle
+      const resHtml = await agent
+        .get(`/solicitudes/${rental.id}`)
+        .set('Accept', 'text/html');
+      expect(resHtml.status).toBe(200);
+      expect(resHtml.text).toContain('Flujo del trámite');
+      expect(resHtml.text).toContain(rental.eventName);
+
+      // Solicitud inexistente retorna 404
+      const resNotFound = await agent
+        .get('/solicitudes/00000000-0000-0000-0000-000000000000')
+        .set('Accept', 'application/json');
+      expect(resNotFound.status).toBe(404);
+    });
+
+    it('AC-09.3: allowedTransitions muestra estrictamente las acciones que el rol actual puede ejecutar', async () => {
+      // 1. Solicitud en REGISTERED
+      const sReg = await createRentalInState(RentalStatus.REGISTERED);
+
+      // Auxiliar en REGISTERED -> puede responder y cancelar
+      const { agent: auxAgent } = await loginAs(app, UserRole.ADMIN_ASSISTANT);
+      const resAuxReg = await auxAgent
+        .get(`/solicitudes/${sReg.rental.id}`)
+        .set('Accept', 'application/json');
+      expect(resAuxReg.status).toBe(200);
+      expect(resAuxReg.body.allowedTransitions).toContain('respond');
+      expect(resAuxReg.body.allowedTransitions).toContain('cancel');
+
+      // Jefe en REGISTERED -> solo cancelar
+      const { agent: headAgent } = await loginAs(app, UserRole.OFFICE_HEAD);
+      const resHeadReg = await headAgent
+        .get(`/solicitudes/${sReg.rental.id}`)
+        .set('Accept', 'application/json');
+      expect(resHeadReg.status).toBe(200);
+      expect(resHeadReg.body.allowedTransitions).toEqual(['cancel']);
+
+      // Jurídica en REGISTERED -> ninguna acción permitida
+      const { agent: legalAgent } = await loginAs(app, UserRole.LEGAL);
+      const resLegalReg = await legalAgent
+        .get(`/solicitudes/${sReg.rental.id}`)
+        .set('Accept', 'application/json');
+      expect(resLegalReg.status).toBe(200);
+      expect(resLegalReg.body.allowedTransitions).toEqual([]);
+
+      // 2. Solicitud en LEGAL_REVIEW
+      const sLegal = await createRentalInState(RentalStatus.LEGAL_REVIEW);
+
+      // Jurídica en LEGAL_REVIEW -> approveLegal y returnLegal
+      const resLegalReview = await legalAgent
+        .get(`/solicitudes/${sLegal.rental.id}`)
+        .set('Accept', 'application/json');
+      expect(resLegalReview.status).toBe(200);
+      expect(resLegalReview.body.allowedTransitions).toContain('approveLegal');
+      expect(resLegalReview.body.allowedTransitions).toContain('returnLegal');
+      expect(resLegalReview.body.allowedTransitions).not.toContain('cancel');
+
+      // Auxiliar en LEGAL_REVIEW -> solo cancelar
+      const resAuxLegal = await auxAgent
+        .get(`/solicitudes/${sLegal.rental.id}`)
+        .set('Accept', 'application/json');
+      expect(resAuxLegal.status).toBe(200);
+      expect(resAuxLegal.body.allowedTransitions).toEqual(['cancel']);
+
+      // 3. Solicitud en PENDING_SIGNATURE
+      const sPending = await createRentalInState(RentalStatus.PENDING_SIGNATURE);
+
+      // Secretario en PENDING_SIGNATURE -> signAndNumber
+      const { agent: secAgent } = await loginAs(app, UserRole.SECRETARY);
+      const resSecPending = await secAgent
+        .get(`/solicitudes/${sPending.rental.id}`)
+        .set('Accept', 'application/json');
+      expect(resSecPending.status).toBe(200);
+      expect(resSecPending.body.allowedTransitions).toEqual(['signAndNumber']);
+
+      // Jurídica en PENDING_SIGNATURE -> ninguna acción
+      const resLegalPending = await legalAgent
+        .get(`/solicitudes/${sPending.rental.id}`)
+        .set('Accept', 'application/json');
+      expect(resLegalPending.status).toBe(200);
+      expect(resLegalPending.body.allowedTransitions).toEqual([]);
+    });
+  });
+
+  // =========================================================================
   // CAR-19: Roles, Autorización y Seguridad (AC-19.1 a AC-19.3)
   // =========================================================================
   describe('CAR-19: Roles y Seguridad en el Servidor', () => {

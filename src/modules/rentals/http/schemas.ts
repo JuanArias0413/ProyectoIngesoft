@@ -93,6 +93,7 @@ export const listRentalsQuerySchema = z.object({
     ])
     .optional(),
   search: z.string().optional(),
+  q: z.string().optional(),
   spaceId: z.string().optional(),
   page: z.coerce.number().int().positive().optional().default(1),
   pageSize: z.coerce.number().int().positive().optional().default(20),
