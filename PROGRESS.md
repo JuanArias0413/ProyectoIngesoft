@@ -3,11 +3,11 @@
 Bitácora viva. Solo se **agrega** al final de cada sección; no se reescribe el historial.
 
 ## Estado actual
-- **Fase en curso:** Fase 1 (Dominio núcleo)
-- **Última tarea completada:** F1.4
-- **Último commit verde:** pendiente (F1.4)
+- **Fase en curso:** Fase 1 (Dominio núcleo) completada · Lista para Fase 2
+- **Última tarea completada:** G1 (Compuerta Fase 1)
+- **Último commit verde:** a03fdc1
 - **Resultado de pruebas:** 679 pruebas pasadas (13 archivos)
-- **Siguiente tarea:** G1 (Compuerta Fase 1)
+- **Siguiente tarea:** F2.1
 
 ## Bitácora (una línea por tarea terminada)
 `AAAA-MM-DD HH:MM · Fx.y · agente · resumen · hash del commit`
@@ -21,7 +21,7 @@ Bitácora viva. Solo se **agrega** al final de cada sección; no se reescribe el
 2026-10-13 23:05 · F1.1 · orquestador · Catálogo con entidades de dominio, repositorios y seed completo §13 · 6579870
 2026-10-13 23:10 · F1.2 · orquestador · Estrategia de precios (HourlyPricing, DailyPricing) y utilidad amountToWords con pruebas unitarias · 2a0c816
 2026-10-13 23:14 · F1.3 · orquestador · Repositorio de reservas, servicio de disponibilidad (semiabierto A-05) y traducción de 23P01 a ConflictError · bf50bd8
-2026-10-13 23:22 · F1.4 · orquestador · Máquina de estados (patrón State), 10 estados, tabla exhaustiva de 618 pruebas y ARCHITECTURE.md · TBD
+2026-10-13 23:22 · F1.4 · orquestador · Máquina de estados (patrón State), 10 estados, tabla exhaustiva de 618 pruebas y ARCHITECTURE.md · a03fdc1
 
 ## Compuertas
 ### Compuerta G0 · 2026-10-13 23:03
@@ -33,6 +33,24 @@ Bitácora viva. Solo se **agrega** al final de cada sección; no se reescribe el
 - **Arranque real:** Servidor levanta en :3000, `GET /health` responde 200 `{ status: "ok" }`.
 - **Autenticación:** Sesiones activas en PostgreSQL con tabla `session`, cookies httpOnly y sameSite, rate limiting y CSRF activo. Los 6 roles de usuario del SPEC §8/§13 verificados con contraseña `Cambiar123!`.
 - **Hallazgos:** Ninguno. Procediendo a Fase 1.
+
+### Compuerta G1 · 2026-10-13 23:25
+- **Estado:** PASÓ (Verde)
+- **Verificaciones automáticas:**
+  - `npm run lint`: 0 errores, 0 advertencias
+  - `npm run typecheck`: 0 errores
+  - `npm test`: 679 pruebas pasadas en 13 archivos
+  - Cobertura de la máquina de estados (`src/modules/rentals/domain/states`): 98.67% sentencias, 100% funciones, 618 pruebas unitarias table-driven que cubren el 100% de combinaciones (10 estados × 10 transiciones × 6 roles).
+- **Pureza arquitectónica:**
+  - `src/modules/*/domain`: 0 imports de Express, Prisma, Nunjucks, `fs`. Modelo 100% puro en memoria.
+  - La mutación de `status` está encapsulada estrictamente en `RentalContext.transition()`.
+  - 0 usos de `any`, 0 `console.log`, 0 `TODO`, 0 pruebas omitidas (`.skip` o `.only`).
+- **Contratos congelados:**
+  - `RentalContext` y su método `transition(transition, role, payload, actorId)` (D-08).
+  - Estrategias de precios `PricingStrategy` (`HourlyPricing`, `DailyPricing`) y `amountToWords` (D-06).
+  - Servicios de agenda `AvailabilityService` e interfaz `ReservationRepository` con manejo de `23P01` (D-07).
+  - Documentación arquitectónica consolidada en `docs/ARCHITECTURE.md`.
+- **Hallazgos:** Ninguno. Dominio núcleo cerrado con éxito. Listo para abordar Fase 2.
 
 ## Peticiones entre agentes
 `de → para · petición · estado (abierta/hecha)`
