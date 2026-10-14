@@ -1,3 +1,8 @@
+---
+name: resume
+description: Retomar el trabajo en el Release 1.0 de SGEC tras una interrupción, fallo o pérdida de contexto.
+---
+
 # /resume — Retomar tras una interrupción
 
 Úsalo cuando el trabajo se detuvo (cuota agotada, error, reinicio, contexto perdido).

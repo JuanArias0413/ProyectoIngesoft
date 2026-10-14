@@ -40,7 +40,7 @@ En el Agent Manager, con el workspace seleccionado, abre una conversación nueva
 
 Si tu versión no reconoce el workflow, pega este prompt:
 
-> Lee AGENTS.md, SPEC.md y PLAN.md y ejecuta el workflow .agent/workflows/build-project.md de principio a fin. Trabaja de forma autónoma y continua: no te detengas al terminar una tarea ni una fase, no me hagas preguntas, y sigue las reglas de .agent/rules/. Delega en agentes por carpeta como indica el PLAN, verifica cada fase con /verify-release y avanza hasta completar la Fase 6. Solo detente cuando el proyecto esté terminado o haya un bloqueo real registrado en BLOCKERS.md.
+> Lee AGENTS.md, SPEC.md y PLAN.md y ejecuta el workflow .agents/skills/build-project/SKILL.md de principio a fin. Trabaja de forma autónoma y continua: no te detengas al terminar una tarea ni una fase, no me hagas preguntas, y sigue las reglas de .agent/rules/. Delega en agentes por carpeta como indica el PLAN, verifica cada fase con /verify-release y avanza hasta completar la Fase 6. Solo detente cuando el proyecto esté terminado o haya un bloqueo real registrado en BLOCKERS.md.
 
 **Recomendación:** déjalo correr los primeros 10–15 minutos mirándolo. Si Fase 0 compila, arranca y el login funciona, ya puedes dejarlo solo.
 
@@ -54,7 +54,7 @@ Los agentes pueden detenerse por cuota del modelo, errores de herramientas o con
 
 o pega:
 
-> Ejecuta .agent/workflows/resume.md: relee PROGRESS.md, PLAN.md, DECISIONS.md y BLOCKERS.md, revisa git status, y continúa con la primera tarea pendiente sin preguntarme nada.
+> Ejecuta .agents/skills/resume/SKILL.md: relee PROGRESS.md, PLAN.md, DECISIONS.md y BLOCKERS.md, revisa git status, y continúa con la primera tarea pendiente sin preguntarme nada.
 
 ## 5. Qué mirar cuando vuelvas
 

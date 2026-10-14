@@ -1,3 +1,8 @@
+---
+name: build-project
+description: Orquestar y construir el Release 1.0 de SGEC de principio a fin de forma autónoma.
+---
+
 # /build-project — Construir el Release 1.0 de SGEC de principio a fin
 
 Lanza este workflow una sola vez. Orquesta el proyecto completo sin intervención humana.

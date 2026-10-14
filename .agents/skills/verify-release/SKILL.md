@@ -1,3 +1,8 @@
+---
+name: verify-release
+description: Compuerta de calidad y verificación integral para el cierre de fase y final del Release 1.0 de SGEC.
+---
+
 # /verify-release — Compuerta de calidad
 
 Ejecútala al cerrar cada fase y al final. **Quien la ejecuta no debe ser el agente que escribió el código evaluado** (si hay un solo agente, vuelve a leer el código como revisor y sé estricto).
