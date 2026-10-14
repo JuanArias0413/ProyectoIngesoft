@@ -33,3 +33,10 @@ Formato: `D-nn · fecha · contexto · decisión · alternativas · consecuencia
 - **Alternativas:** cálculo de días por calendario local (castigaría con doble día un evento de 8 horas que termine a las 2 AM); usar librerías externas de números a letras (introducen dependencias innecesarias con acentos o formatos no colombianos).
 - **Consecuencias:** cálculo exacto, predecible y testeable sin dependencias de base de datos ni de red.
 
+## D-07 · 2026-10-13 · Detección de solapamiento y traducción de 23P01 en Agenda
+- **Contexto:** dos reservas activas no pueden solaparse en el mismo espacio (A-05). La restricción de exclusión en Postgres (`reservation_no_overlap`) protege la base de datos contra condiciones de carrera.
+- **Decisión:** `PrismaReservationRepository` y `AvailabilityService` operan sobre el rango semiabierto `[startsAt, endsAt)` mediante `startsAt < queryEnd AND endsAt > queryStart` filtrando únicamente estados activos (`HELD`, `CONFIRMED`), permitiendo franjas contiguas e ignorando reservas `RELEASED`. El repositorio inspecciona errores de base de datos capturando el código PostgreSQL `23P01`, `P2002` o menciones a la restricción de exclusión para transformarlos en `ConflictError` (HTTP 409). Se fijó `fileParallelism: false` en Vitest para aislar suites de integración sobre `sgec_test`.
+- **Alternativas:** depender únicamente de validación en aplicación (vulnerable a concurrencia); bloqueos de tabla pesados.
+- **Consecuencias:** garantiza el objetivo ON-3 sin condiciones de carrera y con mensajes amigables para el usuario.
+
+
