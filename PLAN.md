@@ -28,7 +28,7 @@ Reglas de paralelismo: las fases 0 y 1 las hace **solo el orquestador**, en orde
   *Listo cuando:* `psql "$DATABASE_URL" -c 'select 1'` funciona.
 - [x] **F0.4** App Express 5: `app.ts`/`server.ts`, logger pino con id de petición, `helmet`, manejo central de errores (errores tipados `DomainError`, `ValidationError`, `ForbiddenError`, `NotFoundError`, `ConflictError`, `InvalidTransitionError`), páginas 403/404/500, `GET /health`, Nunjucks con layout base, vendor htmx y Pico.css en `public/vendor`.
   *Listo cuando:* `npm run dev` levanta en :3000 y `/health` responde 200.
-- [ ] **F0.5** Prisma: `schema.prisma` completo del §6, migración inicial, migración SQL manual (btree_gist + exclusión + tabla `session`), cliente en `infra/prisma.ts`, extensión/helper de auditoría (`createdById/updatedById`).
+- [x] **F0.5** Prisma: `schema.prisma` completo del §6, migración inicial, migración SQL manual (btree_gist + exclusión + tabla `session`), cliente en `infra/prisma.ts`, extensión/helper de auditoría (`createdById/updatedById`).
   *Listo cuando:* `npm run db:migrate` aplica limpio en `sgec_dev` y `sgec_test`.
 - [ ] **F0.6** Auth + RBAC: login/logout con sesiones en Postgres, bcryptjs, CSRF, rate limit, `permissions.ts` (mapa del §8), middlewares `requireAuth` y `requirePermission`.
   *Listo cuando:* prueba de integración: login correcto/incorrecto, acceso sin sesión → redirige, rol sin permiso → 403.
