@@ -20,7 +20,7 @@ Reglas de paralelismo: las fases 0 y 1 las hace **solo el orquestador**, en orde
 
 ## Fase 0 — Base técnica (orquestador, secuencial)
 
-- [ ] **F0.1** Clonar/usar el repo `https://github.com/JuanArias0413/ProyectoIngesoft`; crear rama `release/1.0`; copiar `SPEC.md`, `PLAN.md`, `docs/`, `.agent/` si no existen; `.gitignore` (node_modules, dist, .env, storage, coverage, playwright-report). 
+- [x] **F0.1** Clonar/usar el repo `https://github.com/JuanArias0413/ProyectoIngesoft`; crear rama `release/1.0`; copiar `SPEC.md`, `PLAN.md`, `docs/`, `.agent/` si no existen; `.gitignore` (node_modules, dist, .env, storage, coverage, playwright-report). 
   *Listo cuando:* repo con primer commit `chore: bootstrap project`.
 - [ ] **F0.2** Inicializar proyecto: `.node-version` (22), `package.json` con scripts del §4, TypeScript estricto, ESLint (flat) + Prettier, Vitest, `tsx`. Instalar dependencias del §4.
   *Listo cuando:* `npm run lint`, `typecheck` y `test` (con una prueba trivial) pasan.
