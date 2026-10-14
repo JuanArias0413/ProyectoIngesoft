@@ -4,10 +4,10 @@ Bitácora viva. Solo se **agrega** al final de cada sección; no se reescribe el
 
 ## Estado actual
 - **Fase en curso:** Fase 0
-- **Última tarea completada:** F0.5
-- **Último commit verde:** 7284a21
-- **Resultado de pruebas:** 9 pruebas pasadas (4 archivos)
-- **Siguiente tarea:** F0.6
+- **Última tarea completada:** F0.6
+- **Último commit verde:** 56f3f99
+- **Resultado de pruebas:** 21 pruebas pasadas (7 archivos)
+- **Siguiente tarea:** F0.7
 
 ## Bitácora (una línea por tarea terminada)
 `AAAA-MM-DD HH:MM · Fx.y · agente · resumen · hash del commit`
@@ -16,6 +16,7 @@ Bitácora viva. Solo se **agrega** al final de cada sección; no se reescribe el
 2026-10-13 22:53 · F0.3 · orquestador · Validación de variables de entorno con Zod y gestión de bases de datos · 35c10c8
 2026-10-13 22:55 · F0.4 · orquestador · App Express 5, logger pino, helmet, Nunjucks, errores tipados y /health · 6e1bd63
 2026-10-13 22:58 · F0.5 · orquestador · Schema Prisma completo, migración btree_gist, tabla session y helper auditoría · 7284a21
+2026-10-13 23:02 · F0.6 · orquestador · Auth y RBAC con sesiones postgres, bcryptjs, CSRF, rate limit y middlewares · 56f3f99
 
 ## Compuertas
 (Aquí se anotan los informes de `/verify-release`: fecha, resultados reales, hallazgos, tareas creadas.)
