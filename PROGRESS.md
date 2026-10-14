@@ -4,13 +4,14 @@ Bitácora viva. Solo se **agrega** al final de cada sección; no se reescribe el
 
 ## Estado actual
 - **Fase en curso:** Fase 3 (Integración y pulido)
-- **Última tarea completada:** F3.1 (Integración, contenedor y costuras)
-- **Último commit verde:** c768d67
+- **Última tarea completada:** F3.2 (Responsive 360px, foco visible, accesibilidad)
+- **Último commit verde:** e668625
 - **Resultado de pruebas:** 780 pruebas pasadas (19 archivos)
-- **Siguiente tarea:** F3.2
+- **Siguiente tarea:** F3.3
 
 ## Bitácora (una línea por tarea terminada)
 `AAAA-MM-DD HH:MM · Fx.y · agente · resumen · hash del commit`
+2026-10-14 01:00 · F3.2 · ui · Reglas responsivas 360px, anillo de foco dual contrastado, accesibilidad en formularios e insignias con texto · e668625
 2026-10-13 22:50 · F0.1 · orquestador · Verificación de repositorio, rama release/1.0 y .gitignore · 532dab1
 2026-10-13 22:51 · F0.2 · orquestador · Inicialización de proyecto con scripts, TS estricto, ESLint, Prettier y Vitest · 41f26c1
 2026-10-13 22:53 · F0.3 · orquestador · Validación de variables de entorno con Zod y gestión de bases de datos · 35c10c8
