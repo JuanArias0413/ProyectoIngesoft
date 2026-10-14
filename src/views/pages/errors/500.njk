@@ -1,0 +1,26 @@
+{% extends "layouts/base.njk" %}
+
+{% block content %}
+<div style="display: flex; justify-content: center; align-items: center; min-height: 50vh;">
+  <article class="card" style="max-width: 600px; width: 100%; text-align: center; padding: 2.5rem 2rem;">
+    <div style="font-size: 3rem; color: #c92a2a; margin-bottom: 0.5rem;" aria-hidden="true">&#9888;</div>
+    <h1 style="color: #c92a2a; font-size: 1.75rem; margin-bottom: 0.5rem;">500 · Error Interno del Servidor</h1>
+    <p style="font-size: 1.05rem; color: var(--sgec-text); margin-bottom: 1rem;">
+      {{ message | default("Ocurrió un error inesperado al procesar la solicitud.") }}
+    </p>
+    {% if reqId %}
+      <p style="font-size: 0.85rem; color: var(--sgec-text-muted); margin-bottom: 1.5rem;">
+        ID de seguimiento: <code style="background: #f1f5f9; padding: 0.2rem 0.4rem; border-radius: 4px;">{{ reqId }}</code>
+      </p>
+    {% endif %}
+    <p style="font-size: 0.875rem; color: var(--sgec-text-muted); margin-bottom: 2rem;">
+      El incidente ha sido registrado en los registros del sistema. Si el error persiste, comuníquelo al área de soporte técnico.
+    </p>
+    <div>
+      <a href="/" role="button" class="primary" style="padding: 0.65rem 1.5rem; text-decoration: none;">
+        Volver al Inicio
+      </a>
+    </div>
+  </article>
+</div>
+{% endblock %}

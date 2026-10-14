@@ -1,0 +1,128 @@
+{% extends "layouts/base.njk" %}
+{% from "partials/badge.njk" import renderBadge %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--sgec-border-light); padding-bottom: 1rem;">
+  <div>
+    <h1 style="color: var(--sgec-primary); font-size: 1.75rem; margin-bottom: 0.25rem;">
+      Agenda de Escenarios Culturales
+    </h1>
+    <p style="color: var(--sgec-text-muted); margin: 0; font-size: 0.95rem;">
+      Programación y reservas activas para los próximos 30 días · Modo solo lectura (AC-02.4).
+    </p>
+  </div>
+
+  <div style="display: flex; gap: 0.5rem; align-items: center;">
+    <span class="badge" style="background: #e7f5ff; color: #1864ab; border-color: #a5d8ff;">
+      <span class="badge-dot" style="background: #228be6;"></span>
+      <span>Provisional (HELD)</span>
+    </span>
+    <span class="badge" style="background: #d3f9d8; color: #237804; border-color: #8ce99a;">
+      <span class="badge-dot" style="background: #389e0d;"></span>
+      <span>Confirmada (CONFIRMED)</span>
+    </span>
+  </div>
+</div>
+
+{# Selector / Filtro por Escenario #}
+<div class="card" style="padding: 1.25rem; margin-bottom: 1.5rem;">
+  <form action="/agenda" method="GET" style="margin: 0;">
+    <div class="responsive-grid responsive-grid-3" style="align-items: flex-end;">
+      <div class="form-group" style="margin-bottom: 0;">
+        <label for="venueFilter">Filtrar por Escenario</label>
+        <select id="venueFilter" name="venueId" onchange="this.form.submit()">
+          <option value="">-- Todos los escenarios --</option>
+          {% for v in venues %}
+            <option value="{{ v.id }}" {% if selectedVenueId == v.id %}selected{% endif %}>{{ v.name }}</option>
+          {% else %}
+            <option value="lucy-tejada" {% if selectedVenueId == 'lucy-tejada' %}selected{% endif %}>Centro Cultural Lucy Tejada</option>
+            <option value="santiago-londono" {% if selectedVenueId == 'santiago-londono' %}selected{% endif %}>Teatro Municipal Santiago Londoño</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 0;">
+        <label for="startDate">A partir de</label>
+        <input type="date" id="startDate" name="from" value="{{ fromDate | default('') }}">
+      </div>
+
+      <div style="display: flex; gap: 0.5rem;">
+        <button type="submit" class="primary" style="margin: 0; width: 100%;">Actualizar Vista</button>
+        {% if selectedVenueId or fromDate %}
+          <a href="/agenda" role="button" class="outline secondary" style="margin: 0;">Limpiar</a>
+        {% endif %}
+      </div>
+    </div>
+  </form>
+</div>
+
+{# Lista de Reservas Agrupadas por Escenario o Día #}
+{% if reservations and reservations.length > 0 %}
+  {# Agrupación o listado estructurado #}
+  <div class="table-responsive">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col" style="width: 20%;">Escenario / Espacio</th>
+          <th scope="col" style="width: 22%;">Fecha y Franja Horaria</th>
+          <th scope="col" style="width: 24%;">Evento</th>
+          <th scope="col" style="width: 18%;">Solicitante / Cliente</th>
+          <th scope="col" style="width: 16%;">Estado de Reserva</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in reservations %}
+          <tr>
+            <td>
+              <div style="font-weight: 700; color: var(--sgec-primary);">
+                {{ r.space.venue.name | default(r.venueName) }}
+              </div>
+              <small style="color: var(--sgec-text-muted);">{{ r.space.name | default(r.spaceName) }}</small>
+            </td>
+            <td>
+              <div><strong>{{ r.startsAtFormatted | default(r.startsAt) }}</strong></div>
+              <small style="color: var(--sgec-text-muted);">hasta {{ r.endsAtFormatted | default(r.endsAt) }}</small>
+            </td>
+            <td>
+              <div>{{ r.rentalRequest.eventName | default(r.eventName | default("Actividad reservada")) }}</div>
+              {% if r.rentalRequest and r.rentalRequest.purpose %}
+                <small style="color: var(--sgec-text-muted);">
+                  {% if r.rentalRequest.purpose == 'LUCRATIVE' %}Lucrativo{% else %}Sin ánimo de lucro{% endif %}
+                </small>
+              {% endif %}
+            </td>
+            <td>
+              <div>{{ r.rentalRequest.customer.name | default(r.customerName | default("Personal interno")) }}</div>
+            </td>
+            <td>
+              {{ renderBadge(r.status) }}
+              {% if r.rentalRequest %}
+                <div style="margin-top: 0.25rem;">
+                  <a href="/solicitudes/{{ r.rentalRequestId }}" style="font-size: 0.75rem; text-decoration: none;">
+                    Ver solicitud &rarr;
+                  </a>
+                </div>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+  {# Estado vacío #}
+  <div class="card" style="text-align: center; padding: 3rem 1rem;">
+    <div style="font-size: 2.5rem; color: #40c057; margin-bottom: 0.5rem;" aria-hidden="true">&#128197;</div>
+    <h3 style="color: var(--sgec-primary); margin-bottom: 0.5rem;">No hay reservas programadas en este período</h3>
+    <p style="color: var(--sgec-text-muted); max-width: 480px; margin: 0 auto; font-size: 0.95rem;">
+      Todos los espacios se encuentran completamente disponibles para nuevas solicitudes durante los próximos 30 días.
+    </p>
+  </div>
+{% endif %}
+
+{# Nota de política de reserva (A-05, AC-02.3) #}
+<div class="card" style="background: #f8fafc; border-left: 4px solid var(--sgec-primary); font-size: 0.85rem; color: var(--sgec-text-muted);">
+  <strong>Criterios de disponibilidad técnica (A-05):</strong>
+  Las reservas operan en rango semiabierto <code>[inicio, fin)</code>. Dos reservas pueden ser exactamente contiguas (ej. terminar a las 14:00 y empezar a las 14:00). Las reservas en estado <code>RELEASED</code> (canceladas) se liberan automáticamente y no bloquean franjas.
+</div>
+{% endblock %}

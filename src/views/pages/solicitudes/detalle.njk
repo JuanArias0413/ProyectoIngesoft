@@ -1,0 +1,757 @@
+{% extends "layouts/base.njk" %}
+{% from "partials/badge.njk" import renderBadge %}
+
+{% block content %}
+{% set activeUser = currentUser | default(user) %}
+{% set s = solicitud | default(rental) %}
+
+{# Migas de pan #}
+<nav aria-label="Miga de pan" style="margin-bottom: 0.75rem; font-size: 0.85rem;" class="no-print">
+  <a href="/solicitudes" style="color: var(--sgec-text-muted); text-decoration: none;">&larr; Volver al listado de solicitudes</a>
+</nav>
+
+{# =========================================================================
+   ENCABEZADO DE LA SOLICITUD
+   ========================================================================= #}
+<div class="card" style="margin-bottom: 1.5rem; border-top: 4px solid var(--sgec-primary);">
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
+    <div>
+      <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 0.5rem;">
+        <h1 style="font-size: 1.65rem; color: var(--sgec-primary); margin: 0;">
+          Solicitud {{ s.requestRadicado | default(s.id | truncate(12)) }}
+        </h1>
+        {{ renderBadge(s.status, true) }}
+      </div>
+
+      {% if s.contract and s.contract.number %}
+        <div style="font-size: 1.1rem; color: #237804; font-weight: 700; margin-bottom: 0.5rem;">
+          Contrato de Arrendamiento: {{ s.contract.number }}
+        </div>
+      {% endif %}
+
+      <div style="font-size: 0.9rem; color: var(--sgec-text-muted);">
+        Registrada el {{ s.createdAtFormatted | default(s.createdAt) }}
+        {% if s.channel %} · Canal de recepción: <strong>{{ s.channel }}</strong>{% endif %}
+      </div>
+    </div>
+
+    {# Acciones principales superiores (Imprimir, etc.) #}
+    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;" class="no-print">
+      {% if s.status not in ['LEGALIZED', 'CANCELLED'] %}
+        {% if activeUser.role in ['ADMIN_ASSISTANT', 'OFFICE_HEAD'] %}
+          <button type="button" class="outline secondary" onclick="document.getElementById('dialog-cancelar').showModal()" style="padding: 0.4rem 0.85rem; font-size: 0.85rem; color: #c92a2a; border-color: #ffc9c9; margin: 0;">
+            Cancelar Trámite
+          </button>
+        {% endif %}
+      {% endif %}
+    </div>
+  </div>
+
+  {# Cuadrícula de Datos Clave #}
+  <div class="responsive-grid responsive-grid-4" style="background-color: #f8fafc; padding: 1rem; border-radius: 6px; border: 1px solid var(--sgec-border-light);">
+    <div>
+      <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--sgec-text-muted); font-weight: 700;">Arrendatario / Cliente</span>
+      <div style="font-weight: 600; font-size: 0.95rem;">{{ s.customer.name }}</div>
+      <small style="color: var(--sgec-text-muted);">
+        {{ s.customer.documentType }} {{ s.customer.documentNumber }}
+        {% if s.customer.legalRepresentative %}<br>Rep. Legal: {{ s.customer.legalRepresentative }}{% endif %}
+      </small>
+    </div>
+
+    <div>
+      <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--sgec-text-muted); font-weight: 700;">Evento y Propósito</span>
+      <div style="font-weight: 600; font-size: 0.95rem;">{{ s.eventName }}</div>
+      <small style="color: var(--sgec-text-muted);">
+        {% if s.purpose == 'LUCRATIVE' %}Lucrativo (Comercial){% else %}Sin ánimo de lucro (Cultural){% endif %}
+        · Aforo: {{ s.expectedAttendees }}
+      </small>
+    </div>
+
+    <div>
+      <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--sgec-text-muted); font-weight: 700;">Espacio y Escenario</span>
+      <div style="font-weight: 600; font-size: 0.95rem;">{{ s.space.name }}</div>
+      <small style="color: var(--sgec-text-muted);">{{ s.space.venue.name | default("") }}</small>
+    </div>
+
+    <div>
+      <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--sgec-text-muted); font-weight: 700;">Franja de Alquiler</span>
+      <div style="font-weight: 600; font-size: 0.9rem;">{{ s.startsAtFormatted | default(s.startsAt) }}</div>
+      <small style="color: var(--sgec-text-muted);">hasta {{ s.endsAtFormatted | default(s.endsAt) }}</small>
+    </div>
+  </div>
+
+  {% if s.quotedAmountPesos %}
+    <div style="margin-top: 1rem; padding-top: 0.75rem; border-top: 1px dashed var(--sgec-border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+      <div>
+        <span style="font-size: 0.85rem; color: var(--sgec-text-muted);">Valor cotizado congelado (A-08):</span>
+        <strong style="font-size: 1.15rem; color: var(--sgec-primary); margin-left: 0.5rem;">${{ s.quotedAmountPesosFormatted | default(s.quotedAmountPesos) }} COP</strong>
+        {% if s.quotedAmountWords %}
+          <small style="color: var(--sgec-text-muted); display: block;">({{ s.quotedAmountWords }})</small>
+        {% endif %}
+      </div>
+      <div>
+        {% if s.payment %}
+          <span class="badge badge-status-PAID">Pago Registrado</span>
+        {% endif %}
+      </div>
+    </div>
+  {% endif %}
+</div>
+
+{# =========================================================================
+   BARRA DE ACCIONES SEGÚN ROL Y ESTADO ACTUAL (MÁQUINA DE ESTADOS)
+   ========================================================================= #}
+<div class="card no-print" style="padding: 1.25rem; background-color: #f0fdf4; border: 1px solid #bbf7d0; margin-bottom: 1.5rem;">
+  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <h3 style="margin: 0; font-size: 1.05rem; color: #166534;">
+        Flujo del trámite — Acciones disponibles para su rol
+      </h3>
+      <p style="margin: 0; font-size: 0.85rem; color: #15803d;">
+        Estado actual: <strong>{{ s.status }}</strong> · Rol activo: <strong>{{ activeUser.role }}</strong>
+      </p>
+    </div>
+
+    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+      {# T2: Responder solicitud (REGISTERED -> RESPONDED) por ADMIN_ASSISTANT #}
+      {% if s.status == 'REGISTERED' and activeUser.role == 'ADMIN_ASSISTANT' %}
+        <button type="button" class="primary" onclick="document.getElementById('dialog-responder').showModal()" style="margin: 0; font-weight: 700;">
+          Responder Solicitud y Emitir Oficio
+        </button>
+      {% endif %}
+
+      {# T3: Verificar Documentos (RESPONDED -> DOCUMENTS_VERIFIED) por ADMIN_ASSISTANT #}
+      {% if s.status == 'RESPONDED' and activeUser.role == 'ADMIN_ASSISTANT' %}
+        <form action="/solicitudes/{{ s.id }}/transiciones/verifyDocuments" method="POST" style="margin: 0;">
+          <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+          <button type="submit" class="primary" style="margin: 0; font-weight: 700;">
+            Aprobar Checklist de Documentos
+          </button>
+        </form>
+      {% endif %}
+
+      {# T4: Elaborar Contrato (DOCUMENTS_VERIFIED -> CONTRACT_DRAFTED) por ADMIN_ASSISTANT #}
+      {% if s.status == 'DOCUMENTS_VERIFIED' and activeUser.role == 'ADMIN_ASSISTANT' %}
+        <button type="button" class="primary" onclick="document.getElementById('dialog-elaborar-contrato').showModal()" style="margin: 0; font-weight: 700;">
+          Elaborar Estudio Previo y Contrato
+        </button>
+      {% endif %}
+
+      {# T5: Registrar Pago (CONTRACT_DRAFTED -> PAID) por ADMIN_ASSISTANT #}
+      {% if s.status == 'CONTRACT_DRAFTED' and activeUser.role == 'ADMIN_ASSISTANT' %}
+        <button type="button" class="primary" onclick="document.getElementById('dialog-registrar-pago').showModal()" style="margin: 0; font-weight: 700;">
+          Registrar Pago y Facturación
+        </button>
+      {% endif %}
+
+      {# T6: Enviar a Jurídica (PAID -> LEGAL_REVIEW) por ADMIN_ASSISTANT #}
+      {% if s.status == 'PAID' and activeUser.role == 'ADMIN_ASSISTANT' %}
+        <form action="/solicitudes/{{ s.id }}/transiciones/submitToLegal" method="POST" style="margin: 0;">
+          <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+          <button type="submit" class="primary" style="margin: 0; font-weight: 700;">
+            Enviar Contrato a Revisión Jurídica
+          </button>
+        </form>
+      {% endif %}
+
+      {# T7 y T8: Dictamen Jurídico (LEGAL_REVIEW -> PENDING_SIGNATURE o RETURNED_BY_LEGAL) por LEGAL #}
+      {% if s.status == 'LEGAL_REVIEW' and activeUser.role == 'LEGAL' %}
+        <button type="button" class="outline" onclick="document.getElementById('dialog-devolver-juridica').showModal()" style="margin: 0; color: #c92a2a; border-color: #fa5252;">
+          Devolver con Observaciones
+        </button>
+        <button type="button" class="primary" onclick="document.getElementById('dialog-aprobar-juridica').showModal()" style="margin: 0; font-weight: 700;">
+          Aprobar Revisión Jurídica
+        </button>
+      {% endif %}
+
+      {# T9: Reenviar a Jurídica (RETURNED_BY_LEGAL -> LEGAL_REVIEW) por ADMIN_ASSISTANT #}
+      {% if s.status == 'RETURNED_BY_LEGAL' and activeUser.role == 'ADMIN_ASSISTANT' %}
+        <button type="button" class="primary" onclick="document.getElementById('dialog-reenviar-juridica').showModal()" style="margin: 0; font-weight: 700;">
+          Corregir y Reenviar a Jurídica
+        </button>
+      {% endif %}
+
+      {# T10: Firma y Numeración (PENDING_SIGNATURE -> LEGALIZED) por SECRETARY #}
+      {% if s.status == 'PENDING_SIGNATURE' and activeUser.role == 'SECRETARY' %}
+        <button type="button" class="primary" onclick="document.getElementById('dialog-firmar-contrato').showModal()" style="margin: 0; font-weight: 700; background-color: #237804; border-color: #237804;">
+          Firmar y Legalizar Contrato
+        </button>
+      {% endif %}
+
+      {# Estado terminal #}
+      {% if s.status == 'LEGALIZED' %}
+        <span style="font-weight: 700; color: #237804; align-self: center;">
+          ✓ Trámite culminado con éxito. Contrato legalizado e inmutable.
+        </span>
+      {% elif s.status == 'CANCELLED' %}
+        <span style="font-weight: 700; color: #c92a2a; align-self: center;">
+          Trámite cancelado. Motivo: {{ s.cancelReason | default("No especificado") }}
+        </span>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{# =========================================================================
+   PESTAÑAS / SECCIONES DEL DETALLE
+   ========================================================================= #}
+
+<div class="responsive-grid" style="gap: 1.5rem;">
+
+  {# 1. DOCUMENTOS DEL CLIENTE (CHECKLIST CAR-04) #}
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title">
+        <span>&#128196;</span> Documentos Exigidos al Arrendatario
+      </h2>
+      <span style="font-size: 0.85rem; color: var(--sgec-text-muted);">
+        Tipo de cliente: <strong>{% if s.customer.type == 'NATURAL' %}Persona Natural{% else %}Persona Jurídica{% endif %}</strong>
+      </span>
+    </div>
+
+    {% if s.requestDocuments and s.requestDocuments.length > 0 %}
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Requisito Documental</th>
+              <th scope="col">Obligatorio</th>
+              <th scope="col">Recepción</th>
+              <th scope="col">Verificación</th>
+              <th scope="col">Archivo Adjunto</th>
+              {% if activeUser.role == 'ADMIN_ASSISTANT' and s.status in ['REGISTERED', 'RESPONDED'] %}
+                <th scope="col" style="text-align: right;">Acciones</th>
+              {% endif %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for doc in s.requestDocuments %}
+              <tr>
+                <td>
+                  <strong>{{ doc.requirement.name | default(doc.requirementCode) }}</strong>
+                </td>
+                <td>
+                  {% if doc.requirement.mandatory %}
+                    <span class="badge" style="background: #ffe3e3; color: #c92a2a;">Obligatorio</span>
+                  {% else %}
+                    <span class="badge" style="background: #f1f3f5; color: #495057;">Opcional</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if doc.receivedAt %}
+                    <span style="color: #2b8a3e;">✓ Recibido ({{ doc.receivedAtFormatted | default(doc.receivedAt) }})</span>
+                  {% else %}
+                    <span style="color: #868e96;">Pendiente de entrega</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if doc.verifiedAt %}
+                    <span style="color: #2b8a3e; font-weight: 600;">✓ Verificado</span>
+                  {% else %}
+                    <span style="color: #e67700;">Sin verificar</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if doc.fileKey %}
+                    <a href="/archivos/{{ doc.fileKey }}" target="_blank" class="outline" role="button" style="padding: 0.2rem 0.5rem; font-size: 0.8rem; margin: 0;">
+                      Descargar archivo
+                    </a>
+                  {% else %}
+                    <span style="color: var(--sgec-text-muted); font-size: 0.8rem;">Sin adjunto</span>
+                  {% endif %}
+                </td>
+                {% if activeUser.role == 'ADMIN_ASSISTANT' and s.status in ['REGISTERED', 'RESPONDED'] %}
+                  <td style="text-align: right;">
+                    <form action="/solicitudes/{{ s.id }}/documentos-cliente/{{ doc.requirementCode }}" method="POST" enctype="multipart/form-data" style="margin: 0; display: inline-flex; gap: 0.25rem; align-items: center;">
+                      <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+                      <input type="file" name="archivo" accept=".pdf,.png,.jpg,.jpeg" style="font-size: 0.75rem; padding: 0.2rem; margin: 0; width: 140px;">
+                      <button type="submit" class="outline" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; margin: 0;">Subir</button>
+                    </form>
+                  </td>
+                {% endif %}
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p style="color: var(--sgec-text-muted); margin: 0;">No se han inicializado los requisitos documentales.</p>
+    {% endif %}
+  </div>
+
+  {# 2. DOCUMENTOS GENERADOS (OFICIO, ESTUDIO PREVIO, CONTRATO) #}
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title">
+        <span>&#128195;</span> Documentos Oficiales Generados
+      </h2>
+      <span style="font-size: 0.85rem; color: var(--sgec-text-muted);">
+        Snapshots HTML con versión incremental e imprimibles en formato A4
+      </span>
+    </div>
+
+    {% if s.generatedDocuments and s.generatedDocuments.length > 0 %}
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Documento</th>
+              <th scope="col">Versión</th>
+              <th scope="col">Fecha de Generación</th>
+              <th scope="col" style="text-align: right;">Visualización e Impresión</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for gDoc in s.generatedDocuments %}
+              <tr>
+                <td>
+                  <strong>
+                    {% if gDoc.kind == 'RESPONSE_LETTER' %}Oficio de Respuesta con Cotización
+                    {% elif gDoc.kind == 'PRIOR_STUDY' %}Estudio Previo de Necesidad y Conveniencia
+                    {% elif gDoc.kind == 'CONTRACT' %}Minuta / Contrato de Arrendamiento
+                    {% else %}{{ gDoc.kind }}{% endif %}
+                  </strong>
+                </td>
+                <td>v{{ gDoc.version }}</td>
+                <td>{{ gDoc.generatedAtFormatted | default(gDoc.generatedAt) }}</td>
+                <td style="text-align: right;">
+                  <a
+                    href="/solicitudes/{{ s.id }}/documentos/{{ gDoc.kind }}"
+                    target="_blank"
+                    role="button"
+                    class="outline primary"
+                    style="padding: 0.3rem 0.75rem; font-size: 0.825rem; margin: 0;"
+                  >
+                    Ver e Imprimir (A4)
+                  </a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p style="color: var(--sgec-text-muted); margin: 0;">
+        Aún no se han generado documentos oficiales. El oficio de respuesta se generará al responder la solicitud.
+      </p>
+    {% endif %}
+  </div>
+
+  {# 3. INFORMACIÓN DE PAGO Y FACTURACIÓN (CAR-06) #}
+  {% if s.payment %}
+    <div class="card" style="border-left: 4px solid #40c057;">
+      <div class="card-header">
+        <h2 class="card-title">
+          <span>&#128179;</span> Comprobante de Pago y Facturación
+        </h2>
+        <span class="badge badge-status-PAID">Pago Verificado</span>
+      </div>
+
+      <div class="responsive-grid responsive-grid-3">
+        <div>
+          <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--sgec-text-muted); font-weight: 700;">Recibo Oficial</span>
+          <div style="font-weight: 600;">{{ s.payment.receiptNumber }}</div>
+        </div>
+        <div>
+          <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--sgec-text-muted); font-weight: 700;">Entidad Bancaria</span>
+          <div style="font-weight: 600;">{{ s.payment.bankName }}</div>
+        </div>
+        <div>
+          <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--sgec-text-muted); font-weight: 700;">N° de Consignación</span>
+          <div style="font-weight: 600;">{{ s.payment.voucherNumber }}</div>
+        </div>
+        <div>
+          <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--sgec-text-muted); font-weight: 700;">Fecha de Pago</span>
+          <div>{{ s.payment.paidAtFormatted | default(s.payment.paidAt) }}</div>
+        </div>
+        <div>
+          <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--sgec-text-muted); font-weight: 700;">Factura de Venta</span>
+          <div style="font-weight: 600;">{{ s.payment.invoiceNumber }} ({{ s.payment.invoiceDateFormatted | default(s.payment.invoiceDate) }})</div>
+        </div>
+        <div>
+          <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--sgec-text-muted); font-weight: 700;">Monto Pagado</span>
+          <div style="font-weight: 800; color: #2b8a3e; font-size: 1.1rem;">${{ s.payment.amountPesosFormatted | default(s.payment.amountPesos) }} COP</div>
+        </div>
+      </div>
+
+      {% if s.payment.voucherFileKey %}
+        <div style="margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid var(--sgec-border-light);">
+          <a href="/archivos/{{ s.payment.voucherFileKey }}" target="_blank" role="button" class="outline" style="padding: 0.35rem 0.75rem; font-size: 0.85rem; margin: 0;">
+            Descargar soporte de consignación
+          </a>
+        </div>
+      {% endif %}
+    </div>
+  {% endif %}
+
+  {# 4. HISTORIAL DE REVISIONES JURÍDICAS (CAR-07) #}
+  {% if s.legalReviews and s.legalReviews.length > 0 %}
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">
+          <span>&#9878;</span> Rondas de Revisión Jurídica
+        </h2>
+        <span style="font-size: 0.85rem; color: var(--sgec-text-muted);">
+          Dictámenes emitidos por la Oficina Jurídica
+        </span>
+      </div>
+
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Ronda</th>
+              <th scope="col">Fecha</th>
+              <th scope="col">Dictamen</th>
+              <th scope="col">Verificaciones</th>
+              <th scope="col">Observaciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in s.legalReviews %}
+              <tr>
+                <td><strong>Ronda {{ r.round }}</strong></td>
+                <td>{{ r.reviewedAtFormatted | default(r.reviewedAt) }}</td>
+                <td>
+                  {% if r.decision == 'APPROVED' %}
+                    <span class="badge" style="background: #d3f9d8; color: #237804;">Aprobado</span>
+                  {% else %}
+                    <span class="badge" style="background: #ffe3e3; color: #c92a2a;">Devuelto</span>
+                  {% endif %}
+                </td>
+                <td style="font-size: 0.85rem;">
+                  <div>Documentos: {% if r.documentsOk %}✓{% else %}✗{% endif %}</div>
+                  <div>Datos cliente: {% if r.customerDataOk %}✓{% else %}✗{% endif %}</div>
+                  <div>Cláusulas: {% if r.clausesOk %}✓{% else %}✗{% endif %}</div>
+                </td>
+                <td>
+                  <p style="margin: 0; font-size: 0.875rem;">{{ r.observations | default("Sin observaciones adicionales") }}</p>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  {% endif %}
+
+  {# 5. LÍNEA DE TIEMPO DEL TRÁMITE (AUDITORÍA INMUTABLE) #}
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title">
+        <span>&#9201;</span> Línea de Tiempo y Trazabilidad
+      </h2>
+      <span style="font-size: 0.85rem; color: var(--sgec-text-muted);">
+        Registro inmutable de transiciones de estado
+      </span>
+    </div>
+
+    {% if s.transitions and s.transitions.length > 0 %}
+      <div class="timeline">
+        {% for t in s.transitions %}
+          <div class="timeline-item">
+            <div class="timeline-icon" aria-hidden="true">&#9679;</div>
+            <div class="timeline-content">
+              <div class="timeline-header">
+                <div>
+                  <span class="timeline-actor">{{ t.actor.name | default(t.actorName | default("Sistema")) }}</span>
+                  <span style="color: var(--sgec-text-muted); font-size: 0.8rem;">({{ t.actor.role | default(t.actorRole | default("")) }})</span>
+                </div>
+                <div class="timeline-date">{{ t.occurredAtFormatted | default(t.occurredAt) }}</div>
+              </div>
+              <div style="margin-bottom: 0.25rem;">
+                Transición: <code>{{ t.transition }}</code>
+                {% if t.toStatus %} &rarr; {{ renderBadge(t.toStatus) }}{% endif %}
+              </div>
+              {% if t.note %}
+                <p class="timeline-note">{{ t.note }}</p>
+              {% endif %}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p style="color: var(--sgec-text-muted); margin: 0;">No hay registros de transiciones en el historial.</p>
+    {% endif %}
+  </div>
+
+</div>
+
+{# =========================================================================
+   MODALES DE ACCIÓN CON ELEMENTO NATIVO <dialog>
+   ========================================================================= #}
+
+{# Modal T2: Responder Solicitud (ingreso de radicado de respuesta) #}
+<dialog id="dialog-responder" aria-labelledby="dialog-responder-title">
+  <div class="dialog-card">
+    <div class="dialog-header">
+      <h3 id="dialog-responder-title" class="dialog-title">Responder Solicitud y Emitir Oficio</h3>
+    </div>
+    <form action="/solicitudes/{{ s.id }}/transiciones/respond" method="POST">
+      <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+      <p style="font-size: 0.9rem; color: var(--sgec-text-muted);">
+        Al responder se congelará la cotización calculada según las tarifas vigentes y se generará el oficio oficial de respuesta con la lista de requisitos exigidos.
+      </p>
+      <div class="form-group">
+        <label for="responseRadicado">
+          Radicado de Salida SAIA <span style="color: #c92a2a;">*</span>
+          <small>Obligatorio para la emisión del oficio según el supuesto A-02</small>
+        </label>
+        <input type="text" id="responseRadicado" name="responseRadicado" placeholder="Ej. OFC-2026-0128" required>
+      </div>
+      <div class="dialog-footer">
+        <button type="button" class="outline secondary" onclick="this.closest('dialog').close()" style="margin: 0;">Cancelar</button>
+        <button type="submit" class="primary" style="margin: 0;">Confirmar y Responder</button>
+      </div>
+    </form>
+  </div>
+</dialog>
+
+{# Modal T4: Elaborar Contrato #}
+<dialog id="dialog-elaborar-contrato" aria-labelledby="dialog-elaborar-title">
+  <div class="dialog-card">
+    <div class="dialog-header">
+      <h3 id="dialog-elaborar-title" class="dialog-title">Elaborar Estudio Previo y Contrato</h3>
+    </div>
+    <form action="/solicitudes/{{ s.id }}/transiciones/draftContract" method="POST">
+      <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+      <p style="font-size: 0.9rem; color: var(--sgec-text-muted);">
+        Se generarán los borradores (v1) del Estudio Previo y la Minuta del Contrato de Arrendamiento. Puede personalizar el objeto y las cláusulas adicionales.
+      </p>
+      <div class="form-group">
+        <label for="object">
+          Objeto Contractual <span style="color: #c92a2a;">*</span>
+        </label>
+        <textarea id="object" name="object" rows="3" required>{{ s.contract.object | default("Arrendamiento temporal de las instalaciones del escenario cultural para el desarrollo del evento solicitado.") }}</textarea>
+      </div>
+      <div class="form-group">
+        <label for="additionalClauses">
+          Cláusulas Adicionales (Opcional)
+        </label>
+        <textarea id="additionalClauses" name="additionalClauses" rows="3">{{ s.contract.additionalClauses | default("") }}</textarea>
+      </div>
+      <div class="dialog-footer">
+        <button type="button" class="outline secondary" onclick="this.closest('dialog').close()" style="margin: 0;">Cancelar</button>
+        <button type="submit" class="primary" style="margin: 0;">Generar Minuta</button>
+      </div>
+    </form>
+  </div>
+</dialog>
+
+{# Modal T5: Registrar Pago #}
+<dialog id="dialog-registrar-pago" aria-labelledby="dialog-pago-title">
+  <div class="dialog-card">
+    <div class="dialog-header">
+      <h3 id="dialog-pago-title" class="dialog-title">Registrar Soporte de Pago y Factura</h3>
+    </div>
+    <form action="/solicitudes/{{ s.id }}/transiciones/registerPayment" method="POST" enctype="multipart/form-data">
+      <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+      <p style="font-size: 0.9rem; color: var(--sgec-text-muted);">
+        El monto a consignar debe coincidir exactamente con el valor cotizado:
+        <strong>${{ s.quotedAmountPesosFormatted | default(s.quotedAmountPesos) }} COP</strong>.
+      </p>
+      <div class="responsive-grid responsive-grid-2">
+        <div class="form-group">
+          <label for="receiptNumber">N° Recibo Oficial <span style="color: #c92a2a;">*</span></label>
+          <input type="text" id="receiptNumber" name="receiptNumber" placeholder="REC-10293" required>
+        </div>
+        <div class="form-group">
+          <label for="bankName">Banco de Recaudo <span style="color: #c92a2a;">*</span></label>
+          <input type="text" id="bankName" name="bankName" placeholder="Banco de Occidente" required>
+        </div>
+      </div>
+      <div class="responsive-grid responsive-grid-2">
+        <div class="form-group">
+          <label for="voucherNumber">N° Comprobante Consignación <span style="color: #c92a2a;">*</span></label>
+          <input type="text" id="voucherNumber" name="voucherNumber" placeholder="TX-998822" required>
+        </div>
+        <div class="form-group">
+          <label for="paidAt">Fecha de Pago <span style="color: #c92a2a;">*</span></label>
+          <input type="date" id="paidAt" name="paidAt" required>
+        </div>
+      </div>
+      <div class="responsive-grid responsive-grid-2">
+        <div class="form-group">
+          <label for="invoiceNumber">N° Factura de Venta <span style="color: #c92a2a;">*</span></label>
+          <input type="text" id="invoiceNumber" name="invoiceNumber" placeholder="FAC-2026-055" required>
+        </div>
+        <div class="form-group">
+          <label for="invoiceDate">Fecha de Factura <span style="color: #c92a2a;">*</span></label>
+          <input type="date" id="invoiceDate" name="invoiceDate" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="amountPesos">Monto Consignado ($ COP) <span style="color: #c92a2a;">*</span></label>
+        <input type="number" id="amountPesos" name="amountPesos" value="{{ s.quotedAmountPesos }}" required>
+      </div>
+      <div class="form-group">
+        <label for="voucherFile">Archivo Comprobante (PDF/JPG, máx 5 MB)</label>
+        <input type="file" id="voucherFile" name="voucherFile" accept=".pdf,.png,.jpg,.jpeg">
+      </div>
+      <div class="dialog-footer">
+        <button type="button" class="outline secondary" onclick="this.closest('dialog').close()" style="margin: 0;">Cancelar</button>
+        <button type="submit" class="primary" style="margin: 0;">Guardar Pago</button>
+      </div>
+    </form>
+  </div>
+</dialog>
+
+{# Modal T7: Aprobar Revisión Jurídica #}
+<dialog id="dialog-aprobar-juridica" aria-labelledby="dialog-aprobar-title">
+  <div class="dialog-card">
+    <div class="dialog-header">
+      <h3 id="dialog-aprobar-title" class="dialog-title">Aprobar Revisión Jurídica</h3>
+    </div>
+    <form action="/solicitudes/{{ s.id }}/transiciones/approveLegal" method="POST">
+      <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+      <p style="font-size: 0.9rem; color: var(--sgec-text-muted);">
+        Para aprobar la minuta contractual debe certificar el cumplimiento de las 3 verificaciones obligatorias (CAR-07):
+      </p>
+      <div class="form-group">
+        <label style="font-weight: 500;">
+          <input type="checkbox" name="documentsOk" value="true" required>
+          1. Documentación completa, auténtica y con vigencia acreditada.
+        </label>
+      </div>
+      <div class="form-group">
+        <label style="font-weight: 500;">
+          <input type="checkbox" name="customerDataOk" value="true" required>
+          2. Datos y representación del arrendatario verificados en registros públicos.
+        </label>
+      </div>
+      <div class="form-group">
+        <label style="font-weight: 500;">
+          <input type="checkbox" name="clausesOk" value="true" required>
+          3. Objeto, clausulado y obligaciones ajustados a la normatividad institucional.
+        </label>
+      </div>
+      <div class="form-group">
+        <label for="legalApproveNotes">Concepto / Notas de aprobación (Opcional)</label>
+        <textarea id="legalApproveNotes" name="observations" rows="2" placeholder="Cumple con los requisitos normativos..."></textarea>
+      </div>
+      <div class="dialog-footer">
+        <button type="button" class="outline secondary" onclick="this.closest('dialog').close()" style="margin: 0;">Cancelar</button>
+        <button type="submit" class="primary" style="margin: 0;">Emitir Aprobación Jurídica</button>
+      </div>
+    </form>
+  </div>
+</dialog>
+
+{# Modal T8: Devolver por Jurídica #}
+<dialog id="dialog-devolver-juridica" aria-labelledby="dialog-devolver-title">
+  <div class="dialog-card">
+    <div class="dialog-header">
+      <h3 id="dialog-devolver-title" class="dialog-title" style="color: #c92a2a;">Devolver Contrato con Observaciones</h3>
+    </div>
+    <form action="/solicitudes/{{ s.id }}/transiciones/returnLegal" method="POST">
+      <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+      <p style="font-size: 0.9rem; color: var(--sgec-text-muted);">
+        El contrato retornará a la bandeja del Auxiliar Administrativo para corrección.
+      </p>
+      <div class="form-group">
+        <label for="returnObservations">
+          Observaciones y Correcciones Requeridas <span style="color: #c92a2a;">*</span>
+          <small>Mínimo 10 caracteres explicando los hallazgos o ajustes necesarios</small>
+        </label>
+        <textarea id="returnObservations" name="observations" rows="4" minlength="10" required placeholder="Indique detalladamente las causales de devolución..."></textarea>
+      </div>
+      <div class="dialog-footer">
+        <button type="button" class="outline secondary" onclick="this.closest('dialog').close()" style="margin: 0;">Cancelar</button>
+        <button type="submit" style="background-color: #c92a2a; border-color: #c92a2a; margin: 0;">Confirmar Devolución</button>
+      </div>
+    </form>
+  </div>
+</dialog>
+
+{# Modal T9: Reenviar a Jurídica #}
+<dialog id="dialog-reenviar-juridica" aria-labelledby="dialog-reenviar-title">
+  <div class="dialog-card">
+    <div class="dialog-header">
+      <h3 id="dialog-reenviar-title" class="dialog-title">Reenviar a Revisión Jurídica</h3>
+    </div>
+    <form action="/solicitudes/{{ s.id }}/transiciones/resubmitToLegal" method="POST">
+      <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+      <p style="font-size: 0.9rem; color: var(--sgec-text-muted);">
+        Se abrirá una nueva ronda de revisión en la Oficina Jurídica con la minuta actualizada.
+      </p>
+      <div class="form-group">
+        <label for="resubmitClauses">Cláusulas / Texto Corregido</label>
+        <textarea id="resubmitClauses" name="additionalClauses" rows="3">{{ s.contract.additionalClauses | default("") }}</textarea>
+      </div>
+      <div class="form-group">
+        <label for="resubmitNote">Nota explicativa de los ajustes realizados</label>
+        <textarea id="resubmitNote" name="note" rows="2" placeholder="Se subsanaron las observaciones de la ronda previa..."></textarea>
+      </div>
+      <div class="dialog-footer">
+        <button type="button" class="outline secondary" onclick="this.closest('dialog').close()" style="margin: 0;">Cancelar</button>
+        <button type="submit" class="primary" style="margin: 0;">Reenviar a Jurídica</button>
+      </div>
+    </form>
+  </div>
+</dialog>
+
+{# Modal T10: Firmar y Legalizar (Acción irreversible) #}
+<dialog id="dialog-firmar-contrato" aria-labelledby="dialog-firmar-title">
+  <div class="dialog-card">
+    <div class="dialog-header">
+      <h3 id="dialog-firmar-title" class="dialog-title" style="color: #237804;">
+        &#9888; Confirmar Firma y Legalización de Contrato
+      </h3>
+    </div>
+    <form action="/solicitudes/{{ s.id }}/transiciones/signAndNumber" method="POST">
+      <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+      <div class="alert alert-warning" style="margin-bottom: 1rem;">
+        <span class="alert-icon">&#9888;</span>
+        <div class="alert-content">
+          <strong>Acción Irreversible:</strong> Al firmar como Secretario de Cultura, el sistema asignará atómicamente el número consecutivo anual oficial (ej. ARR-2026-NNNN), confirmará definitivamente la reserva y sellará el contrato final de forma inmutable.
+        </div>
+      </div>
+      <p style="font-size: 0.9rem;">
+        ¿Desea registrar formalmente su firma electrónica institucional y legalizar este contrato?
+      </p>
+      <div class="dialog-footer">
+        <button type="button" class="outline secondary" onclick="this.closest('dialog').close()" style="margin: 0;">Cancelar</button>
+        <button type="submit" style="background-color: #237804; border-color: #237804; font-weight: 700; margin: 0;">
+          Sí, Firmar y Asignar Consecutivo
+        </button>
+      </div>
+    </form>
+  </div>
+</dialog>
+
+{# Modal T11: Cancelar Solicitud (Acción irreversible) #}
+<dialog id="dialog-cancelar" aria-labelledby="dialog-cancelar-title">
+  <div class="dialog-card">
+    <div class="dialog-header">
+      <h3 id="dialog-cancelar-title" class="dialog-title" style="color: #c92a2a;">
+        &#9888; Cancelar Trámite de Alquiler
+      </h3>
+    </div>
+    <form action="/solicitudes/{{ s.id }}/transiciones/cancel" method="POST">
+      <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+      <div class="alert alert-error" style="margin-bottom: 1rem;">
+        <span class="alert-icon">&#9888;</span>
+        <div class="alert-content">
+          <strong>Acción Irreversible:</strong> La solicitud pasará a estado CANCELADA y la reserva del espacio será liberada (RELEASED) de inmediato en la agenda.
+          {% if s.status == 'PAID' or s.payment %}
+            <br><em>Nota (A-11): Se detectó un pago registrado. La cancelación requerirá trámite administrativo independiente de devolución.</em>
+          {% endif %}
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="cancelReason">
+          Motivo Obligatorio de Cancelación <span style="color: #c92a2a;">*</span>
+          <small>Mínimo 10 caracteres indicando la causa formal</small>
+        </label>
+        <textarea id="cancelReason" name="reason" rows="3" minlength="10" required placeholder="Motivo de cancelación del solicitante o de la Secretaría..."></textarea>
+      </div>
+      <div class="dialog-footer">
+        <button type="button" class="outline secondary" onclick="this.closest('dialog').close()" style="margin: 0;">No, Volver</button>
+        <button type="submit" style="background-color: #c92a2a; border-color: #c92a2a; font-weight: 700; margin: 0;">
+          Confirmar Cancelación Definitiva
+        </button>
+      </div>
+    </form>
+  </div>
+</dialog>
+{% endblock %}

@@ -1,0 +1,473 @@
+{% extends "layouts/base.njk" %}
+
+{% block content %}
+<div style="max-width: 900px; margin: 0 auto;">
+  {# Encabezado #}
+  <div style="margin-bottom: 1.5rem; border-bottom: 1px solid var(--sgec-border-light); padding-bottom: 1rem;">
+    <nav aria-label="Miga de pan" style="margin-bottom: 0.5rem; font-size: 0.85rem;">
+      <a href="/solicitudes" style="color: var(--sgec-text-muted); text-decoration: none;">&larr; Volver al listado</a>
+    </nav>
+    <h1 style="color: var(--sgec-primary); font-size: 1.75rem; margin-bottom: 0.25rem;">
+      Registrar Nueva Solicitud de Alquiler
+    </h1>
+    <p style="color: var(--sgec-text-muted); margin: 0; font-size: 0.95rem;">
+      Diligencie la información del arrendatario, especificaciones del evento y franja horaria requerida.
+    </p>
+  </div>
+
+  <form action="/solicitudes/nueva" method="POST" id="registro-solicitud-form" novalidate>
+    <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+
+    {# =========================================================================
+       SECCIÓN 1: DATOS DEL ARRENDATARIO (CLIENTE)
+       ========================================================================= #}
+    <fieldset>
+      <legend>1. Datos del Solicitante / Arrendatario</legend>
+
+      <div class="responsive-grid responsive-grid-2">
+        <div class="form-group">
+          <label for="customerType">
+            Tipo de Persona <span style="color: #c92a2a;">*</span>
+          </label>
+          <select id="customerType" name="customerType" required>
+            <option value="NATURAL" {% if values.customerType == 'NATURAL' %}selected{% endif %}>Persona Natural</option>
+            <option value="LEGAL" {% if values.customerType == 'LEGAL' %}selected{% endif %}>Persona Jurídica (Empresa/Entidad)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="documentType">
+            Tipo de Documento <span style="color: #c92a2a;">*</span>
+          </label>
+          <select id="documentType" name="documentType" required>
+            <option value="CC" {% if values.documentType == 'CC' %}selected{% endif %}>Cédula de Ciudadanía (CC)</option>
+            <option value="NIT" {% if values.documentType == 'NIT' %}selected{% endif %}>Número de Identificación Tributaria (NIT)</option>
+            <option value="CE" {% if values.documentType == 'CE' %}selected{% endif %}>Cédula de Extranjería (CE)</option>
+            <option value="PASSPORT" {% if values.documentType == 'PASSPORT' %}selected{% endif %}>Pasaporte</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="responsive-grid responsive-grid-2">
+        <div class="form-group">
+          <label for="documentNumber">
+            Número de Documento <span style="color: #c92a2a;">*</span>
+            <small>Sin puntos ni guiones (salvo dígito de verificación en NIT)</small>
+          </label>
+          <input
+            type="text"
+            id="documentNumber"
+            name="documentNumber"
+            placeholder="Ej. 1088234567 o 900123456-1"
+            value="{{ values.documentNumber | default('') }}"
+            required
+          >
+          {% if errors.documentNumber %}<div class="field-error">{{ errors.documentNumber }}</div>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label for="name">
+            Nombre Completo / Razón Social <span style="color: #c92a2a;">*</span>
+          </label>
+          <input
+            type="text"
+            id="name"
+            name="name"
+            placeholder="Nombre completo o razón social"
+            value="{{ values.name | default('') }}"
+            required
+          >
+          {% if errors.name %}<div class="field-error">{{ errors.name }}</div>{% endif %}
+        </div>
+      </div>
+
+      {# Representante Legal (solo si persona jurídica) #}
+      <div class="form-group" id="legal-representative-group" style="display: none;">
+        <label for="legalRepresentative">
+          Nombre del Representante Legal <span style="color: #c92a2a;">*</span>
+          <small>Requerido para personas jurídicas según certificado de existencia</small>
+        </label>
+        <input
+          type="text"
+          id="legalRepresentative"
+          name="legalRepresentative"
+          placeholder="Nombre del representante legal"
+          value="{{ values.legalRepresentative | default('') }}"
+        >
+        {% if errors.legalRepresentative %}<div class="field-error">{{ errors.legalRepresentative }}</div>{% endif %}
+      </div>
+
+      <div class="responsive-grid responsive-grid-3">
+        <div class="form-group">
+          <label for="email">
+            Correo Electrónico <span style="color: #c92a2a;">*</span>
+          </label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            placeholder="contacto@correo.com"
+            value="{{ values.email | default('') }}"
+            required
+          >
+          {% if errors.email %}<div class="field-error">{{ errors.email }}</div>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label for="phone">
+            Teléfono de Contacto <span style="color: #c92a2a;">*</span>
+          </label>
+          <input
+            type="tel"
+            id="phone"
+            name="phone"
+            placeholder="3101234567"
+            value="{{ values.phone | default('') }}"
+            required
+          >
+          {% if errors.phone %}<div class="field-error">{{ errors.phone }}</div>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label for="address">
+            Dirección Física <span style="color: #c92a2a;">*</span>
+          </label>
+          <input
+            type="text"
+            id="address"
+            name="address"
+            placeholder="Cra. 7 # 18-55, Pereira"
+            value="{{ values.address | default('') }}"
+            required
+          >
+          {% if errors.address %}<div class="field-error">{{ errors.address }}</div>{% endif %}
+        </div>
+      </div>
+    </fieldset>
+
+    {# =========================================================================
+       SECCIÓN 2: DATOS DEL EVENTO
+       ========================================================================= #}
+    <fieldset>
+      <legend>2. Información del Evento</legend>
+
+      <div class="form-group">
+        <label for="eventName">
+          Nombre o Título del Evento <span style="color: #c92a2a;">*</span>
+        </label>
+        <input
+          type="text"
+          id="eventName"
+          name="eventName"
+          placeholder="Ej. Concierto de Gala Orquesta Sinfónica de Pereira"
+          value="{{ values.eventName | default('') }}"
+          required
+        >
+        {% if errors.eventName %}<div class="field-error">{{ errors.eventName }}</div>{% endif %}
+      </div>
+
+      <div class="form-group">
+        <label for="eventDescription">
+          Descripción del Evento y Actividades a Realizar <span style="color: #c92a2a;">*</span>
+          <small>Indique objetivo, requerimientos técnicos y tipo de actividad cultural o académica</small>
+        </label>
+        <textarea
+          id="eventDescription"
+          name="eventDescription"
+          rows="3"
+          placeholder="Describa el desarrollo del evento, logística y necesidades técnicas..."
+          required
+        >{{ values.eventDescription | default('') }}</textarea>
+        {% if errors.eventDescription %}<div class="field-error">{{ errors.eventDescription }}</div>{% endif %}
+      </div>
+
+      <div class="responsive-grid responsive-grid-3">
+        <div class="form-group">
+          <label for="purpose">
+            Propósito del Evento <span style="color: #c92a2a;">*</span>
+            <small>Determina la tarifa según acuerdo</small>
+          </label>
+          <select id="purpose" name="purpose" required>
+            <option value="LUCRATIVE" {% if values.purpose == 'LUCRATIVE' %}selected{% endif %}>Lucrativo (Con cobro o comercial)</option>
+            <option value="NON_LUCRATIVE" {% if values.purpose == 'NON_LUCRATIVE' %}selected{% endif %}>Sin ánimo de lucro (Cultural/Gratuito)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="expectedAttendees">
+            Asistentes Estimados <span style="color: #c92a2a;">*</span>
+            <small>Aforo estimado para seguridad</small>
+          </label>
+          <input
+            type="number"
+            id="expectedAttendees"
+            name="expectedAttendees"
+            min="1"
+            placeholder="150"
+            value="{{ values.expectedAttendees | default('') }}"
+            required
+          >
+          {% if errors.expectedAttendees %}<div class="field-error">{{ errors.expectedAttendees }}</div>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label for="channel">
+            Canal de Recepción <span style="color: #c92a2a;">*</span>
+          </label>
+          <select id="channel" name="channel" required>
+            <option value="WRITTEN" {% if values.channel == 'WRITTEN' %}selected{% endif %}>Escrito / Radicado Físico</option>
+            <option value="EMAIL" {% if values.channel == 'EMAIL' %}selected{% endif %}>Correo Electrónico</option>
+            <option value="VERBAL" {% if values.channel == 'VERBAL' %}selected{% endif %}>Verbal / Presencial</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="requestRadicado">
+          Radicado de Solicitud SAIA (Opcional)
+          <small>Número de radicación externa de SAIA si ya fue asignado. Es opcional al registrar y obligatorio al responder.</small>
+        </label>
+        <input
+          type="text"
+          id="requestRadicado"
+          name="requestRadicado"
+          placeholder="Ej. SAIA-2026-0045"
+          value="{{ values.requestRadicado | default('') }}"
+        >
+        {% if errors.requestRadicado %}<div class="field-error">{{ errors.requestRadicado }}</div>{% endif %}
+      </div>
+    </fieldset>
+
+    {# =========================================================================
+       SECCIÓN 3: ESCENARIO, ESPACIO Y FECHAS (CON HTMX DISPONIBILIDAD)
+       ========================================================================= #}
+    <fieldset>
+      <legend>3. Escenario, Espacio y Franja Horaria</legend>
+
+      <div class="responsive-grid responsive-grid-2">
+        <div class="form-group">
+          <label for="venueSelector">
+            Escenario Cultural <span style="color: #c92a2a;">*</span>
+          </label>
+          <select id="venueSelector">
+            <option value="">-- Seleccione un escenario --</option>
+            {% for v in venues %}
+              <option value="{{ v.id }}" {% if selectedVenueId == v.id %}selected{% endif %}>{{ v.name }}</option>
+            {% else %}
+              <option value="lucy-tejada">Centro Cultural Lucy Tejada</option>
+              <option value="santiago-londono">Teatro Municipal Santiago Londoño</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="spaceId">
+            Espacio Específico <span style="color: #c92a2a;">*</span>
+          </label>
+          <select
+            id="spaceId"
+            name="spaceId"
+            required
+            hx-get="/agenda/disponibilidad"
+            hx-trigger="change"
+            hx-target="#disponibilidad-result"
+            hx-swap="outerHTML"
+            hx-include="#spaceId, #startsAt, #endsAt"
+          >
+            <option value="">-- Seleccione el espacio --</option>
+            {% for s in spaces %}
+              <option value="{{ s.id }}" data-venue="{{ s.venueId }}" {% if values.spaceId == s.id %}selected{% endif %}>
+                {{ s.venue.name | default("") }} — {{ s.name }} (Capacidad: {{ s.capacity }})
+              </option>
+            {% else %}
+              <optgroup label="Centro Cultural Lucy Tejada">
+                <option value="lucy-auditorio" data-venue="lucy-tejada">Auditorio Principal (Cobro por hora)</option>
+                <option value="lucy-sala-multiple" data-venue="lucy-tejada">Sala Múltiple (Cobro por hora)</option>
+              </optgroup>
+              <optgroup label="Teatro Municipal Santiago Londoño">
+                <option value="teatro-sala-principal" data-venue="santiago-londono">Sala Principal (Cobro por día)</option>
+              </optgroup>
+            {% endfor %}
+          </select>
+          {% if errors.spaceId %}<div class="field-error">{{ errors.spaceId }}</div>{% endif %}
+        </div>
+      </div>
+
+      <div class="responsive-grid responsive-grid-2">
+        <div class="form-group">
+          <label for="startsAt">
+            Fecha y Hora de Inicio <span style="color: #c92a2a;">*</span>
+            <small>Debe ser una fecha futura (mínimo 1 hora de reserva)</small>
+          </label>
+          <input
+            type="datetime-local"
+            id="startsAt"
+            name="startsAt"
+            value="{{ values.startsAt | default('') }}"
+            required
+            hx-get="/agenda/disponibilidad"
+            hx-trigger="change"
+            hx-target="#disponibilidad-result"
+            hx-swap="outerHTML"
+            hx-include="#spaceId, #startsAt, #endsAt"
+          >
+          {% if errors.startsAt %}<div class="field-error">{{ errors.startsAt }}</div>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label for="endsAt">
+            Fecha y Hora de Finalización <span style="color: #c92a2a;">*</span>
+            <small>Debe ser posterior a la fecha de inicio (máx. 7 días)</small>
+          </label>
+          <input
+            type="datetime-local"
+            id="endsAt"
+            name="endsAt"
+            value="{{ values.endsAt | default('') }}"
+            required
+            hx-get="/agenda/disponibilidad"
+            hx-trigger="change"
+            hx-target="#disponibilidad-result"
+            hx-swap="outerHTML"
+            hx-include="#spaceId, #startsAt, #endsAt"
+          >
+          {% if errors.endsAt %}<div class="field-error">{{ errors.endsAt }}</div>{% endif %}
+        </div>
+      </div>
+
+      {# Mensaje de error de validación de fechas en cliente #}
+      <div id="date-validation-error" class="field-error" style="display: none; font-size: 0.9rem; margin-bottom: 0.75rem;"></div>
+
+      {# Fragmento de Disponibilidad en Tiempo Real con HTMX #}
+      {% include "pages/agenda/_disponibilidad.njk" %}
+    </fieldset>
+
+    {# Botón de envío #}
+    <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem;">
+      <a href="/solicitudes" role="button" class="outline secondary" style="margin: 0;">
+        Cancelar
+      </a>
+      <button type="submit" id="submit-btn" style="margin: 0; font-weight: 700; padding: 0.75rem 2rem;">
+        Registrar Solicitud
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // 1. Mostrar/Ocultar Representante Legal según Tipo de Persona
+    var customerTypeSelect = document.getElementById('customerType');
+    var docTypeSelect = document.getElementById('documentType');
+    var legalGroup = document.getElementById('legal-representative-group');
+    var legalInput = document.getElementById('legalRepresentative');
+
+    function toggleLegalRepresentative() {
+      if (customerTypeSelect.value === 'LEGAL') {
+        legalGroup.style.display = 'block';
+        if (legalInput) legalInput.required = true;
+        if (docTypeSelect && docTypeSelect.value === 'CC') {
+          docTypeSelect.value = 'NIT';
+        }
+      } else {
+        legalGroup.style.display = 'none';
+        if (legalInput) {
+          legalInput.required = false;
+          legalInput.value = '';
+        }
+      }
+    }
+
+    customerTypeSelect.addEventListener('change', toggleLegalRepresentative);
+    toggleLegalRepresentative();
+
+    // 2. Filtrado opcional de espacios por escenario
+    var venueSelector = document.getElementById('venueSelector');
+    var spaceSelect = document.getElementById('spaceId');
+
+    venueSelector.addEventListener('change', function() {
+      var selectedVenue = this.value;
+      if (!selectedVenue) return;
+      var options = spaceSelect.querySelectorAll('option[data-venue]');
+      var firstMatch = null;
+      options.forEach(function(opt) {
+        if (opt.getAttribute('data-venue') === selectedVenue) {
+          opt.hidden = false;
+          if (!firstMatch) firstMatch = opt;
+        } else {
+          opt.hidden = true;
+        }
+      });
+      if (firstMatch && (!spaceSelect.value || spaceSelect.selectedOptions[0].hidden)) {
+        spaceSelect.value = firstMatch.value;
+        // Trigger HTMX check
+        htmx.trigger(spaceSelect, 'change');
+      }
+    });
+
+    // 3. Validación de fechas en cliente (fin > inicio, mín 1 hora, máx 7 días, futuro)
+    var startsAtInput = document.getElementById('startsAt');
+    var endsAtInput = document.getElementById('endsAt');
+    var dateErrorDiv = document.getElementById('date-validation-error');
+    var form = document.getElementById('registro-solicitud-form');
+
+    function validateDates() {
+      dateErrorDiv.style.display = 'none';
+      dateErrorDiv.textContent = '';
+      startsAtInput.classList.remove('is-invalid');
+      endsAtInput.classList.remove('is-invalid');
+
+      if (!startsAtInput.value || !endsAtInput.value) return true;
+
+      var start = new Date(startsAtInput.value);
+      var end = new Date(endsAtInput.value);
+      var now = new Date();
+
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) return true;
+
+      if (start <= now) {
+        dateErrorDiv.textContent = 'La fecha de inicio de la reserva debe ser en el futuro.';
+        dateErrorDiv.style.display = 'block';
+        startsAtInput.classList.add('is-invalid');
+        return false;
+      }
+
+      if (end <= start) {
+        dateErrorDiv.textContent = 'La fecha y hora de finalización debe ser posterior a la fecha de inicio.';
+        dateErrorDiv.style.display = 'block';
+        endsAtInput.classList.add('is-invalid');
+        return false;
+      }
+
+      var diffHours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
+      if (diffHours < 1) {
+        dateErrorDiv.textContent = 'La duración mínima de la reserva es de 1 hora.';
+        dateErrorDiv.style.display = 'block';
+        endsAtInput.classList.add('is-invalid');
+        return false;
+      }
+
+      if (diffHours > 7 * 24) {
+        dateErrorDiv.textContent = 'La duración máxima permitida de una reserva es de 7 días continuos.';
+        dateErrorDiv.style.display = 'block';
+        endsAtInput.classList.add('is-invalid');
+        return false;
+      }
+
+      return true;
+    }
+
+    startsAtInput.addEventListener('change', validateDates);
+    endsAtInput.addEventListener('change', validateDates);
+
+    form.addEventListener('submit', function(e) {
+      if (!validateDates()) {
+        e.preventDefault();
+        dateErrorDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    });
+  });
+</script>
+{% endblock %}

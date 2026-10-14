@@ -1,0 +1,112 @@
+{% set activeUser = currentUser | default(user) %}
+
+<header class="site-header no-print">
+  <div class="nav-container">
+    <a href="/" class="brand-wrapper" aria-label="SGEC Inicio">
+      <span class="brand-logo">
+        SGEC
+        <span class="brand-badge">Release 1.0</span>
+      </span>
+      <span class="brand-subtitle">Secretaría de Cultura · Pereira</span>
+    </a>
+
+    <button
+      type="button"
+      class="nav-menu-toggle"
+      id="nav-menu-toggle"
+      aria-expanded="false"
+      aria-controls="nav-content"
+      aria-label="Abrir menú de navegación"
+    >
+      <span aria-hidden="true">&#9776;</span>
+    </button>
+
+    <div class="nav-content" id="nav-content">
+      <nav aria-label="Navegación principal">
+        <ul class="nav-links">
+          {% if activeUser %}
+            <li>
+              <a href="/" class="nav-link {% if currentPath == '/' %}is-active{% endif %}">
+                Inicio
+              </a>
+            </li>
+
+            {# ADMIN_ASSISTANT: Nueva Solicitud #}
+            {% if activeUser.role == 'ADMIN_ASSISTANT' %}
+              <li>
+                <a href="/solicitudes/nueva" class="nav-link {% if currentPath == '/solicitudes/nueva' %}is-active{% endif %}" style="color: #6ee7b7; font-weight: 700;">
+                  + Nueva Solicitud
+                </a>
+              </li>
+            {% endif %}
+
+            {# Solicitudes: Jefe, Auxiliar, Jurídica, Secretario #}
+            {% if activeUser.role in ['OFFICE_HEAD', 'ADMIN_ASSISTANT', 'LEGAL', 'SECRETARY'] %}
+              <li>
+                <a href="/solicitudes" class="nav-link {% if currentPath and currentPath.startsWith('/solicitudes') and currentPath != '/solicitudes/nueva' %}is-active{% endif %}">
+                  Solicitudes
+                </a>
+              </li>
+            {% endif %}
+
+            {# Agenda: Jefe, Auxiliar, Jurídica, Secretario, Operativo #}
+            {% if activeUser.role in ['OFFICE_HEAD', 'ADMIN_ASSISTANT', 'LEGAL', 'SECRETARY', 'OPERATIONS_TECH'] %}
+              <li>
+                <a href="/agenda" class="nav-link {% if currentPath and currentPath.startsWith('/agenda') %}is-active{% endif %}">
+                  Agenda
+                </a>
+              </li>
+            {% endif %}
+
+            {# Tarifas: Jefe y Auxiliar #}
+            {% if activeUser.role in ['OFFICE_HEAD', 'ADMIN_ASSISTANT'] %}
+              <li>
+                <a href="/tarifas" class="nav-link {% if currentPath and currentPath.startsWith('/tarifas') %}is-active{% endif %}">
+                  Tarifas
+                </a>
+              </li>
+            {% endif %}
+          {% endif %}
+        </ul>
+      </nav>
+
+      <div class="nav-user">
+        {% if activeUser %}
+          {% set roleLabel = activeUser.role %}
+          {% if activeUser.role == 'OFFICE_HEAD' %}{% set roleLabel = 'Jefe de Oficina' %}
+          {% elif activeUser.role == 'ADMIN_ASSISTANT' %}{% set roleLabel = 'Auxiliar Administrativo' %}
+          {% elif activeUser.role == 'LEGAL' %}{% set roleLabel = 'Oficina Jurídica' %}
+          {% elif activeUser.role == 'SECRETARY' %}{% set roleLabel = 'Secretario de Cultura' %}
+          {% elif activeUser.role == 'OPERATIONS_TECH' %}{% set roleLabel = 'Técnico Operativo' %}
+          {% elif activeUser.role == 'MAINTENANCE_TECH' %}{% set roleLabel = 'Técnico Mantenimiento' %}
+          {% endif %}
+
+          <div class="nav-user-info">
+            <span class="nav-user-name">{{ activeUser.name }}</span>
+            <span class="nav-user-role">{{ roleLabel }}</span>
+          </div>
+
+          <form action="/logout" method="POST" style="margin: 0; display: inline;">
+            <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+            <button
+              type="submit"
+              class="outline secondary"
+              style="padding: 0.35rem 0.75rem; font-size: 0.825rem; color: #ffffff; border-color: rgba(255,255,255,0.4); margin: 0;"
+            >
+              Cerrar sesión
+            </button>
+          </form>
+        {% else %}
+          <a
+            href="/login"
+            role="button"
+            class="outline"
+            style="padding: 0.35rem 0.85rem; font-size: 0.85rem; color: #ffffff; border-color: rgba(255,255,255,0.5); text-decoration: none;"
+          >
+            Iniciar sesión
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</header>

@@ -1,0 +1,161 @@
+{% extends "layouts/base.njk" %}
+
+{% block content %}
+{% set activeUser = currentUser | default(user) %}
+
+<div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--sgec-border-light); padding-bottom: 1rem;">
+  <div>
+    <h1 style="color: var(--sgec-primary); font-size: 1.75rem; margin-bottom: 0.25rem;">
+      Acuerdo Oficial de Tarifas de Escenarios
+    </h1>
+    <p style="color: var(--sgec-text-muted); margin: 0; font-size: 0.95rem;">
+      Valores vigentes según escenario, espacio, propósito de la actividad y unidad de facturación (A-07).
+    </p>
+  </div>
+
+  <div>
+    {% if activeUser and activeUser.role == 'OFFICE_HEAD' %}
+      <span class="badge" style="background: #e7f5ff; color: #1864ab; border-color: #a5d8ff;">
+        Modo Edición Habilitado (Jefe de Oficina)
+      </span>
+    {% else %}
+      <span class="badge" style="background: #f1f3f5; color: #495057;">
+        Modo Solo Lectura
+      </span>
+    {% endif %}
+  </div>
+</div>
+
+{# Tabla de Tarifas #}
+<div class="card" style="padding: 0; overflow: hidden;">
+  <div class="table-responsive" style="margin-bottom: 0; border: none;">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col" style="width: 22%;">Escenario Cultural</th>
+          <th scope="col" style="width: 22%;">Espacio Específico</th>
+          <th scope="col" style="width: 18%;">Propósito</th>
+          <th scope="col" style="width: 14%;">Unidad Cobro</th>
+          <th scope="col" style="width: 14%;">Precio Vigente ($ COP)</th>
+          <th scope="col" style="width: 10%;">Vigencia Desde</th>
+          {% if activeUser and activeUser.role == 'OFFICE_HEAD' %}
+            <th scope="col" style="text-align: right; width: 120px;">Acción</th>
+          {% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in tariffs %}
+          <tr>
+            <td>
+              <strong>{{ t.space.venue.name | default(t.venueName) }}</strong>
+            </td>
+            <td>
+              <div>{{ t.space.name | default(t.spaceName) }}</div>
+              <small style="color: var(--sgec-text-muted);">Capacidad: {{ t.space.capacity | default("N/A") }} pers.</small>
+            </td>
+            <td>
+              {% if t.purpose == 'LUCRATIVE' %}
+                <span class="badge" style="background: #fff4e6; color: #d9480f; border-color: #ffd8a8;">Lucrativo</span>
+              {% else %}
+                <span class="badge" style="background: #e3fafc; color: #0c8599; border-color: #99e9f2;">Sin ánimo de lucro</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if t.unit == 'HOUR' %}Por hora{% else %}Por día (24h){% endif %}
+            </td>
+            <td>
+              <strong style="color: var(--sgec-primary); font-size: 1.05rem;">
+                ${{ t.pricePesosFormatted | default(t.pricePesos) }}
+              </strong>
+            </td>
+            <td>
+              <small>{{ t.validFromFormatted | default(t.validFrom) }}</small>
+            </td>
+            {% if activeUser and activeUser.role == 'OFFICE_HEAD' %}
+              <td style="text-align: right;">
+                <button
+                  type="button"
+                  class="outline"
+                  style="padding: 0.3rem 0.65rem; font-size: 0.8rem; margin: 0;"
+                  onclick="openEditTariffModal('{{ t.id }}', '{{ t.space.name | default(t.spaceName) }}', '{{ t.pricePesos }}')"
+                >
+                  Modificar
+                </button>
+              </td>
+            {% endif %}
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="7" style="text-align: center; padding: 2rem; color: var(--sgec-text-muted);">
+              No hay tarifas registradas en la base de datos.
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{# Nota sobre supuestos de cotización y congelamiento A-07/A-08 #}
+<div class="card" style="background: #f8fafc; border-left: 4px solid var(--sgec-primary); font-size: 0.85rem; color: var(--sgec-text-muted); margin-top: 1.5rem;">
+  <strong>Regla de congelamiento de valor (A-08):</strong>
+  Las tarifas vigentes se aplican al emitir el oficio de respuesta (T2) y quedan congeladas de manera inmutable en el registro de la solicitud. Modificaciones posteriores a esta tabla no alteran valores ya cotizados en trámites en curso.
+</div>
+
+{# Modal para edición de tarifa por Jefe de Oficina #}
+{% if activeUser and activeUser.role == 'OFFICE_HEAD' %}
+<dialog id="dialog-editar-tarifa" aria-labelledby="dialog-tarifa-title">
+  <div class="dialog-card">
+    <div class="dialog-header">
+      <h3 id="dialog-tarifa-title" class="dialog-title">Modificar Tarifa Vigente</h3>
+    </div>
+    <form id="form-editar-tarifa" action="/tarifas" method="POST">
+      <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+      <input type="hidden" id="editTariffId" name="tariffId">
+
+      <p style="font-size: 0.9rem; color: var(--sgec-text-muted);">
+        Actualice el valor aplicable para nuevas cotizaciones en el espacio:
+        <strong id="editTariffSpaceName"></strong>.
+      </p>
+
+      <div class="form-group">
+        <label for="newPricePesos">
+          Nuevo Precio ($ COP) <span style="color: #c92a2a;">*</span>
+          <small>Valor en pesos enteros colombianos (sin centavos)</small>
+        </label>
+        <input
+          type="number"
+          id="newPricePesos"
+          name="pricePesos"
+          min="0"
+          step="1000"
+          required
+        >
+      </div>
+
+      <div class="dialog-footer">
+        <button type="button" class="outline secondary" onclick="this.closest('dialog').close()" style="margin: 0;">Cancelar</button>
+        <button type="submit" class="primary" style="margin: 0;">Guardar Nueva Tarifa</button>
+      </div>
+    </form>
+  </div>
+</dialog>
+
+<script>
+  function openEditTariffModal(id, spaceName, currentPrice) {
+    var modal = document.getElementById('dialog-editar-tarifa');
+    var form = document.getElementById('form-editar-tarifa');
+    var idInput = document.getElementById('editTariffId');
+    var spaceNameEl = document.getElementById('editTariffSpaceName');
+    var priceInput = document.getElementById('newPricePesos');
+
+    idInput.value = id;
+    spaceNameEl.textContent = spaceName;
+    priceInput.value = currentPrice;
+    form.action = '/tarifas/' + id;
+
+    modal.showModal();
+  }
+</script>
+{% endif %}
+{% endblock %}

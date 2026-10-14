@@ -1,0 +1,78 @@
+<div class="flash-container no-print" aria-live="polite">
+  {# Success messages #}
+  {% if flash and flash.success %}
+    <div class="alert alert-success" role="alert">
+      <span class="alert-icon" aria-hidden="true">&#10003;</span>
+      <div class="alert-content">
+        {% if flash.success is iterable and flash.success is not string %}
+          {% for msg in flash.success %}<div>{{ msg }}</div>{% endfor %}
+        {% else %}
+          {{ flash.success }}
+        {% endif %}
+      </div>
+    </div>
+  {% elif success or successMessage %}
+    <div class="alert alert-success" role="alert">
+      <span class="alert-icon" aria-hidden="true">&#10003;</span>
+      <div class="alert-content">{{ success | default(successMessage) }}</div>
+    </div>
+  {% endif %}
+
+  {# Error / Danger messages #}
+  {% if flash and (flash.error or flash.danger) %}
+    {% set errs = flash.error | default(flash.danger) %}
+    <div class="alert alert-error" role="alert">
+      <span class="alert-icon" aria-hidden="true">&#10007;</span>
+      <div class="alert-content">
+        {% if errs is iterable and errs is not string %}
+          {% for msg in errs %}<div>{{ msg }}</div>{% endfor %}
+        {% else %}
+          {{ errs }}
+        {% endif %}
+      </div>
+    </div>
+  {% elif error or errorMessage %}
+    <div class="alert alert-error" role="alert">
+      <span class="alert-icon" aria-hidden="true">&#10007;</span>
+      <div class="alert-content">{{ error | default(errorMessage) }}</div>
+    </div>
+  {% endif %}
+
+  {# Info messages #}
+  {% if flash and flash.info %}
+    <div class="alert alert-info" role="alert">
+      <span class="alert-icon" aria-hidden="true">&#8505;</span>
+      <div class="alert-content">
+        {% if flash.info is iterable and flash.info is not string %}
+          {% for msg in flash.info %}<div>{{ msg }}</div>{% endfor %}
+        {% else %}
+          {{ flash.info }}
+        {% endif %}
+      </div>
+    </div>
+  {% elif info or infoMessage %}
+    <div class="alert alert-info" role="alert">
+      <span class="alert-icon" aria-hidden="true">&#8505;</span>
+      <div class="alert-content">{{ info | default(infoMessage) }}</div>
+    </div>
+  {% endif %}
+
+  {# Warning messages #}
+  {% if flash and flash.warning %}
+    <div class="alert alert-warning" role="alert">
+      <span class="alert-icon" aria-hidden="true">&#9888;</span>
+      <div class="alert-content">
+        {% if flash.warning is iterable and flash.warning is not string %}
+          {% for msg in flash.warning %}<div>{{ msg }}</div>{% endfor %}
+        {% else %}
+          {{ flash.warning }}
+        {% endif %}
+      </div>
+    </div>
+  {% elif warning or warningMessage %}
+    <div class="alert alert-warning" role="alert">
+      <span class="alert-icon" aria-hidden="true">&#9888;</span>
+      <div class="alert-content">{{ warning | default(warningMessage) }}</div>
+    </div>
+  {% endif %}
+</div>

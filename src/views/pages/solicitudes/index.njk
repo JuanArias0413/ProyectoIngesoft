@@ -1,0 +1,165 @@
+{% extends "layouts/base.njk" %}
+{% from "partials/badge.njk" import renderBadge %}
+
+{% block content %}
+{% set activeUser = currentUser | default(user) %}
+
+{# Encabezado con título y botón de acción principal #}
+<div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--sgec-border-light); padding-bottom: 1rem;">
+  <div>
+    <h1 style="color: var(--sgec-primary); font-size: 1.75rem; margin-bottom: 0.25rem;">
+      Solicitudes de Alquiler de Escenarios
+    </h1>
+    <p style="color: var(--sgec-text-muted); margin: 0; font-size: 0.95rem;">
+      Historial consolidado, control de trámites y seguimiento contractual.
+    </p>
+  </div>
+
+  {% if activeUser and activeUser.role == 'ADMIN_ASSISTANT' %}
+    <div>
+      <a href="/solicitudes/nueva" role="button" class="primary" style="margin: 0; font-weight: 700;">
+        + Nueva Solicitud
+      </a>
+    </div>
+  {% endif %}
+</div>
+
+{# Tarjeta de Filtros de Búsqueda #}
+<div class="card" style="padding: 1.25rem; margin-bottom: 1.5rem;">
+  <form action="/solicitudes" method="GET" style="margin: 0;">
+    <div class="responsive-grid responsive-grid-3" style="align-items: flex-end;">
+      {# Búsqueda de texto libre #}
+      <div class="form-group" style="margin-bottom: 0;">
+        <label for="search-query">
+          Buscar por Cliente, Evento o Radicado
+        </label>
+        <input
+          type="search"
+          id="search-query"
+          name="q"
+          placeholder="Nombre, cédula, evento, ARR-2026..."
+          value="{{ query.q | default('') }}"
+        >
+      </div>
+
+      {# Filtro por Estado #}
+      <div class="form-group" style="margin-bottom: 0;">
+        <label for="filter-status">
+          Filtrar por Estado
+        </label>
+        <select id="filter-status" name="status">
+          <option value="">-- Todos los estados --</option>
+          <option value="REGISTERED" {% if query.status == 'REGISTERED' %}selected{% endif %}>Registrada</option>
+          <option value="RESPONDED" {% if query.status == 'RESPONDED' %}selected{% endif %}>Respondida</option>
+          <option value="DOCUMENTS_VERIFIED" {% if query.status == 'DOCUMENTS_VERIFIED' %}selected{% endif %}>Documentos verificados</option>
+          <option value="CONTRACT_DRAFTED" {% if query.status == 'CONTRACT_DRAFTED' %}selected{% endif %}>Contrato elaborado</option>
+          <option value="PAID" {% if query.status == 'PAID' %}selected{% endif %}>Pagado</option>
+          <option value="LEGAL_REVIEW" {% if query.status == 'LEGAL_REVIEW' %}selected{% endif %}>En revisión jurídica</option>
+          <option value="RETURNED_BY_LEGAL" {% if query.status == 'RETURNED_BY_LEGAL' %}selected{% endif %}>Devuelto por Jurídica</option>
+          <option value="PENDING_SIGNATURE" {% if query.status == 'PENDING_SIGNATURE' %}selected{% endif %}>Pendiente de firma</option>
+          <option value="LEGALIZED" {% if query.status == 'LEGALIZED' %}selected{% endif %}>Legalizado</option>
+          <option value="CANCELLED" {% if query.status == 'CANCELLED' %}selected{% endif %}>Cancelada</option>
+        </select>
+      </div>
+
+      {# Botones de acción del filtro #}
+      <div style="display: flex; gap: 0.5rem; align-items: flex-end;">
+        <button type="submit" class="primary" style="margin: 0; width: 100%;">
+          Filtrar
+        </button>
+        {% if query.q or query.status %}
+          <a href="/solicitudes" role="button" class="outline secondary" style="margin: 0;">
+            Limpiar
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </form>
+</div>
+
+{# Listado de Solicitudes #}
+{% if requests and requests.length > 0 %}
+  <div class="table-responsive">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col" style="width: 14%;">Radicado / ID</th>
+          <th scope="col" style="width: 22%;">Cliente / Arrendatario</th>
+          <th scope="col" style="width: 22%;">Evento</th>
+          <th scope="col" style="width: 16%;">Espacio</th>
+          <th scope="col" style="width: 14%;">Fecha Inicio</th>
+          <th scope="col" style="width: 12%;">Estado</th>
+          <th scope="col" style="text-align: right; width: 100px;">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in requests %}
+          <tr>
+            <td>
+              <div>
+                <strong>{{ item.requestRadicado | default(item.id | truncate(10)) }}</strong>
+              </div>
+              {% if item.contract and item.contract.number %}
+                <small style="color: #237804; font-weight: 600;">{{ item.contract.number }}</small>
+              {% endif %}
+            </td>
+            <td>
+              <div style="font-weight: 600;">{{ item.customer.name | default(item.customerName) }}</div>
+              <small style="color: var(--sgec-text-muted);">
+                {{ item.customer.documentType | default("") }} {{ item.customer.documentNumber | default(item.customerDocument) }}
+              </small>
+            </td>
+            <td>
+              <div>{{ item.eventName }}</div>
+              <small style="color: var(--sgec-text-muted);">
+                {% if item.purpose == 'LUCRATIVE' %}Lucrativo{% else %}Sin ánimo de lucro{% endif %}
+              </small>
+            </td>
+            <td>
+              <div>{{ item.space.name | default(item.spaceName) }}</div>
+              <small style="color: var(--sgec-text-muted);">{{ item.space.venue.name | default(item.venueName) }}</small>
+            </td>
+            <td>
+              <div>{{ item.startsAtFormatted | default(item.startsAt) }}</div>
+            </td>
+            <td>
+              {{ renderBadge(item.status) }}
+            </td>
+            <td style="text-align: right;">
+              <a href="/solicitudes/{{ item.id }}" role="button" class="outline" style="padding: 0.35rem 0.65rem; font-size: 0.825rem; margin: 0; white-space: nowrap;">
+                Ver detalle
+              </a>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {# Paginación #}
+  {% include "partials/pagination.njk" %}
+
+{% else %}
+  {# Estado vacío #}
+  <div class="card" style="text-align: center; padding: 3rem 1rem;">
+    <div style="font-size: 2.5rem; color: var(--sgec-text-muted); margin-bottom: 0.5rem;" aria-hidden="true">&#128196;</div>
+    <h3 style="color: var(--sgec-primary); margin-bottom: 0.5rem;">No se encontraron solicitudes</h3>
+    <p style="color: var(--sgec-text-muted); max-width: 500px; margin: 0 auto 1.5rem; font-size: 0.95rem;">
+      {% if query.q or query.status %}
+        No existen solicitudes registradas que coincidan con los criterios de búsqueda aplicados.
+      {% else %}
+        Aún no hay solicitudes de alquiler registradas en el sistema.
+      {% endif %}
+    </p>
+
+    <div style="display: flex; gap: 0.75rem; justify-content: center;">
+      {% if query.q or query.status %}
+        <a href="/solicitudes" role="button" class="outline">Limpiar filtros</a>
+      {% endif %}
+      {% if activeUser and activeUser.role == 'ADMIN_ASSISTANT' %}
+        <a href="/solicitudes/nueva" role="button" class="primary">+ Registrar Solicitud</a>
+      {% endif %}
+    </div>
+  </div>
+{% endif %}
+{% endblock %}

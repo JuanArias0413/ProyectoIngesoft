@@ -1,0 +1,46 @@
+{% from "partials/badge.njk" import renderBadge %}
+
+<div id="disponibilidad-result" aria-live="polite">
+  {% if incomplete or not spaceId or not startsAt or not endsAt %}
+    <div class="alert alert-info" style="margin: 0.5rem 0;" role="status">
+      <span class="alert-icon" aria-hidden="true">&#8505;</span>
+      <div class="alert-content">
+        <strong>Verificación de disponibilidad:</strong>
+        <span>Seleccione el espacio y defina las fechas y horas de inicio y fin para consultar la agenda en tiempo real.</span>
+      </div>
+    </div>
+  {% elif available %}
+    <div class="alert alert-success" style="margin: 0.5rem 0;" role="status">
+      <span class="alert-icon" aria-hidden="true">&#10003;</span>
+      <div class="alert-content">
+        <strong>¡Espacio disponible!</strong>
+        <span>La franja seleccionada se encuentra libre. Al registrar la solicitud se creará una reserva provisional (HELD).</span>
+      </div>
+    </div>
+  {% else %}
+    <div class="alert alert-error" style="margin: 0.5rem 0;" role="alert">
+      <span class="alert-icon" aria-hidden="true">&#9888;</span>
+      <div class="alert-content">
+        <strong>Espacio no disponible</strong>
+        <div>
+          {% if conflict %}
+            Conflicto con la reserva de la solicitud
+            <strong>#{{ conflict.rentalRequestId | default(conflict.requestId) | default(conflict.rentalRequest.id | default("existente")) }}</strong>
+            {% if conflict.status or conflict.rentalRequest.status %}
+              — Estado: {{ renderBadge(conflict.status | default(conflict.rentalRequest.status)) }}
+            {% endif %}
+            {% if conflict.startsAtFormatted or conflict.startsAt %}
+              <div style="font-size: 0.825rem; margin-top: 0.25rem;">
+                Franja ocupada: {{ conflict.startsAtFormatted | default(conflict.startsAt) }} a {{ conflict.endsAtFormatted | default(conflict.endsAt) }}
+              </div>
+            {% endif %}
+          {% elif message %}
+            {{ message }}
+          {% else %}
+            Existe una reserva activa (HELD o CONFIRMED) que se solapa con la franja y espacio seleccionados. Por favor elija otra fecha, horario o escenario.
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  {% endif %}
+</div>

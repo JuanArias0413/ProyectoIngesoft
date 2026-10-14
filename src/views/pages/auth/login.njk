@@ -1,0 +1,82 @@
+{% extends "layouts/base.njk" %}
+
+{% block content %}
+<div style="display: flex; justify-content: center; align-items: center; min-height: 65vh;">
+  <article class="card" style="width: 100%; max-width: 460px; margin: 1rem auto; padding: 2rem;">
+    <header style="text-align: center; margin-bottom: 1.5rem; border-bottom: none; padding-bottom: 0;">
+      <h1 style="font-size: 1.6rem; color: var(--sgec-primary); margin-bottom: 0.25rem;">
+        Iniciar Sesión
+      </h1>
+      <p style="color: var(--sgec-text-muted); font-size: 0.9rem; margin: 0;">
+        Sistema de Gestión de Escenarios y Bienes Culturales
+      </p>
+    </header>
+
+    {% if error %}
+      <div class="alert alert-error" role="alert" style="margin-bottom: 1.25rem;">
+        <span class="alert-icon" aria-hidden="true">&#10007;</span>
+        <div class="alert-content">{{ error }}</div>
+      </div>
+    {% endif %}
+
+    <form action="/login" method="POST" novalidate>
+      <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+
+      <div class="form-group">
+        <label for="email">
+          Correo Electrónico Institucional
+          <span style="color: #c92a2a;">*</span>
+          <small>Ejemplo: auxiliar@sgec.local</small>
+        </label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          placeholder="nombre@sgec.local"
+          value="{{ email | default('') }}"
+          required
+          autocomplete="email"
+          autofocus
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="password">
+          Contraseña
+          <span style="color: #c92a2a;">*</span>
+          <small>Ingrese su contraseña de acceso</small>
+        </label>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          placeholder="••••••••••••"
+          required
+          autocomplete="current-password"
+        >
+      </div>
+
+      <button type="submit" style="width: 100%; margin-top: 1rem; font-weight: 700; padding: 0.75rem;">
+        Ingresar al Sistema
+      </button>
+    </form>
+
+    <footer style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--sgec-border-light); font-size: 0.8rem; color: var(--sgec-text-muted); text-align: center;">
+      <details style="border: none; padding: 0; margin: 0;">
+        <summary style="cursor: pointer; color: var(--sgec-primary); font-weight: 600;">
+          Ver usuarios semilla para desarrollo
+        </summary>
+        <div style="text-align: left; margin-top: 0.5rem; padding: 0.5rem; background: #f8fafc; border-radius: 4px; font-family: monospace; font-size: 0.75rem;">
+          <div>• <strong>Auxiliar:</strong> auxiliar@sgec.local</div>
+          <div>• <strong>Jefe:</strong> jefe@sgec.local</div>
+          <div>• <strong>Jurídica:</strong> juridica@sgec.local</div>
+          <div>• <strong>Secretario:</strong> secretario@sgec.local</div>
+          <div>• <strong>Operativo:</strong> operativo@sgec.local</div>
+          <div>• <strong>Mantenimiento:</strong> mantenimiento@sgec.local</div>
+          <div style="margin-top: 0.25rem;"><em>Clave: Cambiar123!</em></div>
+        </div>
+      </details>
+    </footer>
+  </article>
+</div>
+{% endblock %}

@@ -1,0 +1,832 @@
+/* ==========================================================================
+   SGEC — Sistema de Gestión de Escenarios y Bienes Culturales
+   Secretaría de Cultura de Pereira · Estilos de la Aplicación
+   ========================================================================== */
+
+:root {
+  /* Paleta institucional */
+  --sgec-primary: #0f2b48;
+  --sgec-primary-hover: #163e68;
+  --sgec-primary-light: #e6f0fa;
+  --sgec-primary-contrast: #ffffff;
+  
+  --sgec-secondary: #2c4356;
+  --sgec-accent: #c4820a;
+  
+  --sgec-bg: #f8fafc;
+  --sgec-card-bg: #ffffff;
+  --sgec-text: #1e293b;
+  --sgec-text-muted: #64748b;
+  --sgec-border: #cbd5e1;
+  --sgec-border-light: #e2e8f0;
+  
+  /* Sobrescritura de variables Pico.css */
+  --pico-primary: var(--sgec-primary);
+  --pico-primary-background: var(--sgec-primary);
+  --pico-primary-hover: var(--sgec-primary-hover);
+  --pico-primary-inverse: #ffffff;
+  --pico-font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --pico-border-radius: 6px;
+  --pico-line-height: 1.5;
+  --pico-form-element-spacing-vertical: 0.65rem;
+  --pico-form-element-spacing-horizontal: 0.85rem;
+}
+
+/* ==========================================================================
+   Estructura base y Layout
+   ========================================================================== */
+
+html {
+  font-size: 16px;
+  box-sizing: border-box;
+}
+
+*, *::before, *::after {
+  box-sizing: inherit;
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--sgec-bg);
+  color: var(--sgec-text);
+  margin: 0;
+}
+
+main.main-content {
+  flex: 1 0 auto;
+  padding-top: 1.5rem;
+  padding-bottom: 3rem;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+header.site-header {
+  flex-shrink: 0;
+  background-color: var(--sgec-primary);
+  color: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+footer.site-footer {
+  flex-shrink: 0;
+  background-color: #ffffff;
+  border-top: 1px solid var(--sgec-border-light);
+  padding: 1.5rem 1rem;
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--sgec-text-muted);
+}
+
+/* ==========================================================================
+   Navegación y Cabecera Institucional
+   ========================================================================== */
+
+.nav-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0.75rem 1rem;
+  flex-wrap: wrap;
+}
+
+.brand-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  color: #ffffff;
+}
+
+.brand-logo {
+  font-weight: 800;
+  font-size: 1.35rem;
+  letter-spacing: 0.5px;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.brand-badge {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.brand-subtitle {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 400;
+  border-left: 1px solid rgba(255, 255, 255, 0.3);
+  padding-left: 0.75rem;
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .brand-subtitle {
+    display: inline-block;
+  }
+}
+
+.nav-menu-toggle {
+  display: block;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+  padding: 0.4rem 0.65rem;
+  font-size: 1.1rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.nav-menu-toggle:focus {
+  outline: 2px solid #ffffff;
+}
+
+.nav-content {
+  display: none;
+  width: 100%;
+  flex-direction: column;
+  padding-top: 1rem;
+  gap: 0.75rem;
+}
+
+.nav-content.is-active {
+  display: flex;
+}
+
+.nav-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.nav-link {
+  color: rgba(255, 255, 255, 0.9);
+  text-decoration: none;
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.925rem;
+  font-weight: 500;
+  transition: background-color 0.15s ease, color 0.15s ease;
+  display: block;
+}
+
+.nav-link:hover,
+.nav-link:focus {
+  background-color: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+}
+
+.nav-link.is-active {
+  background-color: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.nav-user {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  padding-top: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.nav-user-info {
+  display: flex;
+  flex-direction: column;
+  color: #ffffff;
+  font-size: 0.85rem;
+}
+
+.nav-user-name {
+  font-weight: 600;
+}
+
+.nav-user-role {
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.75rem;
+}
+
+@media (min-width: 768px) {
+  .nav-menu-toggle {
+    display: none;
+  }
+  
+  .nav-content {
+    display: flex !important;
+    width: auto;
+    flex-direction: row;
+    align-items: center;
+    padding-top: 0;
+    gap: 1.5rem;
+  }
+  
+  .nav-links {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.25rem;
+  }
+  
+  .nav-user {
+    border-top: none;
+    padding-top: 0;
+    border-left: 1px solid rgba(255, 255, 255, 0.2);
+    padding-left: 1.25rem;
+  }
+}
+
+/* ==========================================================================
+   Insignias de Estado (Badges con color Y texto siempre visible)
+   ========================================================================== */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  border: 1px solid transparent;
+  text-decoration: none;
+}
+
+.badge-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.badge-lg {
+  padding: 0.4rem 0.9rem;
+  font-size: 0.95rem;
+}
+
+.badge-lg .badge-dot {
+  width: 0.65rem;
+  height: 0.65rem;
+}
+
+/* REGISTERED: Azul / Info */
+.badge-status-REGISTERED {
+  background-color: #e7f5ff;
+  color: #1864ab;
+  border-color: #a5d8ff;
+}
+.badge-status-REGISTERED .badge-dot {
+  background-color: #228be6;
+}
+
+/* RESPONDED: Azul claro / Teal */
+.badge-status-RESPONDED {
+  background-color: #e3fafc;
+  color: #0c8599;
+  border-color: #99e9f2;
+}
+.badge-status-RESPONDED .badge-dot {
+  background-color: #15aabf;
+}
+
+/* DOCUMENTS_VERIFIED: Celeste */
+.badge-status-DOCUMENTS_VERIFIED {
+  background-color: #e0f2fe;
+  color: #0369a1;
+  border-color: #7dd3fc;
+}
+.badge-status-DOCUMENTS_VERIFIED .badge-dot {
+  background-color: #0284c7;
+}
+
+/* CONTRACT_DRAFTED: Naranja */
+.badge-status-CONTRACT_DRAFTED {
+  background-color: #fff4e6;
+  color: #d9480f;
+  border-color: #ffd8a8;
+}
+.badge-status-CONTRACT_DRAFTED .badge-dot {
+  background-color: #fd7e14;
+}
+
+/* PAID: Verde claro */
+.badge-status-PAID {
+  background-color: #ebfbee;
+  color: #2b8a3e;
+  border-color: #b2f2bb;
+}
+.badge-status-PAID .badge-dot {
+  background-color: #40c057;
+}
+
+/* LEGAL_REVIEW: Amarillo / Ocre */
+.badge-status-LEGAL_REVIEW {
+  background-color: #fff9db;
+  color: #b06200;
+  border-color: #ffe066;
+}
+.badge-status-LEGAL_REVIEW .badge-dot {
+  background-color: #fab005;
+}
+
+/* RETURNED_BY_LEGAL: Rojo claro */
+.badge-status-RETURNED_BY_LEGAL {
+  background-color: #ffe3e3;
+  color: #c92a2a;
+  border-color: #ffc9c9;
+}
+.badge-status-RETURNED_BY_LEGAL .badge-dot {
+  background-color: #fa5252;
+}
+
+/* PENDING_SIGNATURE: Naranja oscuro */
+.badge-status-PENDING_SIGNATURE {
+  background-color: #ffe8cc;
+  color: #c2410c;
+  border-color: #ffc078;
+}
+.badge-status-PENDING_SIGNATURE .badge-dot {
+  background-color: #f97316;
+}
+
+/* LEGALIZED: Verde oscuro institucional */
+.badge-status-LEGALIZED {
+  background-color: #d3f9d8;
+  color: #237804;
+  border-color: #8ce99a;
+}
+.badge-status-LEGALIZED .badge-dot {
+  background-color: #389e0d;
+}
+
+/* CANCELLED: Gris */
+.badge-status-CANCELLED {
+  background-color: #f1f3f5;
+  color: #495057;
+  border-color: #ced4da;
+}
+.badge-status-CANCELLED .badge-dot {
+  background-color: #868e96;
+}
+
+/* ==========================================================================
+   Alertas y Mensajes Flash
+   ========================================================================== */
+
+.flash-container {
+  margin-bottom: 1.5rem;
+}
+
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.85rem 1.15rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  font-size: 0.925rem;
+  border-left: 4px solid;
+}
+
+.alert-icon {
+  flex-shrink: 0;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.alert-content {
+  flex: 1 1 auto;
+}
+
+.alert-success {
+  background-color: #ebfbee;
+  color: #2b8a3e;
+  border-color: #40c057;
+}
+
+.alert-error,
+.alert-danger {
+  background-color: #ffe3e3;
+  color: #c92a2a;
+  border-color: #fa5252;
+}
+
+.alert-info {
+  background-color: #e7f5ff;
+  color: #1864ab;
+  border-color: #228be6;
+}
+
+.alert-warning {
+  background-color: #fff9db;
+  color: #b06200;
+  border-color: #fab005;
+}
+
+/* ==========================================================================
+   Formularios y Accesibilidad
+   ========================================================================== */
+
+label {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-weight: 600;
+  color: var(--sgec-text);
+  font-size: 0.925rem;
+}
+
+label small,
+.form-text {
+  display: block;
+  font-weight: 400;
+  font-size: 0.8125rem;
+  color: var(--sgec-text-muted);
+  margin-top: 0.15rem;
+}
+
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+button:focus-visible,
+[role="button"]:focus-visible,
+a:focus-visible {
+  outline: 3px solid #60a5fa !important;
+  outline-offset: 2px !important;
+}
+
+.form-group {
+  margin-bottom: 1.25rem;
+}
+
+.field-error {
+  color: #c92a2a;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  margin-top: 0.25rem;
+}
+
+.is-invalid {
+  border-color: #fa5252 !important;
+  background-color: #fff5f5 !important;
+}
+
+fieldset {
+  border: 1px solid var(--sgec-border);
+  padding: 1.25rem;
+  border-radius: 6px;
+  margin-bottom: 1.5rem;
+  background-color: #ffffff;
+}
+
+legend {
+  font-weight: 700;
+  padding: 0 0.5rem;
+  color: var(--sgec-primary);
+  font-size: 1.05rem;
+}
+
+/* ==========================================================================
+   Tablas y Listados Responsivos
+   ========================================================================== */
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 1.5rem;
+  background-color: #ffffff;
+  border: 1px solid var(--sgec-border-light);
+  border-radius: 6px;
+}
+
+table {
+  width: 100%;
+  margin-bottom: 0;
+  border-collapse: collapse;
+}
+
+th {
+  background-color: #f1f5f9;
+  color: #334155;
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 0.75rem 1rem;
+  border-bottom: 2px solid var(--sgec-border);
+  text-align: left;
+}
+
+td {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--sgec-border-light);
+  font-size: 0.925rem;
+  vertical-align: middle;
+}
+
+tr:hover td {
+  background-color: #f8fafc;
+}
+
+/* ==========================================================================
+   Tarjetas, Paneles y Grillas
+   ========================================================================== */
+
+.card {
+  background-color: #ffffff;
+  border: 1px solid var(--sgec-border-light);
+  border-radius: 6px;
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.card-header {
+  border-bottom: 1px solid var(--sgec-border-light);
+  padding-bottom: 0.75rem;
+  margin-bottom: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.card-title {
+  margin: 0;
+  font-size: 1.15rem;
+  color: var(--sgec-primary);
+  font-weight: 700;
+}
+
+.responsive-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+}
+
+@media (min-width: 768px) {
+  .responsive-grid-2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .responsive-grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .responsive-grid-4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* ==========================================================================
+   Línea de Tiempo (Timeline)
+   ========================================================================== */
+
+.timeline {
+  position: relative;
+  padding-left: 2rem;
+  margin: 1.5rem 0;
+}
+
+.timeline::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0.75rem;
+  width: 2px;
+  background-color: var(--sgec-border);
+}
+
+.timeline-item {
+  position: relative;
+  margin-bottom: 1.5rem;
+}
+
+.timeline-icon {
+  position: absolute;
+  left: -2rem;
+  top: 0.15rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  background-color: var(--sgec-primary);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  box-shadow: 0 0 0 3px #ffffff;
+}
+
+.timeline-content {
+  background-color: #ffffff;
+  border: 1px solid var(--sgec-border-light);
+  border-radius: 6px;
+  padding: 0.85rem 1.1rem;
+}
+
+.timeline-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.35rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.timeline-actor {
+  font-weight: 700;
+  color: var(--sgec-primary);
+  font-size: 0.9rem;
+}
+
+.timeline-date {
+  font-size: 0.8rem;
+  color: var(--sgec-text-muted);
+}
+
+.timeline-note {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #334155;
+}
+
+/* ==========================================================================
+   Modales y Diálogos Nativos (<dialog>)
+   ========================================================================== */
+
+dialog {
+  border: none;
+  border-radius: 8px;
+  padding: 0;
+  max-width: 520px;
+  width: 90%;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+dialog::backdrop {
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(2px);
+}
+
+.dialog-card {
+  padding: 1.5rem;
+  background-color: #ffffff;
+}
+
+.dialog-header {
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--sgec-border-light);
+  padding-bottom: 0.75rem;
+}
+
+.dialog-title {
+  margin: 0;
+  font-size: 1.25rem;
+  color: var(--sgec-primary);
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--sgec-border-light);
+}
+
+/* ==========================================================================
+   Paginación
+   ========================================================================== */
+
+.pagination-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.pagination-info {
+  font-size: 0.875rem;
+  color: var(--sgec-text-muted);
+}
+
+.pagination-controls {
+  display: flex;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+.pagination-btn {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.875rem;
+  border-radius: 4px;
+  border: 1px solid var(--sgec-border);
+  background: #ffffff;
+  color: var(--sgec-text);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background: var(--sgec-primary-light);
+  color: var(--sgec-primary);
+}
+
+.pagination-btn.is-active {
+  background: var(--sgec-primary);
+  color: #ffffff;
+  border-color: var(--sgec-primary);
+  font-weight: 700;
+}
+
+.pagination-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ==========================================================================
+   Estilos de Impresión (@media print)
+   ========================================================================== */
+
+@media print {
+  /* Ocultar elementos no imprimibles */
+  header.site-header,
+  footer.site-footer,
+  nav,
+  .no-print,
+  button,
+  [role="button"],
+  .flash-container,
+  .pagination-wrapper,
+  .action-buttons,
+  dialog {
+    display: none !important;
+  }
+
+  body {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    font-size: 11pt !important;
+    line-height: 1.4 !important;
+  }
+
+  main.main-content {
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  @page {
+    size: A4 portrait;
+    margin: 20mm 15mm 20mm 15mm;
+  }
+
+  .printable-document {
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    page-break-after: always;
+  }
+
+  .print-footer-notice {
+    display: block !important;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 8pt;
+    color: #666;
+    border-top: 1px solid #ccc;
+    padding-top: 4px;
+  }
+}
+
+.print-footer-notice {
+  display: none;
+}

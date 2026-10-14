@@ -1,0 +1,193 @@
+{% extends "layouts/base.njk" %}
+{% from "partials/badge.njk" import renderBadge %}
+
+{% block content %}
+{% set activeUser = currentUser | default(user) %}
+
+{% if not activeUser %}
+  {# Pantalla de bienvenida para usuario sin sesión #}
+  <div style="text-align: center; padding: 3rem 1rem;">
+    <h1 style="color: var(--sgec-primary); font-size: 2.25rem; margin-bottom: 0.75rem;">
+      Sistema de Gestión de Escenarios y Bienes Culturales
+    </h1>
+    <p style="font-size: 1.15rem; color: var(--sgec-text-muted); max-width: 650px; margin: 0 auto 2rem;">
+      Plataforma institucional para el trámite, disponibilidad, contratación y control de escenarios culturales de la Secretaría de Cultura de Pereira.
+    </p>
+    <a href="/login" role="button" class="primary" style="padding: 0.85rem 2rem; font-size: 1.1rem; font-weight: 700; text-decoration: none;">
+      Ingresar al Sistema
+    </a>
+  </div>
+{% else %}
+
+  {# Encabezado del panel de usuario #}
+  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.75rem; border-bottom: 1px solid var(--sgec-border-light); padding-bottom: 1rem;">
+    <div>
+      <h1 style="margin: 0 0 0.25rem 0; font-size: 1.75rem; color: var(--sgec-primary);">
+        Bienvenido, {{ activeUser.name }}
+      </h1>
+      <p style="margin: 0; color: var(--sgec-text-muted); font-size: 0.925rem;">
+        {% if activeUser.role == 'OFFICE_HEAD' %}Jefe de la Oficina de Administración de Escenarios
+        {% elif activeUser.role == 'ADMIN_ASSISTANT' %}Auxiliar Administrativo — Gestión de Solicitudes y Alquileres
+        {% elif activeUser.role == 'LEGAL' %}Oficina Asesora Jurídica — Revisión y Control Contractual
+        {% elif activeUser.role == 'SECRETARY' %}Secretario de Cultura — Firma y Legalización de Contratos
+        {% elif activeUser.role == 'OPERATIONS_TECH' %}Técnico Operativo — Control de Escenarios y Agenda
+        {% elif activeUser.role == 'MAINTENANCE_TECH' %}Técnico de Mantenimiento — Supervisión de Bienes
+        {% endif %}
+      </p>
+    </div>
+
+    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+      {% if activeUser.role == 'ADMIN_ASSISTANT' %}
+        <a href="/solicitudes/nueva" role="button" style="margin: 0; font-weight: 700;">
+          + Registrar Solicitud
+        </a>
+      {% endif %}
+      {% if activeUser.role in ['OFFICE_HEAD', 'ADMIN_ASSISTANT', 'LEGAL', 'SECRETARY'] %}
+        <a href="/solicitudes" role="button" class="outline" style="margin: 0;">
+          Ver Solicitudes
+        </a>
+      {% endif %}
+      {% if activeUser.role in ['OFFICE_HEAD', 'ADMIN_ASSISTANT', 'LEGAL', 'SECRETARY', 'OPERATIONS_TECH'] %}
+        <a href="/agenda" role="button" class="outline secondary" style="margin: 0;">
+          Ver Agenda
+        </a>
+      {% endif %}
+    </div>
+  </div>
+
+  {# Sección: Resumen de Indicadores / Métricas Rápidas #}
+  {% if stats %}
+    <div class="responsive-grid responsive-grid-4" style="margin-bottom: 2rem;">
+      <div class="card" style="margin: 0; text-align: center; border-left: 4px solid var(--sgec-primary);">
+        <span style="font-size: 0.825rem; color: var(--sgec-text-muted); font-weight: 600; text-transform: uppercase;">Total Activas</span>
+        <div style="font-size: 1.85rem; font-weight: 800; color: var(--sgec-primary); margin: 0.25rem 0;">{{ stats.totalActive | default(0) }}</div>
+      </div>
+      <div class="card" style="margin: 0; text-align: center; border-left: 4px solid #fab005;">
+        <span style="font-size: 0.825rem; color: var(--sgec-text-muted); font-weight: 600; text-transform: uppercase;">En Trámite</span>
+        <div style="font-size: 1.85rem; font-weight: 800; color: #b06200; margin: 0.25rem 0;">{{ stats.inProgress | default(0) }}</div>
+      </div>
+      <div class="card" style="margin: 0; text-align: center; border-left: 4px solid #389e0d;">
+        <span style="font-size: 0.825rem; color: var(--sgec-text-muted); font-weight: 600; text-transform: uppercase;">Legalizadas</span>
+        <div style="font-size: 1.85rem; font-weight: 800; color: #237804; margin: 0.25rem 0;">{{ stats.legalized | default(0) }}</div>
+      </div>
+      <div class="card" style="margin: 0; text-align: center; border-left: 4px solid #868e96;">
+        <span style="font-size: 0.825rem; color: var(--sgec-text-muted); font-weight: 600; text-transform: uppercase;">Canceladas</span>
+        <div style="font-size: 1.85rem; font-weight: 800; color: #495057; margin: 0.25rem 0;">{{ stats.cancelled | default(0) }}</div>
+      </div>
+    </div>
+  {% endif %}
+
+  {# Sección: «Pendientes para mí» según rol #}
+  <section aria-labelledby="pendientes-heading">
+    <div class="card" style="padding: 1.5rem;">
+      <div class="card-header">
+        <h2 id="pendientes-heading" class="card-title">
+          <span>&#128203;</span> Pendientes para mí
+        </h2>
+        <span style="font-size: 0.85rem; color: var(--sgec-text-muted);">
+          Trámites que requieren su intervención directa
+        </span>
+      </div>
+
+      {# Contenido condicional según el rol #}
+      {% set hasPendientes = (pendingRequests and pendingRequests.length > 0) or (pendientes and pendientes.length > 0) %}
+      {% set items = pendingRequests | default(pendientes) | default([]) %}
+
+      {% if hasPendientes %}
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Radicado / ID</th>
+                <th scope="col">Cliente / Arrendatario</th>
+                <th scope="col">Evento</th>
+                <th scope="col">Espacio Solicitado</th>
+                <th scope="col">Fecha Inicio</th>
+                <th scope="col">Estado</th>
+                <th scope="col" style="text-align: right;">Acción Requerida</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for req in items %}
+                <tr>
+                  <td>
+                    <strong>{{ req.requestRadicado | default(req.id | truncate(10)) }}</strong>
+                  </td>
+                  <td>
+                    <div>{{ req.customer.name | default(req.customerName) }}</div>
+                    <small style="color: var(--sgec-text-muted);">{{ req.customer.documentNumber | default(req.customerDocument) }}</small>
+                  </td>
+                  <td>{{ req.eventName }}</td>
+                  <td>{{ req.space.name | default(req.spaceName) }}</td>
+                  <td>
+                    <div>{{ req.startsAtFormatted | default(req.startsAt) }}</div>
+                  </td>
+                  <td>
+                    {{ renderBadge(req.status) }}
+                  </td>
+                  <td style="text-align: right;">
+                    <a href="/solicitudes/{{ req.id }}" role="button" class="outline" style="padding: 0.35rem 0.75rem; font-size: 0.85rem; margin: 0;">
+                      {% if req.status == 'REGISTERED' and activeUser.role == 'ADMIN_ASSISTANT' %}
+                        Responder oficio
+                      {% elif req.status == 'CONTRACT_DRAFTED' and activeUser.role == 'ADMIN_ASSISTANT' %}
+                        Registrar pago
+                      {% elif req.status == 'RETURNED_BY_LEGAL' and activeUser.role == 'ADMIN_ASSISTANT' %}
+                        Corregir contrato
+                      {% elif req.status == 'LEGAL_REVIEW' and activeUser.role == 'LEGAL' %}
+                        Revisar contrato
+                      {% elif req.status == 'PENDING_SIGNATURE' and activeUser.role == 'SECRETARY' %}
+                        Firmar y legalizar
+                      {% else %}
+                        Ver detalle
+                      {% endif %}
+                    </a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        {# Estado vacío amigable cuando no hay pendientes #}
+        <div style="text-align: center; padding: 2.5rem 1rem;">
+          <div style="font-size: 2.5rem; color: #40c057; margin-bottom: 0.5rem;" aria-hidden="true">&#10003;</div>
+          <h3 style="font-size: 1.25rem; color: var(--sgec-primary); margin-bottom: 0.35rem;">
+            No tienes trámites pendientes por atender
+          </h3>
+          <p style="color: var(--sgec-text-muted); font-size: 0.9rem; max-width: 480px; margin: 0 auto 1.5rem;">
+            {% if activeUser.role == 'ADMIN_ASSISTANT' %}
+              No hay solicitudes pendientes de respuesta, registro de pago ni devoluciones de Jurídica.
+            {% elif activeUser.role == 'LEGAL' %}
+              No hay contratos pendientes de revisión jurídica en este momento.
+            {% elif activeUser.role == 'SECRETARY' %}
+              No hay contratos pendientes de firma y legalización.
+            {% elif activeUser.role == 'OFFICE_HEAD' %}
+              Todas las solicitudes se encuentran al día o en curso con los responsables de cada fase.
+            {% elif activeUser.role == 'OPERATIONS_TECH' %}
+              Puede consultar la programación completa y reservas de escenarios desde la Agenda.
+            {% elif activeUser.role == 'MAINTENANCE_TECH' %}
+              Módulo de mantenimiento programado para el Release 3.0.
+            {% else %}
+              Todo se encuentra al día.
+            {% endif %}
+          </p>
+
+          <div style="display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap;">
+            {% if activeUser.role in ['OFFICE_HEAD', 'ADMIN_ASSISTANT', 'LEGAL', 'SECRETARY'] %}
+              <a href="/solicitudes" role="button" class="outline" style="padding: 0.5rem 1.25rem; margin: 0;">
+                Consultar historial de solicitudes
+              </a>
+            {% endif %}
+            {% if activeUser.role in ['OFFICE_HEAD', 'ADMIN_ASSISTANT', 'LEGAL', 'SECRETARY', 'OPERATIONS_TECH'] %}
+              <a href="/agenda" role="button" class="outline secondary" style="padding: 0.5rem 1.25rem; margin: 0;">
+                Consultar agenda de escenarios
+              </a>
+            {% endif %}
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  </section>
+
+{% endif %}
+{% endblock %}
