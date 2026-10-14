@@ -270,7 +270,7 @@
                   <td style="text-align: right;">
                     <form action="/solicitudes/{{ s.id }}/documentos-cliente/{{ doc.requirementCode }}?_csrf={{ csrfToken }}" method="POST" enctype="multipart/form-data" style="margin: 0; display: inline-flex; gap: 0.25rem; align-items: center;">
                       <input type="hidden" name="_csrf" value="{{ csrfToken }}">
-                      <input type="file" name="archivo" accept=".pdf,.png,.jpg,.jpeg" style="font-size: 0.75rem; padding: 0.2rem; margin: 0; width: 140px;">
+                      <input type="file" name="archivo" accept=".pdf,.png,.jpg,.jpeg" aria-label="Adjuntar archivo para {{ doc.requirementCode }}" style="font-size: 0.75rem; padding: 0.2rem; margin: 0; width: 140px;">
                       <button type="submit" class="outline" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; margin: 0;">Subir</button>
                     </form>
                   </td>
@@ -647,20 +647,20 @@
         Para aprobar la minuta contractual debe certificar el cumplimiento de las 3 verificaciones obligatorias (CAR-07):
       </p>
       <div class="form-group">
-        <label style="font-weight: 500;">
-          <input type="checkbox" name="documentsOk" value="true" required>
+        <label for="checkDocumentsOk" style="font-weight: 500; cursor: pointer;">
+          <input type="checkbox" id="checkDocumentsOk" name="documentsOk" value="true" required>
           1. Documentación completa, auténtica y con vigencia acreditada.
         </label>
       </div>
       <div class="form-group">
-        <label style="font-weight: 500;">
-          <input type="checkbox" name="customerDataOk" value="true" required>
+        <label for="checkCustomerDataOk" style="font-weight: 500; cursor: pointer;">
+          <input type="checkbox" id="checkCustomerDataOk" name="customerDataOk" value="true" required>
           2. Datos y representación del arrendatario verificados en registros públicos.
         </label>
       </div>
       <div class="form-group">
-        <label style="font-weight: 500;">
-          <input type="checkbox" name="clausesOk" value="true" required>
+        <label for="checkClausesOk" style="font-weight: 500; cursor: pointer;">
+          <input type="checkbox" id="checkClausesOk" name="clausesOk" value="true" required>
           3. Objeto, clausulado y obligaciones ajustados a la normatividad institucional.
         </label>
       </div>
