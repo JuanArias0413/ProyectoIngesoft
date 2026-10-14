@@ -66,8 +66,8 @@ Reglas de paralelismo: las fases 0 y 1 las hace **solo el orquestador**, en orde
 - [x] **F2.10** Servicio `DocumentRenderer` + snapshot versionado; plantillas oficio, estudio previo y contrato con CSS de impresión A4 y pie del A-13. (AC-03.2, 03.4, 05.1, 05.3)
 
 **UI**
-- [ ] **F2.11** Layout, navegación por rol, login, inicio con «pendientes para mí», formularios y mensajes flash.
-- [ ] **F2.12** Pantallas: registro (con disponibilidad HTMX), listado, detalle con acciones por rol, agenda, tarifas.
+- [x] **F2.11** Layout, navegación por rol, login, inicio con «pendientes para mí», formularios y mensajes flash.
+- [x] **F2.12** Pantallas: registro (con disponibilidad HTMX), listado, detalle con acciones por rol, agenda, tarifas.
 
 **QA/Docs**
 - [ ] **F2.13** Pruebas de integración por cada AC conforme el backend lo entrega (no esperar al final).

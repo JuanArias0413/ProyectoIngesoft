@@ -4,9 +4,9 @@ Bitácora viva. Solo se **agrega** al final de cada sección; no se reescribe el
 
 ## Estado actual
 - **Fase en curso:** Fase 2 (Flujo del alquiler)
-- **Última tarea completada:** F2.10 (Documentos)
-- **Último commit verde:** 0054b2b
-- **Resultado de pruebas:** 712 pruebas pasadas (19 archivos)
+- **Última tarea completada:** F2.12 (UI)
+- **Último commit verde:** cfca816
+- **Resultado de pruebas:** 754 pruebas pasadas (19 archivos)
 - **Siguiente tarea:** F2.2
 
 ## Bitácora (una línea por tarea terminada)
@@ -25,6 +25,8 @@ Bitácora viva. Solo se **agrega** al final de cada sección; no se reescribe el
 2026-10-13 23:30 · F2.14 · qa-docs · Borrador de TRAZABILIDAD.md y esqueleto de PROTOCOLO_ACEPTACION.md (37 ACs) · 7b2650e
 2026-10-13 23:36 · F2.1 · backend · T1 register, clientes find-or-create, reserva HELD, checklist documental y pruebas AC-01.x · 43de8a1
 2026-10-13 23:39 · F2.10 · documentos · Servicio DocumentRenderer, snapshots versionados, plantillas Nunjucks A4 e integración HTTP · 0054b2b
+2026-10-13 23:41 · F2.11 · ui · Layout base, navegación por rol, login institucional, dashboard y mensajes flash · cfca816
+2026-10-13 23:41 · F2.12 · ui · Pantallas completas con disponibilidad HTMX, listado filtrable, detalle con modales de acción por rol, agenda 30d y tarifas · cfca816
 
 ## Compuertas
 ### Compuerta G0 · 2026-10-13 23:03
