@@ -56,7 +56,7 @@ Reglas de paralelismo: las fases 0 y 1 las hace **solo el orquestador**, en orde
 - [x] **F2.2** T2 `respond`: cotización congelada + solicitud de generación del oficio. (CAR-03, AC-03.1, 03.3)
 - [x] **F2.3** Documentos del cliente: marcar recibido, adjuntar, verificar; T3 `verifyDocuments`; almacenamiento y descarga autenticada. (CAR-04)
 - [x] **F2.4** T4 `draftContract` + edición de objeto/cláusulas + versiones. (CAR-05)
-- [ ] **F2.5** T5 `registerPayment` + T6 `submitToLegal`. (CAR-06)
+- [x] **F2.5** T5 `registerPayment` + T6 `submitToLegal`. (CAR-06)
 - [ ] **F2.6** T7, T8, T9: revisión jurídica por rondas. (CAR-07)
 - [ ] **F2.7** T10 `signAndNumber` con numeración atómica + T11 `cancel`. (CAR-08, A-11)
 - [ ] **F2.8** Consultas: listado filtrable/paginado y detalle con línea de tiempo. (CAR-09)

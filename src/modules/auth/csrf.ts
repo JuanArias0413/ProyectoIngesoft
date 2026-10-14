@@ -19,7 +19,8 @@ export const {
   getTokenFromRequest: (req) => {
     return (
       (req.body && typeof req.body === 'object' && '_csrf' in req.body ? req.body._csrf : undefined) ||
-      (req.headers['x-csrf-token'] as string | undefined)
+      (req.headers['x-csrf-token'] as string | undefined) ||
+      (req.query && typeof req.query === 'object' && '_csrf' in req.query ? (req.query._csrf as string) : undefined)
     );
   },
 });

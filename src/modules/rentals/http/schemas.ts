@@ -39,6 +39,11 @@ export const registerPaymentSchema = z.object({
   invoiceNumber: z.string().min(1, 'El número de factura es obligatorio'),
   invoiceDate: z.coerce.date({ invalid_type_error: 'La fecha de factura es inválida' }),
   paidAt: z.coerce.date().optional(),
+  voucherFileKey: z.string().optional(),
+});
+
+export const submitToLegalSchema = z.object({
+  note: z.string().optional(),
 });
 
 export const approveLegalSchema = z.object({

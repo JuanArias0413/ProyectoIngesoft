@@ -7,6 +7,8 @@ import { VerifyDocumentsUseCase } from '../application/verifyDocumentsUseCase.js
 import { ManageDocumentsUseCase } from '../application/manageDocumentsUseCase.js';
 import { DraftContractUseCase } from '../application/draftContractUseCase.js';
 import { UpdateContractUseCase } from '../application/updateContractUseCase.js';
+import { RegisterPaymentUseCase } from '../application/registerPaymentUseCase.js';
+import { SubmitToLegalUseCase } from '../application/submitToLegalUseCase.js';
 import { rentalUploadMiddleware } from '../infra/fileStorage.js';
 import { AvailabilityService } from '../../agenda/application/availabilityService.js';
 import { PrismaReservationRepository } from '../../agenda/infra/prismaReservationRepository.js';
@@ -33,6 +35,8 @@ export function createRentalRouter(controller?: RentalController): Router {
       new ManageDocumentsUseCase(prisma),
       new DraftContractUseCase(prisma, new DocumentRenderer(prisma)),
       new UpdateContractUseCase(prisma, new DocumentRenderer(prisma)),
+      new RegisterPaymentUseCase(prisma),
+      new SubmitToLegalUseCase(prisma),
     );
 
   // F2.1 — Registrar solicitud (CAR-01, AC-01.x)
@@ -127,6 +131,35 @@ export function createRentalRouter(controller?: RentalController): Router {
     requireAuth,
     requirePermission('rentals:draft-contract'),
     (req, res, next) => ctrl.updateContract(req, res, next),
+  );
+
+  // F2.5 — T5 registerPayment + T6 submitToLegal (CAR-06, AC-06.1 a AC-06.3)
+  router.post(
+    '/solicitudes/:id/transiciones/registerPayment',
+    requireAuth,
+    requirePermission('rentals:register-payment'),
+    rentalUploadMiddleware,
+    (req, res, next) => ctrl.registerPayment(req, res, next),
+  );
+  router.post(
+    '/solicitudes/:id/registrar-pago',
+    requireAuth,
+    requirePermission('rentals:register-payment'),
+    rentalUploadMiddleware,
+    (req, res, next) => ctrl.registerPayment(req, res, next),
+  );
+
+  router.post(
+    '/solicitudes/:id/transiciones/submitToLegal',
+    requireAuth,
+    requirePermission('rentals:submit-legal'),
+    (req, res, next) => ctrl.submitToLegal(req, res, next),
+  );
+  router.post(
+    '/solicitudes/:id/enviar-juridica',
+    requireAuth,
+    requirePermission('rentals:submit-legal'),
+    (req, res, next) => ctrl.submitToLegal(req, res, next),
   );
 
   // Descarga autenticada de archivos

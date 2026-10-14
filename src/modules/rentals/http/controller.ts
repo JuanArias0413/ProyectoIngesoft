@@ -6,6 +6,8 @@ import {
   registerRentalSchema,
   respondRentalSchema,
   draftContractSchema,
+  registerPaymentSchema,
+  submitToLegalSchema,
 } from './schemas.js';
 import { RegisterRentalUseCase } from '../application/registerRentalUseCase.js';
 import { RespondRentalUseCase } from '../application/respondRentalUseCase.js';
@@ -13,6 +15,8 @@ import { VerifyDocumentsUseCase } from '../application/verifyDocumentsUseCase.js
 import { ManageDocumentsUseCase } from '../application/manageDocumentsUseCase.js';
 import { DraftContractUseCase } from '../application/draftContractUseCase.js';
 import { UpdateContractUseCase } from '../application/updateContractUseCase.js';
+import { RegisterPaymentUseCase } from '../application/registerPaymentUseCase.js';
+import { SubmitToLegalUseCase } from '../application/submitToLegalUseCase.js';
 import { resolveStoragePath } from '../infra/fileStorage.js';
 
 function parseBody<T>(schema: z.ZodSchema<T>, data: unknown): T {
@@ -32,6 +36,8 @@ export class RentalController {
     private readonly manageDocumentsUseCase?: ManageDocumentsUseCase,
     private readonly draftContractUseCase?: DraftContractUseCase,
     private readonly updateContractUseCase?: UpdateContractUseCase,
+    private readonly registerPaymentUseCase?: RegisterPaymentUseCase,
+    private readonly submitToLegalUseCase?: SubmitToLegalUseCase,
   ) {}
 
   public async register(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -363,5 +369,91 @@ export class RentalController {
       next(error);
     }
   }
+
+  public async registerPayment(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const user = req.session?.user;
+      if (!user) {
+        res.status(401).json({ error: 'No autenticado' });
+        return;
+      }
+
+      if (!this.registerPaymentUseCase) {
+        res.status(500).json({ error: 'Caso de uso RegisterPaymentUseCase no inyectado' });
+        return;
+      }
+
+      const id = String(req.params.id);
+      const input = parseBody(registerPaymentSchema, req.body);
+      const voucherFileKey = req.file?.filename || input.voucherFileKey || null;
+
+      const result = await this.registerPaymentUseCase.execute({
+        rentalRequestId: id,
+        receiptNumber: input.receiptNumber,
+        bankName: input.bankName,
+        voucherNumber: input.voucherNumber,
+        paidAt: input.paidAt,
+        amountPesos: input.amountPesos,
+        invoiceNumber: input.invoiceNumber,
+        invoiceDate: input.invoiceDate,
+        voucherFileKey,
+        actorId: user.id,
+        actorRole: user.role,
+      });
+
+      if (req.accepts('html') && !req.xhr && !req.path.startsWith('/api')) {
+        res.redirect(`/solicitudes/${id}`);
+        return;
+      }
+
+      res.status(200).json({
+        message: 'Pago registrado con éxito',
+        rentalRequestId: result.rentalRequest.id,
+        status: result.rentalRequest.status,
+        payment: result.payment,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public async submitToLegal(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const user = req.session?.user;
+      if (!user) {
+        res.status(401).json({ error: 'No autenticado' });
+        return;
+      }
+
+      if (!this.submitToLegalUseCase) {
+        res.status(500).json({ error: 'Caso de uso SubmitToLegalUseCase no inyectado' });
+        return;
+      }
+
+      const id = String(req.params.id);
+      const input = parseBody(submitToLegalSchema, req.body || {});
+
+      const result = await this.submitToLegalUseCase.execute({
+        rentalRequestId: id,
+        actorId: user.id,
+        actorRole: user.role,
+        note: input.note,
+      });
+
+      if (req.accepts('html') && !req.xhr && !req.path.startsWith('/api')) {
+        res.redirect(`/solicitudes/${id}`);
+        return;
+      }
+
+      res.status(200).json({
+        message: 'Solicitud enviada a revisión jurídica con éxito',
+        rentalRequestId: result.rentalRequest.id,
+        status: result.rentalRequest.status,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
+
 

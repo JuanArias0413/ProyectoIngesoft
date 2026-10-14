@@ -848,6 +848,181 @@ describe('SGEC Release 1.0 — Rental Lifecycle & Flow Integration (rentalFlow.t
   });
 
   // =========================================================================
+  // CAR-06: Pago y facturación (AC-06.1 a AC-06.3) + T6 submitToLegal
+  // =========================================================================
+  describe('CAR-06: Pago y facturación (T5 registerPayment + T6 submitToLegal)', () => {
+    it('AC-06.1: auxiliar registra pago con comprobante, recibo, factura y soporte opcional', async () => {
+      const { agent, csrfToken } = await loginAs(app, UserRole.ADMIN_ASSISTANT);
+      const drafted = await createRentalInState(RentalStatus.CONTRACT_DRAFTED);
+      const rentalId = drafted.rental.id;
+      const quoted = drafted.rental.quotedAmountPesos!;
+
+      const dummyPdf = Buffer.from('%PDF-1.4 comprobante de consignacion bancaria');
+
+      const res = await agent
+        .post(`/solicitudes/${rentalId}/transiciones/registerPayment`)
+        .set('Accept', 'application/json')
+        .set('X-CSRF-Token', csrfToken)
+        .field('_csrf', csrfToken)
+        .field('receiptNumber', 'REC-2026-0099')
+        .field('bankName', 'Banco de Occidente')
+        .field('voucherNumber', 'TX-77665544')
+        .field('paidAt', '2026-10-15')
+        .field('invoiceNumber', 'FAC-2026-1001')
+        .field('invoiceDate', '2026-10-15')
+        .field('amountPesos', quoted)
+        .attach('voucherFile', dummyPdf, 'comprobante_banco.pdf');
+
+      expect(res.status).toBe(200);
+      expect(res.body.status).toBe('PAID');
+      expect(res.body.payment).toBeDefined();
+      expect(res.body.payment.receiptNumber).toBe('REC-2026-0099');
+      expect(res.body.payment.bankName).toBe('Banco de Occidente');
+      expect(res.body.payment.voucherNumber).toBe('TX-77665544');
+      expect(res.body.payment.invoiceNumber).toBe('FAC-2026-1001');
+      expect(res.body.payment.amountPesos).toBe(quoted);
+      expect(res.body.payment.voucherFileKey).toBeTruthy();
+
+      // Verificar persistencia en base de datos
+      const paymentDb = await prisma.payment.findUnique({
+        where: { rentalRequestId: rentalId },
+      });
+      expect(paymentDb).not.toBeNull();
+      expect(paymentDb!.receiptNumber).toBe('REC-2026-0099');
+      expect(paymentDb!.voucherFileKey).toBe(res.body.payment.voucherFileKey);
+
+      // Verificar que la solicitud pasó a PAID
+      const updatedReq = await prisma.rentalRequest.findUnique({
+        where: { id: rentalId },
+      });
+      expect(updatedReq!.status).toBe(RentalStatus.PAID);
+
+      // Verificar registro de auditoría StateTransition
+      const transition = await prisma.stateTransition.findFirst({
+        where: { rentalRequestId: rentalId, transition: 'registerPayment' },
+      });
+      expect(transition).not.toBeNull();
+      expect(transition!.fromStatus).toBe('CONTRACT_DRAFTED');
+      expect(transition!.toStatus).toBe('PAID');
+    });
+
+    it('AC-06.2: si el monto pagado no coincide con el valor cotizado, se rechaza con error explicativo (regla A-08)', async () => {
+      const { agent, csrfToken } = await loginAs(app, UserRole.ADMIN_ASSISTANT);
+      const drafted = await createRentalInState(RentalStatus.CONTRACT_DRAFTED);
+      const rentalId = drafted.rental.id;
+      const quoted = drafted.rental.quotedAmountPesos!;
+
+      const diffAmount = quoted + 50000;
+
+      const res = await agent
+        .post(`/solicitudes/${rentalId}/transiciones/registerPayment`)
+        .set('Accept', 'application/json')
+        .set('X-CSRF-Token', csrfToken)
+        .send({
+          receiptNumber: 'REC-2026-DIFF',
+          bankName: 'Bancolombia',
+          voucherNumber: 'TX-DIFF-1122',
+          paidAt: '2026-10-15',
+          invoiceNumber: 'FAC-2026-DIFF',
+          invoiceDate: '2026-10-15',
+          amountPesos: diffAmount,
+        });
+
+      expect(res.status).toBe(400);
+      expect(res.body.error).toMatch(/coincidir exactamente con el valor cotizado/i);
+
+      // Verificar que la solicitud permanece en CONTRACT_DRAFTED
+      const reqDb = await prisma.rentalRequest.findUnique({
+        where: { id: rentalId },
+      });
+      expect(reqDb!.status).toBe(RentalStatus.CONTRACT_DRAFTED);
+    });
+
+    it('AC-06.3: tras registrar el pago el estado es PAID, y luego T6 submitToLegal pasa a LEGAL_REVIEW', async () => {
+      const { agent, csrfToken } = await loginAs(app, UserRole.ADMIN_ASSISTANT);
+      const drafted = await createRentalInState(RentalStatus.CONTRACT_DRAFTED);
+      const rentalId = drafted.rental.id;
+      const quoted = drafted.rental.quotedAmountPesos!;
+
+      // 1. Registrar pago exitoso (sin archivo adjunto)
+      const resPay = await agent
+        .post(`/solicitudes/${rentalId}/transiciones/registerPayment`)
+        .set('Accept', 'application/json')
+        .set('X-CSRF-Token', csrfToken)
+        .send({
+          receiptNumber: 'REC-2026-0055',
+          bankName: 'Davivienda',
+          voucherNumber: 'VOUCH-554433',
+          paidAt: '2026-10-16',
+          invoiceNumber: 'FAC-2026-0550',
+          invoiceDate: '2026-10-16',
+          amountPesos: quoted,
+        });
+
+      expect(resPay.status).toBe(200);
+      expect(resPay.body.status).toBe('PAID');
+
+      // 2. Auxiliar ejecuta T6 submitToLegal
+      const resLegal = await agent
+        .post(`/solicitudes/${rentalId}/transiciones/submitToLegal`)
+        .set('Accept', 'application/json')
+        .set('X-CSRF-Token', csrfToken)
+        .send({
+          note: 'Expediente completo y soporte de consignación verificado para revisión jurídica',
+        });
+
+      expect(resLegal.status).toBe(200);
+      expect(resLegal.body.status).toBe('LEGAL_REVIEW');
+
+      // Verificar estado en BD
+      const reqDb = await prisma.rentalRequest.findUnique({
+        where: { id: rentalId },
+      });
+      expect(reqDb!.status).toBe(RentalStatus.LEGAL_REVIEW);
+
+      // Verificar transición en BD
+      const transition = await prisma.stateTransition.findFirst({
+        where: { rentalRequestId: rentalId, transition: 'submitToLegal' },
+      });
+      expect(transition).not.toBeNull();
+      expect(transition!.fromStatus).toBe('PAID');
+      expect(transition!.toStatus).toBe('LEGAL_REVIEW');
+    });
+
+    it('impide registrar pago en estados distintos a CONTRACT_DRAFTED y someter a jurídica si no está en PAID', async () => {
+      const { agent, csrfToken } = await loginAs(app, UserRole.ADMIN_ASSISTANT);
+
+      // Intento de registrar pago en DOCUMENTS_VERIFIED (debe dar 409 InvalidTransitionError)
+      const docVerified = await createRentalInState(RentalStatus.DOCUMENTS_VERIFIED);
+      const resPayBlocked = await agent
+        .post(`/solicitudes/${docVerified.rental.id}/transiciones/registerPayment`)
+        .set('Accept', 'application/json')
+        .set('X-CSRF-Token', csrfToken)
+        .send({
+          receiptNumber: 'REC-INVALID',
+          bankName: 'Banco',
+          voucherNumber: 'TX-1',
+          paidAt: '2026-10-15',
+          invoiceNumber: 'FAC-1',
+          invoiceDate: '2026-10-15',
+          amountPesos: 100000,
+        });
+
+      expect(resPayBlocked.status).toBe(409);
+
+      // Intento de submitToLegal desde REGISTERED
+      const registered = await createRentalInState(RentalStatus.REGISTERED);
+      const resSubmitBlocked = await agent
+        .post(`/solicitudes/${registered.rental.id}/transiciones/submitToLegal`)
+        .set('Accept', 'application/json')
+        .set('X-CSRF-Token', csrfToken)
+        .send({});
+
+      expect(resSubmitBlocked.status).toBe(409);
+    });
+  });
+
+  // =========================================================================
   // Fábrica de Estados del Ciclo de Vida (createRentalInState)
   // =========================================================================
   describe('Ciclo de vida completo vía helper createRentalInState', () => {
