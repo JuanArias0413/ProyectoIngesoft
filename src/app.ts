@@ -15,6 +15,7 @@ import { errorHandler, notFoundHandler } from './shared/middleware/errorHandler.
 import { doubleCsrfProtection, generateToken } from './modules/auth/csrf.js';
 import { createAuthRouter } from './modules/auth/routes.js';
 import { createDocumentRouter } from './modules/documents/index.js';
+import { createRentalRouter } from './modules/rentals/http/routes.js';
 import './modules/auth/types.js';
 
 export interface AppOptions {
@@ -122,6 +123,9 @@ export function createApp(opts?: AppOptions): express.Application {
 
   // Documents routes (/solicitudes/:id/documentos/:kind)
   app.use(createDocumentRouter());
+
+  // Rental routes (/solicitudes, /archivos)
+  app.use(createRentalRouter());
 
   // Root endpoint
   app.get('/', (req, res) => {

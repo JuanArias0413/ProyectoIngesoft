@@ -3,6 +3,9 @@ import { requireAuth, requirePermission } from '../../auth/middleware.js';
 import { RentalController } from './controller.js';
 import { RegisterRentalUseCase } from '../application/registerRentalUseCase.js';
 import { RespondRentalUseCase } from '../application/respondRentalUseCase.js';
+import { VerifyDocumentsUseCase } from '../application/verifyDocumentsUseCase.js';
+import { ManageDocumentsUseCase } from '../application/manageDocumentsUseCase.js';
+import { rentalUploadMiddleware } from '../infra/fileStorage.js';
 import { AvailabilityService } from '../../agenda/application/availabilityService.js';
 import { PrismaReservationRepository } from '../../agenda/infra/prismaReservationRepository.js';
 import { PrismaTariffRepository } from '../../catalog/infra/prismaCatalogRepositories.js';
@@ -24,6 +27,8 @@ export function createRentalRouter(controller?: RentalController): Router {
         new DocumentRenderer(prisma),
         prisma,
       ),
+      new VerifyDocumentsUseCase(prisma),
+      new ManageDocumentsUseCase(prisma),
     );
 
   // F2.1 — Registrar solicitud (CAR-01, AC-01.x)
@@ -46,6 +51,59 @@ export function createRentalRouter(controller?: RentalController): Router {
     requireAuth,
     requirePermission('rentals:respond'),
     (req, res, next) => ctrl.respond(req, res, next),
+  );
+
+  // F2.3 — Documentos del cliente y T3 verifyDocuments (CAR-04, AC-04.2 a AC-04.5)
+  router.post(
+    '/solicitudes/:id/documentos/:code/recibir',
+    requireAuth,
+    requirePermission('rentals:verify-docs'),
+    (req, res, next) => ctrl.markDocumentReceived(req, res, next),
+  );
+
+  router.post(
+    '/solicitudes/:id/documentos/:code/archivo',
+    requireAuth,
+    requirePermission('rentals:verify-docs'),
+    rentalUploadMiddleware,
+    (req, res, next) => ctrl.uploadClientDocument(req, res, next),
+  );
+
+  router.post(
+    '/solicitudes/:id/documentos-cliente/:code',
+    requireAuth,
+    requirePermission('rentals:verify-docs'),
+    rentalUploadMiddleware,
+    (req, res, next) => ctrl.uploadClientDocument(req, res, next),
+  );
+
+  router.post(
+    '/solicitudes/:id/documentos/:code/verificar',
+    requireAuth,
+    requirePermission('rentals:verify-docs'),
+    (req, res, next) => ctrl.verifyDocument(req, res, next),
+  );
+
+  router.post(
+    '/solicitudes/:id/transiciones/verifyDocuments',
+    requireAuth,
+    requirePermission('rentals:verify-docs'),
+    (req, res, next) => ctrl.verifyDocumentsTransition(req, res, next),
+  );
+
+  router.post(
+    '/solicitudes/:id/verificar-documentos',
+    requireAuth,
+    requirePermission('rentals:verify-docs'),
+    (req, res, next) => ctrl.verifyDocumentsTransition(req, res, next),
+  );
+
+  // Descarga autenticada de archivos
+  router.get(
+    '/archivos/:key',
+    requireAuth,
+    requirePermission('files:download'),
+    (req, res, next) => ctrl.downloadFile(req, res, next),
   );
 
   return router;

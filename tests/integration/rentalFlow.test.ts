@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeAll, beforeEach } from 'vitest';
 import type { Application, Express } from 'express';
+import request from 'supertest';
 import { UserRole, CustomerType, RentalStatus, ReservationStatus } from '@prisma/client';
 import { createApp } from '../../src/app.js';
 import { prisma } from '../../src/infra/prisma.js';
@@ -464,6 +465,189 @@ describe('SGEC Release 1.0 — Rental Lifecycle & Flow Integration (rentalFlow.t
       });
       const legalCodes = legalDocs.map((d) => d.requirementCode).sort();
       expect(legalCodes).toEqual(['CERT_EXISTENCE', 'EVENT_DESC', 'REP_DOC', 'RUT'].sort());
+    });
+
+    it('AC-04.2: auxiliar marca documento recibido, adjunta archivo y lo verifica', async () => {
+      const { agent, csrfToken } = await loginAs(app, UserRole.ADMIN_ASSISTANT);
+      const responded = await createRentalInState(RentalStatus.RESPONDED);
+      const rentalId = responded.rental.id;
+
+      // 1. Marcar como recibido
+      const resRecibir = await agent
+        .post(`/solicitudes/${rentalId}/documentos/CC/recibir`)
+        .set('Accept', 'application/json')
+        .set('X-CSRF-Token', csrfToken)
+        .send({ notes: 'Recibido copia física en ventanilla' });
+
+      expect(resRecibir.status).toBe(200);
+      expect(resRecibir.body.document.receivedAt).toBeDefined();
+
+      const docDb1 = await prisma.requestDocument.findFirst({
+        where: { rentalRequestId: rentalId, requirementCode: 'CC' },
+      });
+      expect(docDb1!.receivedAt).not.toBeNull();
+      expect(docDb1!.notes).toBe('Recibido copia física en ventanilla');
+
+      // 2. Adjuntar archivo válido (PDF)
+      const pdfBuffer = Buffer.from('%PDF-1.4 test document content');
+      const resArchivo = await agent
+        .post(`/solicitudes/${rentalId}/documentos/CC/archivo`)
+        .set('Accept', 'application/json')
+        .set('X-CSRF-Token', csrfToken)
+        .attach('archivo', pdfBuffer, { filename: 'cedula_carlos.pdf', contentType: 'application/pdf' });
+
+      expect(resArchivo.status).toBe(200);
+      expect(resArchivo.body.fileKey).toBeDefined();
+
+      const docDb2 = await prisma.requestDocument.findFirst({
+        where: { rentalRequestId: rentalId, requirementCode: 'CC' },
+      });
+      expect(docDb2!.fileKey).toBe(resArchivo.body.fileKey);
+
+      // 3. Verificar documento
+      const resVerificar = await agent
+        .post(`/solicitudes/${rentalId}/documentos/CC/verificar`)
+        .set('Accept', 'application/json')
+        .set('X-CSRF-Token', csrfToken)
+        .send();
+
+      expect(resVerificar.status).toBe(200);
+      expect(resVerificar.body.document.verifiedAt).toBeDefined();
+
+      const docDb3 = await prisma.requestDocument.findFirst({
+        where: { rentalRequestId: rentalId, requirementCode: 'CC' },
+      });
+      expect(docDb3!.verifiedAt).not.toBeNull();
+      expect(docDb3!.verifiedById).toBeDefined();
+    });
+
+    it('AC-04.3: se rechazan archivos de tipo no permitido o que superan 5 MB con código 400', async () => {
+      const { agent, csrfToken } = await loginAs(app, UserRole.ADMIN_ASSISTANT);
+      const responded = await createRentalInState(RentalStatus.RESPONDED);
+      const rentalId = responded.rental.id;
+
+      // 1. Tipo no permitido (ej. archivo ejecutable o texto plano)
+      const badBuffer = Buffer.from('echo hello world');
+      const resBadType = await agent
+        .post(`/solicitudes/${rentalId}/documentos/CC/archivo`)
+        .set('Accept', 'application/json')
+        .set('X-CSRF-Token', csrfToken)
+        .attach('archivo', badBuffer, { filename: 'script.sh', contentType: 'text/plain' });
+
+      expect(resBadType.status).toBe(400);
+      expect(resBadType.body.error).toContain('Tipo de archivo no permitido');
+
+      // 2. Tamaño superior a 5 MB (5.2 MB)
+      const hugeBuffer = Buffer.alloc(5.2 * 1024 * 1024, 0);
+      const resHuge = await agent
+        .post(`/solicitudes/${rentalId}/documentos/CC/archivo`)
+        .set('Accept', 'application/json')
+        .set('X-CSRF-Token', csrfToken)
+        .attach('archivo', hugeBuffer, { filename: 'enorme.pdf', contentType: 'application/pdf' });
+
+      expect(resHuge.status).toBe(400);
+      expect(resHuge.body.error).toContain('5 MB');
+    });
+
+    it('AC-04.4: T3 verifyDocuments falla con 400 si faltan obligatorios; pasa a DOCUMENTS_VERIFIED cuando todos están verificados', async () => {
+      const { agent, csrfToken } = await loginAs(app, UserRole.ADMIN_ASSISTANT);
+      const responded = await createRentalInState(RentalStatus.RESPONDED, {
+        customerType: CustomerType.NATURAL,
+      });
+      const rentalId = responded.rental.id;
+
+      // Verificar solo CC, dejando RUT y EVENT_DESC sin verificar
+      await agent
+        .post(`/solicitudes/${rentalId}/documentos/CC/verificar`)
+        .set('Accept', 'application/json')
+        .set('X-CSRF-Token', csrfToken)
+        .send();
+
+      // Intento de transición T3 verifyDocuments incompleto
+      const resIncomplete = await agent
+        .post(`/solicitudes/${rentalId}/transiciones/verifyDocuments`)
+        .set('Accept', 'application/json')
+        .set('X-CSRF-Token', csrfToken)
+        .send();
+
+      expect(resIncomplete.status).toBe(400);
+      expect(resIncomplete.body.error).toContain('obligatorios');
+
+      const reqDbAfterFail = await prisma.rentalRequest.findUnique({ where: { id: rentalId } });
+      expect(reqDbAfterFail!.status).toBe(RentalStatus.RESPONDED);
+
+      // Ahora verificar los documentos restantes
+      await agent
+        .post(`/solicitudes/${rentalId}/documentos/RUT/verificar`)
+        .set('Accept', 'application/json')
+        .set('X-CSRF-Token', csrfToken)
+        .send();
+
+      await agent
+        .post(`/solicitudes/${rentalId}/documentos/EVENT_DESC/verificar`)
+        .set('Accept', 'application/json')
+        .set('X-CSRF-Token', csrfToken)
+        .send();
+
+      // Intento de transición T3 completo
+      const resComplete = await agent
+        .post(`/solicitudes/${rentalId}/transiciones/verifyDocuments`)
+        .set('Accept', 'application/json')
+        .set('X-CSRF-Token', csrfToken)
+        .send();
+
+      expect(resComplete.status).toBe(200);
+      expect(resComplete.body.status).toBe(RentalStatus.DOCUMENTS_VERIFIED);
+
+      // Verificar en BD el estado y la transición registrada
+      const reqDbSuccess = await prisma.rentalRequest.findUnique({
+        where: { id: rentalId },
+        include: { stateTransitions: true },
+      });
+      expect(reqDbSuccess!.status).toBe(RentalStatus.DOCUMENTS_VERIFIED);
+      expect(
+        reqDbSuccess!.stateTransitions.some((t) => t.transition === 'verifyDocuments' && t.toStatus === 'DOCUMENTS_VERIFIED'),
+      ).toBe(true);
+    });
+
+    it('AC-04.5: los archivos solo se descargan con sesión y permiso (GET /archivos/:key)', async () => {
+      const { agent: assistantAgent, csrfToken } = await loginAs(app, UserRole.ADMIN_ASSISTANT);
+      const responded = await createRentalInState(RentalStatus.RESPONDED);
+      const rentalId = responded.rental.id;
+
+      // Subir archivo de prueba
+      const fileContent = 'Contenido de prueba confidencial para descarga';
+      const uploadRes = await assistantAgent
+        .post(`/solicitudes/${rentalId}/documentos/CC/archivo`)
+        .set('Accept', 'application/json')
+        .set('X-CSRF-Token', csrfToken)
+        .attach('archivo', Buffer.from(fileContent), { filename: 'cedula.pdf', contentType: 'application/pdf' });
+
+      expect(uploadRes.status).toBe(200);
+      const fileKey = uploadRes.body.fileKey;
+      expect(fileKey).toBeDefined();
+
+      // 1. Descarga con sesión autorizada (ADMIN_ASSISTANT) → 200 OK
+      const resDownloadAuth = await assistantAgent.get(`/archivos/${fileKey}`);
+      expect(resDownloadAuth.status).toBe(200);
+      expect(resDownloadAuth.body.toString()).toBe(fileContent);
+
+      // 2. Descarga con rol sin permiso (OPERATIONS_TECH) → 403 Forbidden
+      const { agent: opsAgent } = await loginAs(app, UserRole.OPERATIONS_TECH);
+      const resOps = await opsAgent.get(`/archivos/${fileKey}`);
+      assertForbidden(resOps);
+
+      // 3. Descarga sin autenticación:
+      // a) Solicitud API/JSON → 401 Unauthorized
+      const unauthJsonRes = await request(app)
+        .get(`/archivos/${fileKey}`)
+        .set('Accept', 'application/json');
+      expect(unauthJsonRes.status).toBe(401);
+
+      // b) Navegador HTML → 302 Redirección a /login
+      const unauthHtmlRes = await request(app).get(`/archivos/${fileKey}`);
+      expect(unauthHtmlRes.status).toBe(302);
+      expect(unauthHtmlRes.headers.location).toBe('/login');
     });
   });
 
