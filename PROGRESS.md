@@ -5,7 +5,7 @@ Bitácora viva. Solo se **agrega** al final de cada sección; no se reescribe el
 ## Estado actual
 - **Fase en curso:** Fase 2 (Flujo del alquiler)
 - **Última tarea completada:** F2.1 (Backend)
-- **Último commit verde:** pendiente
+- **Último commit verde:** 43de8a1
 - **Resultado de pruebas:** 695 pruebas pasadas (16 archivos)
 - **Siguiente tarea:** F2.2
 
@@ -23,7 +23,7 @@ Bitácora viva. Solo se **agrega** al final de cada sección; no se reescribe el
 2026-10-13 23:14 · F1.3 · orquestador · Repositorio de reservas, servicio de disponibilidad (semiabierto A-05) y traducción de 23P01 a ConflictError · bf50bd8
 2026-10-13 23:22 · F1.4 · orquestador · Máquina de estados (patrón State), 10 estados, tabla exhaustiva de 618 pruebas y ARCHITECTURE.md · a03fdc1
 2026-10-13 23:30 · F2.14 · qa-docs · Borrador de TRAZABILIDAD.md y esqueleto de PROTOCOLO_ACEPTACION.md (37 ACs) · 7b2650e
-2026-10-13 23:36 · F2.1 · backend · T1 register, clientes find-or-create, reserva HELD, checklist documental y pruebas AC-01.x · [hash]
+2026-10-13 23:36 · F2.1 · backend · T1 register, clientes find-or-create, reserva HELD, checklist documental y pruebas AC-01.x · 43de8a1
 
 ## Compuertas
 ### Compuerta G0 · 2026-10-13 23:03
