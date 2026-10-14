@@ -3,14 +3,15 @@
 Bitácora viva. Solo se **agrega** al final de cada sección; no se reescribe el historial.
 
 ## Estado actual
-- **Fase en curso:** Fase 3 (Integración y pulido)
-- **Última tarea completada:** F3.3 (Estados vacíos, errores y confirmaciones)
-- **Último commit verde:** 108116b
-- **Resultado de pruebas:** 786 pruebas pasadas (19 archivos)
-- **Siguiente tarea:** F3.4
+- **Fase en curso:** Fase 4 (Calidad y seguridad)
+- **Última tarea completada:** F3.4 (Seed demo completo y documentos imprimibles)
+- **Último commit verde:** 5cf737b
+- **Resultado de pruebas:** 788 pruebas pasadas (19 archivos)
+- **Siguiente tarea:** F4.1
 
 ## Bitácora (una línea por tarea terminada)
 `AAAA-MM-DD HH:MM · Fx.y · agente · resumen · hash del commit`
+2026-10-14 01:20 · F3.4 · orquestador · Seed demo completo con 10 solicitudes en todos los estados, idempotencia transaccional y documentos imprimibles · 5cf737b
 2026-10-14 01:10 · F3.3 · ui · Estados vacíos, mensajes flash en español, página 400 y confirmación en acciones irreversibles · 108116b
 2026-10-14 01:00 · F3.2 · ui · Reglas responsivas 360px, anillo de foco dual contrastado, accesibilidad en formularios e insignias con texto · e668625
 2026-10-13 22:50 · F0.1 · orquestador · Verificación de repositorio, rama release/1.0 y .gitignore · 532dab1
