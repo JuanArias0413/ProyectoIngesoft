@@ -32,7 +32,7 @@ Reglas de paralelismo: las fases 0 y 1 las hace **solo el orquestador**, en orde
   *Listo cuando:* `npm run db:migrate` aplica limpio en `sgec_dev` y `sgec_test`.
 - [x] **F0.6** Auth + RBAC: login/logout con sesiones en Postgres, bcryptjs, CSRF, rate limit, `permissions.ts` (mapa del §8), middlewares `requireAuth` y `requirePermission`.
   *Listo cuando:* prueba de integración: login correcto/incorrecto, acceso sin sesión → redirige, rol sin permiso → 403.
-- [ ] **F0.7** Seed mínimo (usuarios de los 6 roles) y utilidades de prueba (`tests/helpers`: BD de test, factories, login helper).
+- [x] **F0.7** Seed mínimo (usuarios de los 6 roles) y utilidades de prueba (`tests/helpers`: BD de test, factories, login helper).
   *Listo cuando:* `npm run db:seed` es idempotente y `npm test` usa `sgec_test`.
 
 **G0:** lint + typecheck + tests en verde; `npm run dev` arranca; login funciona con los 6 usuarios.
