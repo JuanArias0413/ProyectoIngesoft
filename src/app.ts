@@ -20,6 +20,7 @@ import { createAgendaRouter } from './modules/agenda/http/routes.js';
 import { createCatalogRouter } from './modules/catalog/http/routes.js';
 import { RentalStatus } from '@prisma/client';
 import { prisma } from './infra/prisma.js';
+import { formatBogotaDateTimeCompact } from './shared/utils/formatters.js';
 import './modules/auth/types.js';
 
 export interface AppOptions {
@@ -209,7 +210,7 @@ export function createApp(opts?: AppOptions): express.Application {
 
       const formattedPending = pendingList.map((item) => ({
         ...item,
-        startsAtFormatted: item.startsAt ? new Date(item.startsAt).toLocaleString('es-CO') : '',
+        startsAtFormatted: formatBogotaDateTimeCompact(item.startsAt),
         customerName: item.customer?.name,
         customerDocument: item.customer?.documentNumber,
         spaceName: item.space?.name,

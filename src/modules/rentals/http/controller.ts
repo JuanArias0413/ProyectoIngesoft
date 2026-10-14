@@ -3,6 +3,7 @@ import type { Request, Response, NextFunction } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 import { ValidationError } from '../../../shared/errors.js';
+import { formatBogotaDateTimeCompact } from '../../../shared/utils/formatters.js';
 import { prisma } from '../../../infra/prisma.js';
 import {
   registerRentalSchema,
@@ -709,9 +710,9 @@ export class RentalController {
 
       const formattedItems = result.items.map((item) => ({
         ...item,
-        startsAtFormatted: item.startsAt ? new Date(item.startsAt).toLocaleString('es-CO') : '',
-        endsAtFormatted: item.endsAt ? new Date(item.endsAt).toLocaleString('es-CO') : '',
-        createdAtFormatted: item.createdAt ? new Date(item.createdAt).toLocaleString('es-CO') : '',
+        startsAtFormatted: formatBogotaDateTimeCompact(item.startsAt),
+        endsAtFormatted: formatBogotaDateTimeCompact(item.endsAt),
+        createdAtFormatted: formatBogotaDateTimeCompact(item.createdAt),
         customerName: item.customer?.name,
         customerDocument: item.customer?.documentNumber,
         spaceName: item.space?.name,
@@ -756,13 +757,13 @@ export class RentalController {
       const rental = result.rental;
       const formattedRental = {
         ...rental,
-        createdAtFormatted: rental.createdAt ? new Date(rental.createdAt).toLocaleString('es-CO') : '',
-        startsAtFormatted: rental.startsAt ? new Date(rental.startsAt).toLocaleString('es-CO') : '',
-        endsAtFormatted: rental.endsAt ? new Date(rental.endsAt).toLocaleString('es-CO') : '',
+        createdAtFormatted: formatBogotaDateTimeCompact(rental.createdAt),
+        startsAtFormatted: formatBogotaDateTimeCompact(rental.startsAt),
+        endsAtFormatted: formatBogotaDateTimeCompact(rental.endsAt),
         quotedAmountPesosFormatted: rental.quotedAmountPesos ? rental.quotedAmountPesos.toLocaleString('es-CO') : '0',
         transitions: rental.stateTransitions.map((t) => ({
           ...t,
-          occurredAtFormatted: t.occurredAt ? new Date(t.occurredAt).toLocaleString('es-CO') : '',
+          occurredAtFormatted: formatBogotaDateTimeCompact(t.occurredAt),
           actorName: t.actor?.name,
           actorRole: t.actor?.role,
         })),

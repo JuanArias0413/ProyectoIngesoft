@@ -1,58 +1,12 @@
 import { Router } from 'express';
 import { requireAuth, requirePermission } from '../../auth/middleware.js';
-import { RentalController } from './controller.js';
-import { RegisterRentalUseCase } from '../application/registerRentalUseCase.js';
-import { RespondRentalUseCase } from '../application/respondRentalUseCase.js';
-import { VerifyDocumentsUseCase } from '../application/verifyDocumentsUseCase.js';
-import { ManageDocumentsUseCase } from '../application/manageDocumentsUseCase.js';
-import { DraftContractUseCase } from '../application/draftContractUseCase.js';
-import { UpdateContractUseCase } from '../application/updateContractUseCase.js';
-import { RegisterPaymentUseCase } from '../application/registerPaymentUseCase.js';
-import { SubmitToLegalUseCase } from '../application/submitToLegalUseCase.js';
-import { ApproveLegalUseCase } from '../application/approveLegalUseCase.js';
-import { ReturnLegalUseCase } from '../application/returnLegalUseCase.js';
-import { ResubmitToLegalUseCase } from '../application/resubmitToLegalUseCase.js';
-import { SignAndNumberUseCase } from '../application/signAndNumberUseCase.js';
-import { CancelRentalUseCase } from '../application/cancelRentalUseCase.js';
-import { ListRentalsUseCase } from '../application/listRentalsUseCase.js';
-import { GetRentalDetailUseCase } from '../application/getRentalDetailUseCase.js';
+import { type RentalController } from './controller.js';
 import { rentalUploadMiddleware } from '../infra/fileStorage.js';
-import { AvailabilityService } from '../../agenda/application/availabilityService.js';
-import { PrismaReservationRepository } from '../../agenda/infra/prismaReservationRepository.js';
-import { PrismaTariffRepository } from '../../catalog/infra/prismaCatalogRepositories.js';
-import { DocumentRenderer } from '../../documents/documentRenderer.js';
-import { prisma } from '../../../infra/prisma.js';
+import { container } from '../../../container.js';
 
 export function createRentalRouter(controller?: RentalController): Router {
   const router = Router();
-
-  const ctrl =
-    controller ??
-    new RentalController(
-      new RegisterRentalUseCase(
-        new AvailabilityService(new PrismaReservationRepository(prisma)),
-        prisma,
-      ),
-      new RespondRentalUseCase(
-        new PrismaTariffRepository(prisma),
-        new DocumentRenderer(prisma),
-        prisma,
-      ),
-      new VerifyDocumentsUseCase(prisma),
-      new ManageDocumentsUseCase(prisma),
-      new DraftContractUseCase(prisma, new DocumentRenderer(prisma)),
-      new UpdateContractUseCase(prisma, new DocumentRenderer(prisma)),
-      new RegisterPaymentUseCase(prisma),
-      new SubmitToLegalUseCase(prisma),
-      new ApproveLegalUseCase(prisma),
-      new ReturnLegalUseCase(prisma),
-      new ResubmitToLegalUseCase(prisma, new DocumentRenderer(prisma)),
-      new SignAndNumberUseCase(prisma, new DocumentRenderer(prisma)),
-      new CancelRentalUseCase(prisma),
-      new ListRentalsUseCase(prisma),
-      new GetRentalDetailUseCase(prisma),
-      prisma,
-    );
+  const ctrl = controller ?? container.rentalController;
 
   // F2.8 — Consultas: Listado y Formulario de Nueva Solicitud (CAR-09, AC-09.1)
   router.get(

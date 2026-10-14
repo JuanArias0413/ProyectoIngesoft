@@ -64,4 +64,21 @@ describe('Document Formatters', () => {
     expect(formatPricingUnit(PricingUnit.HOUR)).toBe('Hora');
     expect(formatPricingUnit(PricingUnit.DAY)).toBe('Día');
   });
+
+  it('handles null, undefined or invalid inputs safely in shared formatters', async () => {
+    const { formatBogotaDateTimeCompact, formatPesos } = await import(
+      '../../src/shared/utils/formatters.js'
+    );
+
+    expect(formatBogotaDateTimeCompact(null)).toBe('');
+    expect(formatBogotaDateTimeCompact(undefined)).toBe('');
+    expect(formatBogotaDateTimeCompact(new Date('invalid'))).toBe('');
+
+    const date = new Date('2026-10-14T13:00:00Z');
+    expect(formatBogotaDateTimeCompact(date)).toContain('14/10/2026');
+
+    expect(formatPesos(null)).toBe('$ 0');
+    expect(formatPesos(undefined)).toBe('$ 0');
+    expect(formatPesos(500000)).toMatch(/\$\s?500\.000/);
+  });
 });

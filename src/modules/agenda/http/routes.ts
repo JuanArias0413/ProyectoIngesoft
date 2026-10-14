@@ -1,12 +1,13 @@
 import { Router, type Request, type Response, type NextFunction } from 'express';
 import { prisma } from '../../../infra/prisma.js';
 import { requirePermission } from '../../auth/middleware.js';
-import { AvailabilityService } from '../application/availabilityService.js';
-import { PrismaReservationRepository } from '../infra/prismaReservationRepository.js';
+import { type AvailabilityService } from '../application/availabilityService.js';
+import { formatBogotaDateTimeCompact } from '../../../shared/utils/formatters.js';
+import { container } from '../../../container.js';
 
-export function createAgendaRouter(): Router {
+export function createAgendaRouter(service?: AvailabilityService): Router {
   const router = Router();
-  const availabilityService = new AvailabilityService(new PrismaReservationRepository(prisma));
+  const availabilityService = service ?? container.availabilityService;
 
   // GET /agenda — Vista de programación a 30 días
   router.get(
@@ -46,8 +47,8 @@ export function createAgendaRouter(): Router {
 
         const formattedReservations = reservations.map((r) => ({
           ...r,
-          startsAtFormatted: r.startsAt ? new Date(r.startsAt).toLocaleString('es-CO') : '',
-          endsAtFormatted: r.endsAt ? new Date(r.endsAt).toLocaleString('es-CO') : '',
+          startsAtFormatted: formatBogotaDateTimeCompact(r.startsAt),
+          endsAtFormatted: formatBogotaDateTimeCompact(r.endsAt),
         }));
 
         if (req.accepts('html') && !req.xhr && !req.path.startsWith('/api')) {
@@ -129,8 +130,8 @@ export function createAgendaRouter(): Router {
             conflict: check.conflictingReservation
               ? {
                   ...check.conflictingReservation,
-                  startsAtFormatted: new Date(check.conflictingReservation.startsAt).toLocaleString('es-CO'),
-                  endsAtFormatted: new Date(check.conflictingReservation.endsAt).toLocaleString('es-CO'),
+                  startsAtFormatted: formatBogotaDateTimeCompact(check.conflictingReservation.startsAt),
+                  endsAtFormatted: formatBogotaDateTimeCompact(check.conflictingReservation.endsAt),
                 }
               : null,
             spaceId: String(spaceId),

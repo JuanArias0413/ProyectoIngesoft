@@ -1,42 +1,24 @@
 import { CustomerType, EventPurpose, PricingUnit } from '@prisma/client';
 import { amountToWords } from '../../shared/utils/amountToWords.js';
+import {
+  formatBogotaDate,
+  formatBogotaDateTime,
+  formatBogotaTime,
+  formatPesos,
+} from '../../shared/utils/formatters.js';
 
 const BOGOTA_TZ = 'America/Bogota';
 
 export function formatDateLong(date: Date): string {
-  const formatter = new Intl.DateTimeFormat('es-CO', {
-    timeZone: BOGOTA_TZ,
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
-  return formatter.format(date);
+  return formatBogotaDate(date);
 }
 
 export function formatDateTime(date: Date): string {
-  const dateFormatter = new Intl.DateTimeFormat('es-CO', {
-    timeZone: BOGOTA_TZ,
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
-  const timeFormatter = new Intl.DateTimeFormat('es-CO', {
-    timeZone: BOGOTA_TZ,
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  });
-  return `${dateFormatter.format(date)}, ${timeFormatter.format(date)}`;
+  return formatBogotaDateTime(date);
 }
 
 export function formatTime(date: Date): string {
-  const formatter = new Intl.DateTimeFormat('es-CO', {
-    timeZone: BOGOTA_TZ,
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  });
-  return formatter.format(date);
+  return formatBogotaTime(date);
 }
 
 export function formatWeekdayAndDate(date: Date): string {
@@ -72,7 +54,7 @@ export function formatDateRange(startsAt: Date, endsAt: Date): string {
 }
 
 export function formatCurrency(pesos: number): string {
-  return `$ ${pesos.toLocaleString('es-CO')}`;
+  return formatPesos(pesos);
 }
 
 export function formatAmountWords(pesos: number): string {
