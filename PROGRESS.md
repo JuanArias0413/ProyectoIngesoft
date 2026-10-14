@@ -3,11 +3,11 @@
 Bitácora viva. Solo se **agrega** al final de cada sección; no se reescribe el historial.
 
 ## Estado actual
-- **Fase en curso:** Fase 2 (Flujo del alquiler)
-- **Última tarea completada:** F2.8 (Backend)
-- **Último commit verde:** 6959f2f
-- **Resultado de pruebas:** 778 pruebas pasadas (19 archivos)
-- **Siguiente tarea:** F2.9
+- **Fase en curso:** Fase 3 (Integración y pulido)
+- **Última tarea completada:** F2.9 (Auth / RBAC por ruta) & Compuerta G2
+- **Último commit verde:** f0cbb48
+- **Resultado de pruebas:** 779 pruebas pasadas (19 archivos)
+- **Siguiente tarea:** F3.1
 
 ## Bitácora (una línea por tarea terminada)
 `AAAA-MM-DD HH:MM · Fx.y · agente · resumen · hash del commit`
@@ -34,6 +34,7 @@ Bitácora viva. Solo se **agrega** al final de cada sección; no se reescribe el
 2026-10-14 00:25 · F2.6 · backend · T7 approveLegal, T8 returnLegal y T9 resubmitToLegal con rondas y verificación de 3 checks (CAR-07) · 2207918
 2026-10-14 00:32 · F2.7 · backend · T10 signAndNumber atómico (ARR-AAAA-NNNN) y T11 cancel con liberación de reserva y nota A-11 · 1971ffa
 2026-10-14 00:41 · F2.8 · backend · Consultas: listado filtrable/paginado y detalle con línea de tiempo y allowedTransitions (CAR-09) · 6959f2f
+2026-10-14 00:49 · F2.9 · auth · Permisos por ruta RBAC completos y verificados con 20 intentos no autorizados (CAR-19, AC-19.2) · f0cbb48
 
 ## Compuertas
 ### Compuerta G0 · 2026-10-13 23:03
@@ -63,6 +64,22 @@ Bitácora viva. Solo se **agrega** al final de cada sección; no se reescribe el
   - Servicios de agenda `AvailabilityService` e interfaz `ReservationRepository` con manejo de `23P01` (D-07).
   - Documentación arquitectónica consolidada en `docs/ARCHITECTURE.md`.
 - **Hallazgos:** Ninguno. Dominio núcleo cerrado con éxito. Listo para abordar Fase 2.
+
+### Compuerta G2 · 2026-10-14 00:50
+- **Estado:** PASÓ (Verde)
+- **Verificaciones automáticas:**
+  - `npm run lint`: 0 errores, 0 advertencias
+  - `npm run typecheck`: 0 errores
+  - `npm test`: 779 pruebas pasadas en 19 archivos
+- **Criterio de aceptación de G2:**
+  - El flujo completo T1→T10 funciona de extremo a extremo por HTTP y por UI con los 4 roles del flujo:
+    1. Auxiliar Administrativo (`ADMIN_ASSISTANT`): registra solicitud T1 (con disponibilidad HTMX y checklist documental), emite respuesta T2 (cotización congelada y oficio), gestiona y verifica documentos del cliente T3, redacta contrato T4 (estudio previo y minuta versionada), registra soporte de pago T5 y radica a jurídica T6.
+    2. Asesor Jurídico (`LEGAL`): recibe en su bandeja, revisa los 3 checks obligatorios (estudio previo, minuta, pago), devuelve con observaciones T8 o aprueba concepto jurídico T7 en rondas con historial.
+    3. Secretario de Cultura (`SECRETARY`): recibe contrato aprobado, firma y numera atómicamente T10 con consecutivo institucional único anual (`ARR-AAAA-NNNN`), actualizando la reserva de HELD a CONFIRMED.
+    4. Jefe de Oficina de Escenarios (`OFFICE_HEAD`): supervisa el listado con filtros, consulta detalle con línea de tiempo, actualiza tarifas y puede cancelar T11 liberando la agenda y registrando la nota de cancelación (A-11).
+  - RBAC verificado exhaustivamente a nivel de servidor: 20 intentos de acceso con roles no autorizados devuelven HTTP 403 Forbidden.
+  - Documentos imprimibles CSS A4 generados y vinculados en el ciclo de vida: Oficio de Respuesta, Estudio Previo de Oportunidad y Conveniencia, y Minuta del Contrato de Arrendamiento.
+- **Hallazgos:** Ninguno. Fase 2 completada satisfactoriamente. Procediendo a Fase 3 (Integración y pulido).
 
 ## Peticiones entre agentes
 `de → para · petición · estado (abierta/hecha)`

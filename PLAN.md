@@ -60,7 +60,7 @@ Reglas de paralelismo: las fases 0 y 1 las hace **solo el orquestador**, en orde
 - [x] **F2.6** T7, T8, T9: revisión jurídica por rondas. (CAR-07)
 - [x] **F2.7** T10 `signAndNumber` con numeración atómica + T11 `cancel`. (CAR-08, A-11)
 - [x] **F2.8** Consultas: listado filtrable/paginado y detalle con línea de tiempo. (CAR-09)
-- [ ] **F2.9** Permisos por ruta completos y verificados (CAR-19, AC-19.2).
+- [x] **F2.9** Permisos por ruta completos y verificados (CAR-19, AC-19.2).
 
 **Documentos**
 - [x] **F2.10** Servicio `DocumentRenderer` + snapshot versionado; plantillas oficio, estudio previo y contrato con CSS de impresión A4 y pie del A-13. (AC-03.2, 03.4, 05.1, 05.3)
@@ -70,7 +70,7 @@ Reglas de paralelismo: las fases 0 y 1 las hace **solo el orquestador**, en orde
 - [x] **F2.12** Pantallas: registro (con disponibilidad HTMX), listado, detalle con acciones por rol, agenda, tarifas.
 
 **QA/Docs**
-- [ ] **F2.13** Pruebas de integración por cada AC conforme el backend lo entrega (no esperar al final).
+- [x] **F2.13** Pruebas de integración por cada AC conforme el backend lo entrega (no esperar al final).
 - [x] **F2.14** Borrador de `docs/TRAZABILIDAD.md` (CAR → AC → prueba) y esqueleto de `PROTOCOLO_ACEPTACION.md`.
 
 **G2:** el flujo completo T1→T10 funciona de extremo a extremo por HTTP y por UI con los 4 roles del flujo.
