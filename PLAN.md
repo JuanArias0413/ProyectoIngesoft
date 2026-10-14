@@ -71,7 +71,7 @@ Reglas de paralelismo: las fases 0 y 1 las hace **solo el orquestador**, en orde
 
 **QA/Docs**
 - [ ] **F2.13** Pruebas de integración por cada AC conforme el backend lo entrega (no esperar al final).
-- [ ] **F2.14** Borrador de `docs/TRAZABILIDAD.md` (CAR → AC → prueba) y esqueleto de `PROTOCOLO_ACEPTACION.md`.
+- [x] **F2.14** Borrador de `docs/TRAZABILIDAD.md` (CAR → AC → prueba) y esqueleto de `PROTOCOLO_ACEPTACION.md`.
 
 **G2:** el flujo completo T1→T10 funciona de extremo a extremo por HTTP y por UI con los 4 roles del flujo.
 

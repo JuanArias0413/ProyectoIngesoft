@@ -22,6 +22,7 @@ Bitácora viva. Solo se **agrega** al final de cada sección; no se reescribe el
 2026-10-13 23:10 · F1.2 · orquestador · Estrategia de precios (HourlyPricing, DailyPricing) y utilidad amountToWords con pruebas unitarias · 2a0c816
 2026-10-13 23:14 · F1.3 · orquestador · Repositorio de reservas, servicio de disponibilidad (semiabierto A-05) y traducción de 23P01 a ConflictError · bf50bd8
 2026-10-13 23:22 · F1.4 · orquestador · Máquina de estados (patrón State), 10 estados, tabla exhaustiva de 618 pruebas y ARCHITECTURE.md · a03fdc1
+2026-10-13 23:30 · F2.14 · qa-docs · Borrador de TRAZABILIDAD.md y esqueleto de PROTOCOLO_ACEPTACION.md (37 ACs) · 7b2650e
 
 ## Compuertas
 ### Compuerta G0 · 2026-10-13 23:03
