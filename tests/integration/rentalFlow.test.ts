@@ -7,7 +7,6 @@ import { prisma } from '../../src/infra/prisma.js';
 import { seedCatalog, seedDocumentRequirements, seedUsers } from '../../prisma/seed.js';
 import { loginAs } from '../helpers/auth.js';
 import { cleanDatabase } from '../helpers/db.js';
-import { createRentalRouter } from '../../src/modules/rentals/http/routes.js';
 import {
   createRentalInState,
   assertForbidden,
@@ -17,11 +16,7 @@ describe('SGEC Release 1.0 — Rental Lifecycle & Flow Integration (rentalFlow.t
   let app: Application;
 
   beforeAll(async () => {
-    app = createApp({
-      configureRoutes: (expressApp) => {
-        expressApp.use(createRentalRouter());
-      },
-    }) as unknown as Express;
+    app = createApp() as unknown as Express;
 
     await cleanDatabase();
     await seedUsers();
@@ -1707,27 +1702,210 @@ describe('SGEC Release 1.0 — Rental Lifecycle & Flow Integration (rentalFlow.t
   // CAR-19: Roles, Autorización y Seguridad (AC-19.1 a AC-19.3)
   // =========================================================================
   describe('CAR-19: Roles y Seguridad en el Servidor', () => {
-    it('AC-19.2: usuario sin permiso recibe 403 Forbidden al invocar rutas protegidas', async () => {
-      // 1. Rol LEGAL intentando registrar solicitud
+    it('AC-19.2: usuario sin permiso recibe 403 Forbidden al invocar rutas protegidas (todas las rutas del sistema)', async () => {
+      const reg = await createRentalInState(RentalStatus.REGISTERED);
+      const paid = await createRentalInState(RentalStatus.PAID);
+      const legalRev = await createRentalInState(RentalStatus.LEGAL_REVIEW);
+      const pendingSig = await createRentalInState(RentalStatus.PENDING_SIGNATURE);
+
+      // 1. POST /solicitudes (rentals:register) - LEGAL -> 403
       const { agent: legalAgent, csrfToken: legalCsrf } = await loginAs(app, UserRole.LEGAL);
       const resRegister = await legalAgent
         .post('/solicitudes')
         .set('Accept', 'application/json')
         .set('X-CSRF-Token', legalCsrf)
         .send(buildValidRegistrationPayload());
-
       assertForbidden(resRegister);
 
-      // 2. Rol SECRETARY intentando responder solicitud
+      // 2. GET /solicitudes/nueva (rentals:register) - SECRETARY -> 403
       const { agent: secAgent, csrfToken: secCsrf } = await loginAs(app, UserRole.SECRETARY);
-      const reg = await createRentalInState(RentalStatus.REGISTERED);
+      const resNewForm = await secAgent
+        .get('/solicitudes/nueva')
+        .set('Accept', 'application/json');
+      assertForbidden(resNewForm);
+
+      // 3. POST /solicitudes/:id/transiciones/respond (rentals:respond) - SECRETARY -> 403
       const resRespond = await secAgent
         .post(`/solicitudes/${reg.rental.id}/transiciones/respond`)
         .set('Accept', 'application/json')
         .set('X-CSRF-Token', secCsrf)
         .send({ responseRadicado: 'RAD-SECRETARY-UNAUTHORIZED' });
-
       assertForbidden(resRespond);
+
+      // 4. POST /solicitudes/:id/documentos/:code/verificar (rentals:verify-docs) - LEGAL -> 403
+      const resVerifyDoc = await legalAgent
+        .post(`/solicitudes/${reg.rental.id}/documentos/DOC_CEDULA/verificar`)
+        .set('Accept', 'application/json')
+        .set('X-CSRF-Token', legalCsrf)
+        .send({ approved: true });
+      assertForbidden(resVerifyDoc);
+
+      // 5. POST /solicitudes/:id/transiciones/draftContract (rentals:draft-contract) - SECRETARY -> 403
+      const resDraft = await secAgent
+        .post(`/solicitudes/${reg.rental.id}/transiciones/draftContract`)
+        .set('Accept', 'application/json')
+        .set('X-CSRF-Token', secCsrf)
+        .send({ object: 'Nuevo objeto' });
+      assertForbidden(resDraft);
+
+      // 6. POST /solicitudes/:id/transiciones/registerPayment (rentals:register-payment) - LEGAL -> 403
+      const resPayment = await legalAgent
+        .post(`/solicitudes/${reg.rental.id}/transiciones/registerPayment`)
+        .set('Accept', 'application/json')
+        .set('X-CSRF-Token', legalCsrf)
+        .send({
+          receiptNumber: 'RC-1',
+          bankName: 'Bancolombia',
+          voucherNumber: 'V-1',
+          amountPesos: 100000,
+          invoiceNumber: 'FAC-1',
+          invoiceDate: '2026-11-01',
+        });
+      assertForbidden(resPayment);
+
+      // 7. POST /solicitudes/:id/transiciones/submitToLegal (rentals:submit-legal) - SECRETARY -> 403
+      const resSubmitLegal = await secAgent
+        .post(`/solicitudes/${paid.rental.id}/transiciones/submitToLegal`)
+        .set('Accept', 'application/json')
+        .set('X-CSRF-Token', secCsrf)
+        .send({});
+      assertForbidden(resSubmitLegal);
+
+      // 8. POST /solicitudes/:id/transiciones/approveLegal (rentals:approve-legal) - ADMIN_ASSISTANT -> 403
+      const { agent: auxAgent, csrfToken: auxCsrf } = await loginAs(app, UserRole.ADMIN_ASSISTANT);
+      const resApprove = await auxAgent
+        .post(`/solicitudes/${legalRev.rental.id}/transiciones/approveLegal`)
+        .set('Accept', 'application/json')
+        .set('X-CSRF-Token', auxCsrf)
+        .send({ documentsOk: true, customerDataOk: true, clausesOk: true });
+      assertForbidden(resApprove);
+
+      // 9. POST /solicitudes/:id/transiciones/returnLegal (rentals:return-legal) - ADMIN_ASSISTANT -> 403
+      const resReturn = await auxAgent
+        .post(`/solicitudes/${legalRev.rental.id}/transiciones/returnLegal`)
+        .set('Accept', 'application/json')
+        .set('X-CSRF-Token', auxCsrf)
+        .send({ observations: 'Observaciones con mas de diez caracteres' });
+      assertForbidden(resReturn);
+
+      // 10. POST /solicitudes/:id/transiciones/resubmitToLegal (rentals:resubmit-legal) - LEGAL -> 403
+      const resResubmit = await legalAgent
+        .post(`/solicitudes/${legalRev.rental.id}/transiciones/resubmitToLegal`)
+        .set('Accept', 'application/json')
+        .set('X-CSRF-Token', legalCsrf)
+        .send({ note: 'Ajustes realizados' });
+      assertForbidden(resResubmit);
+
+      // 11. POST /solicitudes/:id/transiciones/signAndNumber (rentals:sign-number) - ADMIN_ASSISTANT -> 403
+      const resSign = await auxAgent
+        .post(`/solicitudes/${pendingSig.rental.id}/transiciones/signAndNumber`)
+        .set('Accept', 'application/json')
+        .set('X-CSRF-Token', auxCsrf)
+        .send({});
+      assertForbidden(resSign);
+
+      // 12. POST /solicitudes/:id/transiciones/cancel (rentals:cancel) - LEGAL -> 403
+      const resCancel = await legalAgent
+        .post(`/solicitudes/${reg.rental.id}/transiciones/cancel`)
+        .set('Accept', 'application/json')
+        .set('X-CSRF-Token', legalCsrf)
+        .send({ reason: 'Motivo de cancelacion de mas de diez caracteres' });
+      assertForbidden(resCancel);
+
+      // 13. GET /agenda (agenda:read) - MAINTENANCE_TECH -> 403
+      const { agent: maintAgent } = await loginAs(app, UserRole.MAINTENANCE_TECH);
+      const resAgenda = await maintAgent
+        .get('/agenda')
+        .set('Accept', 'application/json');
+      assertForbidden(resAgenda);
+
+      // 14. GET /agenda/disponibilidad (agenda:read) - MAINTENANCE_TECH -> 403
+      const resDisp = await maintAgent
+        .get('/agenda/disponibilidad?spaceId=space-auditorio-principal&startsAt=2026-11-01T10:00:00Z&endsAt=2026-11-01T14:00:00Z')
+        .set('Accept', 'application/json');
+      assertForbidden(resDisp);
+
+      // 15. GET /tarifas (tariffs:read) - OPERATIONS_TECH -> 403
+      const { agent: opsAgent } = await loginAs(app, UserRole.OPERATIONS_TECH);
+      const resTarifas = await opsAgent
+        .get('/tarifas')
+        .set('Accept', 'application/json');
+      assertForbidden(resTarifas);
+
+      // 16. POST /tarifas/:id (tariffs:update) - ADMIN_ASSISTANT -> 403
+      const tariff = await prisma.tariff.findFirst();
+      const resUpdateTariff = await auxAgent
+        .post(`/tarifas/${tariff!.id}`)
+        .set('Accept', 'application/json')
+        .set('X-CSRF-Token', auxCsrf)
+        .send({ amountPesos: 999999 });
+      assertForbidden(resUpdateTariff);
+
+      // 17. GET /solicitudes (rentals:read) - OPERATIONS_TECH -> 403
+      const resListRentals = await opsAgent
+        .get('/solicitudes')
+        .set('Accept', 'application/json');
+      assertForbidden(resListRentals);
+
+      // 18. GET /solicitudes/:id (rentals:read) - MAINTENANCE_TECH -> 403
+      const resDetailRental = await maintAgent
+        .get(`/solicitudes/${reg.rental.id}`)
+        .set('Accept', 'application/json');
+      assertForbidden(resDetailRental);
+
+      // 19. GET /solicitudes/:id/documentos/oficio (rentals:read) - OPERATIONS_TECH -> 403
+      const resDoc = await opsAgent
+        .get(`/solicitudes/${reg.rental.id}/documentos/oficio`)
+        .set('Accept', 'application/json');
+      assertForbidden(resDoc);
+
+      // 20. GET /archivos/:key (files:download) - OPERATIONS_TECH -> 403
+      const resFile = await opsAgent
+        .get('/archivos/nonexistent-key')
+        .set('Accept', 'application/json');
+      assertForbidden(resFile);
+    });
+
+    it('AC-19.1 & AC-19.2: usuarios autorizados acceden exitosamente a agenda, tarifas y home', async () => {
+      // 1. Jefe de Oficina actualiza tarifa con éxito
+      const { agent: headAgent, csrfToken: headCsrf } = await loginAs(app, UserRole.OFFICE_HEAD);
+      const tariff = await prisma.tariff.findFirst();
+      const resUpdateTariff = await headAgent
+        .post(`/tarifas/${tariff!.id}`)
+        .set('Accept', 'application/json')
+        .set('X-CSRF-Token', headCsrf)
+        .send({ amountPesos: 750000 });
+      expect(resUpdateTariff.status).toBe(200);
+      expect(resUpdateTariff.body.tariff.pricePesos).toBe(750000);
+
+      // 2. Auxiliar consulta agenda y disponibilidad con éxito
+      const { agent: auxAgent } = await loginAs(app, UserRole.ADMIN_ASSISTANT);
+      const resAgenda = await auxAgent
+        .get('/agenda')
+        .set('Accept', 'application/json');
+      expect(resAgenda.status).toBe(200);
+      expect(resAgenda.body.reservations).toBeDefined();
+
+      const resDisp = await auxAgent
+        .get('/agenda/disponibilidad?spaceId=space-auditorio-principal&startsAt=2026-11-25T10:00:00Z&endsAt=2026-11-25T14:00:00Z')
+        .set('Accept', 'application/json');
+      expect(resDisp.status).toBe(200);
+      expect(resDisp.body.available).toBe(true);
+
+      // 3. Auxiliar consulta tarifas en modo lectura
+      const resTarifas = await auxAgent
+        .get('/tarifas')
+        .set('Accept', 'application/json');
+      expect(resTarifas.status).toBe(200);
+      expect(resTarifas.body.tariffs.length).toBeGreaterThan(0);
+
+      // 4. Home dashboard carga correctamente para usuario con sesión
+      const resHome = await auxAgent
+        .get('/')
+        .set('Accept', 'text/html');
+      expect(resHome.status).toBe(200);
+      expect(resHome.text).toContain('Bienvenido');
+      expect(resHome.text).toContain('Auxiliar Administrativo');
     });
 
     it('AC-19.3: peticiones POST sin token CSRF son rechazadas con código 403', async () => {

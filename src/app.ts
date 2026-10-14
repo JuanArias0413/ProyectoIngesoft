@@ -16,6 +16,10 @@ import { doubleCsrfProtection, generateToken } from './modules/auth/csrf.js';
 import { createAuthRouter } from './modules/auth/routes.js';
 import { createDocumentRouter } from './modules/documents/index.js';
 import { createRentalRouter } from './modules/rentals/http/routes.js';
+import { createAgendaRouter } from './modules/agenda/http/routes.js';
+import { createCatalogRouter } from './modules/catalog/http/routes.js';
+import { RentalStatus } from '@prisma/client';
+import { prisma } from './infra/prisma.js';
 import './modules/auth/types.js';
 
 export interface AppOptions {
@@ -127,12 +131,101 @@ export function createApp(opts?: AppOptions): express.Application {
   // Rental routes (/solicitudes, /archivos)
   app.use(createRentalRouter());
 
-  // Root endpoint
-  app.get('/', (req, res) => {
-    res.render('layouts/base.njk', {
-      title: 'SGEC — Inicio',
-      user: req.session?.user || null,
-    });
+  // Agenda routes (/agenda, /agenda/disponibilidad)
+  app.use(createAgendaRouter());
+
+  // Catalog / Tariffs routes (/tarifas)
+  app.use(createCatalogRouter());
+
+  // Root endpoint con resumen de "pendientes para mí" y métricas
+  app.get('/', async (req, res, next) => {
+    try {
+      const user = req.session?.user;
+      if (!user) {
+        res.render('pages/home/index.njk', {
+          title: 'SGEC — Inicio',
+          activeUser: null,
+          currentUser: null,
+          user: null,
+        });
+        return;
+      }
+
+      // Calcular métricas
+      const [totalActive, legalized, cancelled] = await Promise.all([
+        prisma.rentalRequest.count({
+          where: { status: { notIn: ['LEGALIZED', 'CANCELLED'] } },
+        }),
+        prisma.rentalRequest.count({
+          where: { status: 'LEGALIZED' },
+        }),
+        prisma.rentalRequest.count({
+          where: { status: 'CANCELLED' },
+        }),
+      ]);
+
+      const stats = {
+        totalActive,
+        inProgress: totalActive,
+        legalized,
+        cancelled,
+      };
+
+      // Obtener solicitudes pendientes según rol del usuario
+      let statusFilter: RentalStatus[] = [];
+      if (user.role === 'ADMIN_ASSISTANT') {
+        statusFilter = [
+          RentalStatus.REGISTERED,
+          RentalStatus.RESPONDED,
+          RentalStatus.DOCUMENTS_VERIFIED,
+          RentalStatus.CONTRACT_DRAFTED,
+          RentalStatus.PAID,
+          RentalStatus.RETURNED_BY_LEGAL,
+        ];
+      } else if (user.role === 'LEGAL') {
+        statusFilter = [RentalStatus.LEGAL_REVIEW];
+      } else if (user.role === 'SECRETARY') {
+        statusFilter = [RentalStatus.PENDING_SIGNATURE];
+      } else if (user.role === 'OFFICE_HEAD') {
+        statusFilter = [
+          RentalStatus.REGISTERED,
+          RentalStatus.LEGAL_REVIEW,
+          RentalStatus.PENDING_SIGNATURE,
+        ];
+      }
+
+      const pendingList = statusFilter.length > 0
+        ? await prisma.rentalRequest.findMany({
+            where: { status: { in: statusFilter } },
+            include: {
+              customer: true,
+              space: { include: { venue: true } },
+              contract: true,
+            },
+            orderBy: { createdAt: 'desc' },
+            take: 10,
+          })
+        : [];
+
+      const formattedPending = pendingList.map((item) => ({
+        ...item,
+        startsAtFormatted: item.startsAt ? new Date(item.startsAt).toLocaleString('es-CO') : '',
+        customerName: item.customer?.name,
+        customerDocument: item.customer?.documentNumber,
+        spaceName: item.space?.name,
+      }));
+
+      res.render('pages/home/index.njk', {
+        title: 'SGEC — Inicio',
+        stats,
+        pendingRequests: formattedPending,
+        pendientes: formattedPending,
+        currentUser: user,
+        user,
+      });
+    } catch (error) {
+      next(error);
+    }
   });
 
   // Custom routes (e.g. for testing or extensions)
