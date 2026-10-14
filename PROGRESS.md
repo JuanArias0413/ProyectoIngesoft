@@ -5,7 +5,7 @@ Bitácora viva. Solo se **agrega** al final de cada sección; no se reescribe el
 ## Estado actual
 - **Fase en curso:** Fase 1 (Dominio núcleo)
 - **Última tarea completada:** F1.3
-- **Último commit verde:** en proceso (F1.3)
+- **Último commit verde:** bf50bd8
 - **Resultado de pruebas:** 61 pruebas pasadas (12 archivos)
 - **Siguiente tarea:** F1.4
 
@@ -20,7 +20,7 @@ Bitácora viva. Solo se **agrega** al final de cada sección; no se reescribe el
 2026-10-13 23:03 · F0.7 · orquestador · Seed mínimo 6 roles y utilidades de prueba (db helper, factories, loginAs) · 9a9a333
 2026-10-13 23:05 · F1.1 · orquestador · Catálogo con entidades de dominio, repositorios y seed completo §13 · 6579870
 2026-10-13 23:10 · F1.2 · orquestador · Estrategia de precios (HourlyPricing, DailyPricing) y utilidad amountToWords con pruebas unitarias · 2a0c816
-2026-10-13 23:14 · F1.3 · orquestador · Repositorio de reservas, servicio de disponibilidad (semiabierto A-05) y traducción de 23P01 a ConflictError · {commit}
+2026-10-13 23:14 · F1.3 · orquestador · Repositorio de reservas, servicio de disponibilidad (semiabierto A-05) y traducción de 23P01 a ConflictError · bf50bd8
 
 ## Compuertas
 ### Compuerta G0 · 2026-10-13 23:03
