@@ -3,11 +3,11 @@
 Bitácora viva. Solo se **agrega** al final de cada sección; no se reescribe el historial.
 
 ## Estado actual
-- **Fase en curso:** Fase 1 (Dominio núcleo) completada · Lista para Fase 2
-- **Última tarea completada:** G1 (Compuerta Fase 1)
-- **Último commit verde:** a03fdc1
-- **Resultado de pruebas:** 679 pruebas pasadas (13 archivos)
-- **Siguiente tarea:** F2.1
+- **Fase en curso:** Fase 2 (Flujo del alquiler)
+- **Última tarea completada:** F2.1 (Backend)
+- **Último commit verde:** pendiente
+- **Resultado de pruebas:** 695 pruebas pasadas (16 archivos)
+- **Siguiente tarea:** F2.2
 
 ## Bitácora (una línea por tarea terminada)
 `AAAA-MM-DD HH:MM · Fx.y · agente · resumen · hash del commit`
@@ -23,6 +23,7 @@ Bitácora viva. Solo se **agrega** al final de cada sección; no se reescribe el
 2026-10-13 23:14 · F1.3 · orquestador · Repositorio de reservas, servicio de disponibilidad (semiabierto A-05) y traducción de 23P01 a ConflictError · bf50bd8
 2026-10-13 23:22 · F1.4 · orquestador · Máquina de estados (patrón State), 10 estados, tabla exhaustiva de 618 pruebas y ARCHITECTURE.md · a03fdc1
 2026-10-13 23:30 · F2.14 · qa-docs · Borrador de TRAZABILIDAD.md y esqueleto de PROTOCOLO_ACEPTACION.md (37 ACs) · 7b2650e
+2026-10-13 23:36 · F2.1 · backend · T1 register, clientes find-or-create, reserva HELD, checklist documental y pruebas AC-01.x · [hash]
 
 ## Compuertas
 ### Compuerta G0 · 2026-10-13 23:03
@@ -55,6 +56,8 @@ Bitácora viva. Solo se **agrega** al final de cada sección; no se reescribe el
 
 ## Peticiones entre agentes
 `de → para · petición · estado (abierta/hecha)`
+backend → orquestador · Montar createRentalRouter() en src/app.ts · abierta
+
 
 ## Reanudaciones
 (Se anota cada uso de `/resume`.)
