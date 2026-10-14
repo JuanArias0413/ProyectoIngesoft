@@ -27,4 +27,9 @@ Formato: `D-nn · fecha · contexto · decisión · alternativas · consecuencia
 - **Decisión:** los supuestos A-01 a A-15 de `SPEC.md` sustituyen al manual. Formatos y tarifas son de ejemplo, claramente marcados.
 
 ## Decisiones del agente
-(Agrega aquí D-06 en adelante.)
+## D-06 · 2026-10-13 · Estrategias de precios y conversión de montos a palabras
+- **Contexto:** el Acuerdo de Tarifas fija cobros por hora o por día para eventos lucrativos y sin ánimo de lucro (A-07). La generación de oficios y contratos exige montos en letras (A-12).
+- **Decisión:** `HourlyPricing` redondea fracciones hacia arriba por hora (`Math.ceil(diffMs / 3600000)`, mínimo 1 hora), admitiendo cruces de medianoche. `DailyPricing` factura bloques de 24 horas o fracción (`Math.ceil(diffHours / 24)`, mínimo 1 día) para no penalizar eventos nocturnos que concluyen en la madrugada del día siguiente. `amountToWords` implementa la gramática RAE (incluyendo la regla de «de pesos» para millones redondos) con sufijo predeterminado «pesos M/CTE» y rechazo estricto de negativos y decimales.
+- **Alternativas:** cálculo de días por calendario local (castigaría con doble día un evento de 8 horas que termine a las 2 AM); usar librerías externas de números a letras (introducen dependencias innecesarias con acentos o formatos no colombianos).
+- **Consecuencias:** cálculo exacto, predecible y testeable sin dependencias de base de datos ni de red.
+
