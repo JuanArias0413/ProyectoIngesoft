@@ -79,7 +79,7 @@ Reglas de paralelismo: las fases 0 y 1 las hace **solo el orquestador**, en orde
 
 - [x] **F3.1** Integrar piezas de los agentes, resolver costuras, eliminar duplicación y código muerto.
 - [x] **F3.2** Responsive real (360 px), foco visible, etiquetas en formularios, contraste suficiente, insignias con texto.
-- [ ] **F3.3** Estados vacíos, errores y mensajes en español claros; confirmaciones en acciones irreversibles (firmar, cancelar).
+- [x] **F3.3** Estados vacíos, errores y mensajes en español claros; confirmaciones en acciones irreversibles (firmar, cancelar).
 - [ ] **F3.4** Seed demo completo (solicitud en cada estado) y revisión visual de los 3 documentos impresos.
 
 **G3:** compuerta + revisión visual manual de pantallas clave (capturas con Playwright).
