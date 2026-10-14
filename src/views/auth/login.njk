@@ -1,0 +1,47 @@
+{% extends "layouts/base.njk" %}
+
+{% block content %}
+<article style="max-width: 480px; margin: 3rem auto; padding: 2rem;">
+  <header style="text-align: center; margin-bottom: 1.5rem;">
+    <h2>Iniciar sesión</h2>
+    <p><small>Sistema de Gestión de Escenarios y Bienes Culturales</small></p>
+  </header>
+
+  {% if error %}
+    <div style="background-color: #ffe3e3; color: #c92a2a; padding: 0.75rem 1rem; border-radius: 4px; margin-bottom: 1.5rem; font-size: 0.9rem;">
+      {{ error }}
+    </div>
+  {% endif %}
+
+  <form action="/login" method="POST">
+    <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+
+    <label for="email">
+      Correo electrónico institucional
+      <input
+        type="email"
+        id="email"
+        name="email"
+        placeholder="usuario@sgec.local"
+        value="{{ email | default('') }}"
+        required
+        autocomplete="email"
+      >
+    </label>
+
+    <label for="password">
+      Contraseña
+      <input
+        type="password"
+        id="password"
+        name="password"
+        placeholder="••••••••"
+        required
+        autocomplete="current-password"
+      >
+    </label>
+
+    <button type="submit" style="width: 100%; margin-top: 1rem;">Ingresar al sistema</button>
+  </form>
+</article>
+{% endblock %}

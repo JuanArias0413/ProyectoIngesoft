@@ -22,6 +22,12 @@ export function errorHandler(
     if ('errors' in err) {
       details = (err as { errors: unknown }).errors;
     }
+  } else if (
+    err instanceof Error &&
+    (err.message === 'invalid csrf token' || err.name === 'invalidCsrfTokenError')
+  ) {
+    statusCode = 403;
+    message = 'Token de seguridad (CSRF) inválido o expirado. Por favor recargue la página e intente de nuevo.';
   } else if (err instanceof Error) {
     logger.error({ err, reqId: req.id, url: req.url }, 'Unhandled error');
   } else {
