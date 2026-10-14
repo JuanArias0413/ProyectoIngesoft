@@ -4,10 +4,10 @@ Bitácora viva. Solo se **agrega** al final de cada sección; no se reescribe el
 
 ## Estado actual
 - **Fase en curso:** Fase 2 (Flujo del alquiler)
-- **Última tarea completada:** F2.4 (Backend)
-- **Último commit verde:** a53d096
-- **Resultado de pruebas:** 762 pruebas pasadas (19 archivos)
-- **Siguiente tarea:** F2.5
+- **Última tarea completada:** F2.5 (Backend)
+- **Último commit verde:** d96d048
+- **Resultado de pruebas:** 766 pruebas pasadas (19 archivos)
+- **Siguiente tarea:** F2.6
 
 ## Bitácora (una línea por tarea terminada)
 `AAAA-MM-DD HH:MM · Fx.y · agente · resumen · hash del commit`
@@ -30,6 +30,7 @@ Bitácora viva. Solo se **agrega** al final de cada sección; no se reescribe el
 2026-10-13 23:48 · F2.2 · backend · T2 respond con cálculo de tarifa, congelamiento de cotización, radicado y generación de oficio · 4485b54
 2026-10-14 00:01 · F2.3 · backend · Documentos del cliente, subida, verificación, T3 verifyDocuments y descarga autenticada · d3a9488
 2026-10-14 00:10 · F2.4 · backend · T4 draftContract, edición de objeto/cláusulas, versiones incrementales e imprimibles (CAR-05) · a53d096
+2026-10-14 00:19 · F2.5 · backend · T5 registerPayment y T6 submitToLegal con validación de cotización, soporte y transición a revisión jurídica · d96d048
 
 ## Compuertas
 ### Compuerta G0 · 2026-10-13 23:03
@@ -62,7 +63,7 @@ Bitácora viva. Solo se **agrega** al final de cada sección; no se reescribe el
 
 ## Peticiones entre agentes
 `de → para · petición · estado (abierta/hecha)`
-backend → orquestador · Montar createRentalRouter() en src/app.ts · abierta
+backend → orquestador · Montar createRentalRouter() en src/app.ts · hecha
 
 
 ## Reanudaciones
