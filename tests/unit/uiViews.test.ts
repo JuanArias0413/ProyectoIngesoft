@@ -301,6 +301,61 @@ describe('UI Views & Templates (F2.11, F2.12)', () => {
       expect(html).toContain('dialog-firmar-contrato');
       expect(html).toContain('dialog-cancelar');
       expect(html).toContain('Firmar y Legalizar Contrato');
+      // Confirmaciones en acciones irreversibles
+      expect(html).toContain('onsubmit="return confirm(');
+      expect(html).toContain('Acción Irreversible:');
+    });
+
+    it('renders informative placeholder when in CONTRACT_DRAFTED without payment', () => {
+      const html = env.render('pages/solicitudes/detalle.njk', {
+        s: {
+          id: 'test-req-empty-pay',
+          status: 'CONTRACT_DRAFTED',
+          space: { name: 'Teatro', venue: { name: 'Lucy Tejada' } },
+          customer: { type: 'NATURAL' },
+        },
+        user: { role: 'ADMIN_ASSISTANT' },
+      });
+      expect(html).toContain('Comprobante de Pago y Facturación');
+      expect(html).toContain('Pendiente de Registro');
+    });
+
+    it('renders informative placeholder when in LEGAL_REVIEW without recorded reviews', () => {
+      const html = env.render('pages/solicitudes/detalle.njk', {
+        s: {
+          id: 'test-req-legal-review',
+          status: 'LEGAL_REVIEW',
+          space: { name: 'Teatro', venue: { name: 'Lucy Tejada' } },
+          customer: { type: 'NATURAL' },
+        },
+        user: { role: 'LEGAL' },
+      });
+      expect(html).toContain('Rondas de Revisión Jurídica');
+      expect(html).toContain('En Revisión');
+    });
+  });
+
+  describe('pages/solicitudes/index.njk (Empty State)', () => {
+    it('renders friendly empty state when there are no rental requests', () => {
+      const html = env.render('pages/solicitudes/index.njk', {
+        requests: [],
+        query: {},
+        user: { role: 'ADMIN_ASSISTANT' },
+      });
+      expect(html).toContain('No se encontraron solicitudes');
+      expect(html).toContain('Aún no hay solicitudes de alquiler registradas');
+      expect(html).toContain('+ Registrar Solicitud');
+    });
+
+    it('renders filter-specific empty message when search yields no results', () => {
+      const html = env.render('pages/solicitudes/index.njk', {
+        requests: [],
+        query: { q: 'Inexistente' },
+        user: { role: 'ADMIN_ASSISTANT' },
+      });
+      expect(html).toContain('No se encontraron solicitudes');
+      expect(html).toContain('No existen solicitudes registradas que coincidan con los criterios de búsqueda');
+      expect(html).toContain('Limpiar filtros');
     });
   });
 
@@ -320,6 +375,14 @@ describe('UI Views & Templates (F2.11, F2.12)', () => {
       expect(html).toContain('Modo solo lectura (AC-02.4)');
       expect(html).toContain('Ensayos Orquesta');
       expect(html).toContain('Confirmada');
+    });
+
+    it('renders friendly empty state when there are no scheduled reservations', () => {
+      const html = env.render('pages/agenda/index.njk', {
+        reservations: [],
+      });
+      expect(html).toContain('No hay reservas programadas en este período');
+      expect(html).toContain('Todos los espacios se encuentran completamente disponibles');
     });
   });
 
@@ -341,10 +404,25 @@ describe('UI Views & Templates (F2.11, F2.12)', () => {
       expect(htmlHead).toContain('dialog-editar-tarifa');
       expect(htmlHead).toContain('Modificar');
     });
+
+    it('renders friendly empty state when tariffs list is empty', () => {
+      const html = env.render('pages/tarifas/index.njk', {
+        tariffs: [],
+      });
+      expect(html).toContain('No hay tarifas registradas en la base de datos');
+    });
   });
 
   describe('pages/errors/', () => {
-    it('renders 403, 404 and 500 error pages with user-friendly messages', () => {
+    it('renders 400, 403, 404 and 500 error pages with user-friendly Spanish messages', () => {
+      const h400 = env.render('pages/errors/400.njk', {
+        message: 'La duración mínima de reserva es de 1 hora',
+        details: [{ field: 'startsAt', message: 'Debe ser futura' }],
+      });
+      expect(h400).toContain('400 · No fue posible procesar la solicitud');
+      expect(h400).toContain('La duración mínima de reserva es de 1 hora');
+      expect(h400).toContain('Volver a la pantalla anterior');
+
       const h403 = env.render('pages/errors/403.njk', {});
       expect(h403).toContain('403 · Acceso Denegado');
 

@@ -21,6 +21,7 @@ import { createCatalogRouter } from './modules/catalog/http/routes.js';
 import { RentalStatus } from '@prisma/client';
 import { prisma } from './infra/prisma.js';
 import { formatBogotaDateTimeCompact } from './shared/utils/formatters.js';
+import { flashMiddleware } from './shared/middleware/flash.js';
 import './modules/auth/types.js';
 
 export interface AppOptions {
@@ -85,6 +86,9 @@ export function createApp(opts?: AppOptions): express.Application {
       },
     }),
   );
+
+  // Flash messages middleware
+  app.use(flashMiddleware);
 
   // Static files
   const publicPath = path.resolve(process.cwd(), 'public');

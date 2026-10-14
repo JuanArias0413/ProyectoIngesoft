@@ -73,6 +73,7 @@ export function createCatalogRouter(): Router {
         });
 
         if (req.accepts('html') && !req.xhr && !req.path.startsWith('/api')) {
+          req.flash?.('success', `Tarifa oficial actualizada exitosamente a $${parsedAmount.toLocaleString('es-CO')} COP.`);
           res.redirect('/tarifas');
           return;
         }

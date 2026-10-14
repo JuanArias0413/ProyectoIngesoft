@@ -80,6 +80,7 @@ export class RentalController {
       });
 
       if (req.accepts('html') && !req.xhr && !req.path.startsWith('/api')) {
+        req.flash?.('success', `Solicitud de alquiler registrada satisfactoriamente con radicado inicial ${result.rentalRequest.requestRadicado || result.rentalRequest.id}.`);
         res.redirect(`/solicitudes/${result.rentalRequest.id}`);
         return;
       }
@@ -121,6 +122,7 @@ export class RentalController {
       });
 
       if (req.accepts('html') && !req.xhr && !req.path.startsWith('/api')) {
+        req.flash?.('success', `Solicitud respondida y cotización emitida exitosamente con radicado ${result.responseRadicado}.`);
         res.redirect(`/solicitudes/${id}`);
         return;
       }
@@ -163,6 +165,7 @@ export class RentalController {
       });
 
       if (req.accepts('html') && !req.xhr && !req.path.startsWith('/api')) {
+        req.flash?.('success', 'Documento marcado como recibido correctamente.');
         res.redirect(`/solicitudes/${id}`);
         return;
       }
@@ -204,6 +207,7 @@ export class RentalController {
       });
 
       if (req.accepts('html') && !req.xhr && !req.path.startsWith('/api')) {
+        req.flash?.('success', 'Archivo de soporte adjuntado satisfactoriamente.');
         res.redirect(`/solicitudes/${id}`);
         return;
       }
@@ -241,6 +245,7 @@ export class RentalController {
       });
 
       if (req.accepts('html') && !req.xhr && !req.path.startsWith('/api')) {
+        req.flash?.('success', 'Documento verificado y validado con éxito.');
         res.redirect(`/solicitudes/${id}`);
         return;
       }
@@ -276,6 +281,7 @@ export class RentalController {
       });
 
       if (req.accepts('html') && !req.xhr && !req.path.startsWith('/api')) {
+        req.flash?.('success', 'Checklist de requisitos documentales aprobado formalmente.');
         res.redirect(`/solicitudes/${id}`);
         return;
       }
@@ -339,6 +345,7 @@ export class RentalController {
       });
 
       if (req.accepts('html') && !req.xhr && !req.path.startsWith('/api')) {
+        req.flash?.('success', 'Estudio previo y minuta de contrato elaborados satisfactoriamente (v1).');
         res.redirect(`/solicitudes/${id}`);
         return;
       }
@@ -379,6 +386,7 @@ export class RentalController {
       });
 
       if (req.accepts('html') && !req.xhr && !req.path.startsWith('/api')) {
+        req.flash?.('success', `Minuta contractual y cláusulas actualizadas correctamente (v${result.version}).`);
         res.redirect(`/solicitudes/${id}`);
         return;
       }
@@ -426,6 +434,7 @@ export class RentalController {
       });
 
       if (req.accepts('html') && !req.xhr && !req.path.startsWith('/api')) {
+        req.flash?.('success', `Pago y soporte de consignación registrados satisfactoriamente por $${result.payment.amountPesos.toLocaleString('es-CO')} COP.`);
         res.redirect(`/solicitudes/${id}`);
         return;
       }
@@ -465,6 +474,7 @@ export class RentalController {
       });
 
       if (req.accepts('html') && !req.xhr && !req.path.startsWith('/api')) {
+        req.flash?.('success', 'Expediente radicado ante la Oficina Asesora Jurídica para revisión.');
         res.redirect(`/solicitudes/${id}`);
         return;
       }
@@ -506,6 +516,7 @@ export class RentalController {
       });
 
       if (req.accepts('html') && !req.xhr && !req.path.startsWith('/api')) {
+        req.flash?.('success', 'Concepto jurídico favorable emitido con éxito. El contrato pasa a firma del Secretario.');
         res.redirect(`/solicitudes/${id}`);
         return;
       }
@@ -545,6 +556,7 @@ export class RentalController {
       });
 
       if (req.accepts('html') && !req.xhr && !req.path.startsWith('/api')) {
+        req.flash?.('warning', 'Contrato devuelto con observaciones a la bandeja del Auxiliar Administrativo.');
         res.redirect(`/solicitudes/${id}`);
         return;
       }
@@ -586,6 +598,7 @@ export class RentalController {
       });
 
       if (req.accepts('html') && !req.xhr && !req.path.startsWith('/api')) {
+        req.flash?.('success', `Minuta subsanada y reenviada a revisión jurídica (v${result.version}).`);
         res.redirect(`/solicitudes/${id}`);
         return;
       }
@@ -626,6 +639,7 @@ export class RentalController {
       });
 
       if (req.accepts('html') && !req.xhr && !req.path.startsWith('/api')) {
+        req.flash?.('success', `Contrato firmado y legalizado formalmente con número consecutivo oficial ${result.contractNumber}.`);
         res.redirect(`/solicitudes/${id}`);
         return;
       }
@@ -666,6 +680,7 @@ export class RentalController {
       });
 
       if (req.accepts('html') && !req.xhr && !req.path.startsWith('/api')) {
+        req.flash?.('info', 'Trámite de solicitud cancelado definitivamente y reserva liberada en agenda.');
         res.redirect(`/solicitudes/${id}`);
         return;
       }
