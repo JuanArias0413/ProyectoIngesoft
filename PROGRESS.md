@@ -4,10 +4,10 @@ Bitácora viva. Solo se **agrega** al final de cada sección; no se reescribe el
 
 ## Estado actual
 - **Fase en curso:** Fase 2 (Flujo del alquiler)
-- **Última tarea completada:** F2.7 (Backend)
-- **Último commit verde:** 1971ffa
-- **Resultado de pruebas:** 775 pruebas pasadas (19 archivos)
-- **Siguiente tarea:** F2.8
+- **Última tarea completada:** F2.8 (Backend)
+- **Último commit verde:** 6959f2f
+- **Resultado de pruebas:** 778 pruebas pasadas (19 archivos)
+- **Siguiente tarea:** F2.9
 
 ## Bitácora (una línea por tarea terminada)
 `AAAA-MM-DD HH:MM · Fx.y · agente · resumen · hash del commit`
@@ -33,6 +33,7 @@ Bitácora viva. Solo se **agrega** al final de cada sección; no se reescribe el
 2026-10-14 00:19 · F2.5 · backend · T5 registerPayment y T6 submitToLegal con validación de cotización, soporte y transición a revisión jurídica · d96d048
 2026-10-14 00:25 · F2.6 · backend · T7 approveLegal, T8 returnLegal y T9 resubmitToLegal con rondas y verificación de 3 checks (CAR-07) · 2207918
 2026-10-14 00:32 · F2.7 · backend · T10 signAndNumber atómico (ARR-AAAA-NNNN) y T11 cancel con liberación de reserva y nota A-11 · 1971ffa
+2026-10-14 00:41 · F2.8 · backend · Consultas: listado filtrable/paginado y detalle con línea de tiempo y allowedTransitions (CAR-09) · 6959f2f
 
 ## Compuertas
 ### Compuerta G0 · 2026-10-13 23:03
