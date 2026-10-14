@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Documento SGEC{% endblock %}</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 2cm;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Times New Roman', Times, 'Liberation Serif', serif;
+      font-size: 12pt;
+      line-height: 1.5;
+      color: #000;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* Screen presentation */
+    @media screen {
+      body {
+        background-color: #f1f3f5;
+        color: #212529;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .print-toolbar {
+        width: 210mm;
+        max-width: 100%;
+        margin-bottom: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #ffffff;
+        padding: 12px 20px;
+        border-radius: 6px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-size: 14px;
+      }
+
+      .print-btn {
+        background-color: #106b3a;
+        color: #ffffff;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        font-size: 14px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .print-btn:hover {
+        background-color: #0c522c;
+      }
+
+      .back-link {
+        color: #495057;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .back-link:hover {
+        color: #106b3a;
+        text-decoration: underline;
+      }
+
+      .document-sheet {
+        background: #ffffff;
+        width: 210mm;
+        min-height: 297mm;
+        padding: 2.5cm 2cm;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+    }
+
+    /* Print presentation */
+    @media print {
+      body {
+        background: transparent !important;
+        color: #000000 !important;
+        font-family: 'Times New Roman', Times, 'Liberation Serif', serif !important;
+        font-size: 12pt !important;
+        line-height: 1.5 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+
+      .no-print {
+        display: none !important;
+      }
+
+      .document-sheet {
+        width: 100% !important;
+        min-height: auto !important;
+        padding: 0 !important;
+        box-shadow: none !important;
+        background: transparent !important;
+      }
+
+      .page-break {
+        page-break-after: always;
+      }
+    }
+
+    /* Document content styles */
+    .doc-header {
+      text-align: center;
+      margin-bottom: 1.75rem;
+      border-bottom: 2px solid #000;
+      padding-bottom: 0.75rem;
+    }
+
+    .doc-header h1 {
+      font-size: 13pt;
+      font-weight: bold;
+      margin: 0 0 0.25rem 0;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .doc-header h2 {
+      font-size: 11pt;
+      font-weight: normal;
+      margin: 0;
+      text-transform: uppercase;
+    }
+
+    .doc-meta {
+      margin-bottom: 1.5rem;
+    }
+
+    .doc-meta-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 1rem;
+    }
+
+    .doc-meta-table td {
+      padding: 3px 0;
+      vertical-align: top;
+      font-size: 11pt;
+    }
+
+    .doc-meta-label {
+      font-weight: bold;
+      width: 130px;
+    }
+
+    .doc-title {
+      text-align: center;
+      font-size: 13pt;
+      font-weight: bold;
+      text-transform: uppercase;
+      margin: 1.5rem 0;
+    }
+
+    .doc-section {
+      margin-bottom: 1.25rem;
+      text-align: justify;
+      font-size: 11.5pt;
+    }
+
+    .doc-section p {
+      margin: 0 0 0.75rem 0;
+      text-indent: 1.5em;
+    }
+
+    .doc-section p.no-indent {
+      text-indent: 0;
+    }
+
+    .doc-section-title {
+      font-size: 11.5pt;
+      font-weight: bold;
+      margin-top: 1.25rem;
+      margin-bottom: 0.5rem;
+      text-transform: uppercase;
+    }
+
+    .doc-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+    }
+
+    .doc-table th, .doc-table td {
+      border: 1px solid #333;
+      padding: 6px 10px;
+      font-size: 10.5pt;
+      text-align: left;
+    }
+
+    .doc-table th {
+      background-color: #f0f0f0;
+      font-weight: bold;
+    }
+
+    @media print {
+      .doc-table th {
+        background-color: transparent !important;
+      }
+    }
+
+    .doc-signatures {
+      margin-top: 3.5rem;
+      display: flex;
+      justify-content: space-between;
+      page-break-inside: avoid;
+    }
+
+    .signature-block {
+      width: 45%;
+      text-align: center;
+    }
+
+    .signature-line {
+      border-top: 1px solid #000;
+      margin-bottom: 0.5rem;
+      width: 100%;
+    }
+
+    .signature-name {
+      font-weight: bold;
+      font-size: 11pt;
+    }
+
+    .signature-role {
+      font-size: 10pt;
+    }
+
+    .doc-footer {
+      margin-top: 2.5rem;
+      padding-top: 0.5rem;
+      border-top: 1px solid #777;
+      font-size: 9pt;
+      color: #555;
+      text-align: center;
+      font-style: italic;
+    }
+
+    @media print {
+      .doc-footer {
+        color: #000 !important;
+        border-top: 1px solid #000 !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="print-toolbar no-print">
+    <a href="/solicitudes/{{ rentalRequestId }}" class="back-link">
+      &larr; Volver a la solicitud
+    </a>
+    <div>
+      <span style="color: #6c757d; margin-right: 15px;">Versión {{ version }} · SGEC</span>
+      <button onclick="window.print()" class="print-btn">
+        Imprimir documento
+      </button>
+    </div>
+  </div>
+
+  <div class="document-sheet">
+    <div class="document-body">
+      {% block docContent %}{% endblock %}
+    </div>
+
+    <div class="doc-footer">
+      Formato generado por SGEC — proyecto académico
+    </div>
+  </div>
+</body>
+</html>

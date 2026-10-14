@@ -63,7 +63,7 @@ Reglas de paralelismo: las fases 0 y 1 las hace **solo el orquestador**, en orde
 - [ ] **F2.9** Permisos por ruta completos y verificados (CAR-19, AC-19.2).
 
 **Documentos**
-- [ ] **F2.10** Servicio `DocumentRenderer` + snapshot versionado; plantillas oficio, estudio previo y contrato con CSS de impresión A4 y pie del A-13. (AC-03.2, 03.4, 05.1, 05.3)
+- [x] **F2.10** Servicio `DocumentRenderer` + snapshot versionado; plantillas oficio, estudio previo y contrato con CSS de impresión A4 y pie del A-13. (AC-03.2, 03.4, 05.1, 05.3)
 
 **UI**
 - [ ] **F2.11** Layout, navegación por rol, login, inicio con «pendientes para mí», formularios y mensajes flash.

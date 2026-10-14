@@ -45,5 +45,11 @@ Formato: `D-nn · fecha · contexto · decisión · alternativas · consecuencia
 - **Alternativas:** librerías externas de máquinas de estados (XState/Machina) que ocultan el patrón exigido por la asignatura; sentencias `switch` en servicios (violan el principio Open/Closed y dificultan la extensibilidad hacia 2.0 y 3.0).
 - **Consecuencias:** modelo de dominio 100% puro en memoria, sin acoplamiento a base de datos, testeado exhaustivamente con 618 pruebas unitarias table-driven que cubren todas las combinaciones estado × transición × rol.
 
+## D-09 · 2026-10-13 · Snapshots HTML versionados y renderizador de documentos con CSS de impresión A4
+- **Contexto:** el trámite contractual requiere expedir oficios de respuesta, estudios previos y contratos en versiones incrementales inmutables con CSS de impresión A4 (A-13, A-15, CAR-03, CAR-05, F2.10).
+- **Decisión:** `DocumentRenderer` implementa `IDocumentRenderer` orquestando datos de Prisma y renderizando plantillas Nunjucks en un entorno aislado (`nunjucks.Environment`). Los documentos se congelan como snapshots HTML completos en `GeneratedDocument` (kind, version, html, generatedById, generatedAt). Se diseñaron tres plantillas con formato institucional sin logos, pie académico obligatorio (A-13), normas aplicables tomadas del documento de Visión sin invención de artículos, y CSS de impresión A4 (`@page { size: A4; margin: 2cm; }`, tipografía serif 12pt, sin colores de fondo). La ruta `GET /solicitudes/:id/documentos/:kind` requiere el permiso `rentals:read` y sirve directamente el snapshot HTML inmutable con barra de impresión (`window.print()`) que se oculta al imprimir.
+- **Alternativas:** generación de PDFs binarios con Chromium/Puppeteer (muy pesado y propenso a errores de entorno); generación dinámica en cada lectura (viola A-15 sobre snapshots congelados).
+- **Consecuencias:** generación rápida, determinista, 100% testeable sin internet ni dependencias nativas pesadas, soporte nativo de impresión y descarga PDF desde cualquier navegador moderno.
+
 
 

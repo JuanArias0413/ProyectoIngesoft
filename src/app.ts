@@ -14,6 +14,7 @@ import { logger } from './shared/logger.js';
 import { errorHandler, notFoundHandler } from './shared/middleware/errorHandler.js';
 import { doubleCsrfProtection, generateToken } from './modules/auth/csrf.js';
 import { createAuthRouter } from './modules/auth/routes.js';
+import { createDocumentRouter } from './modules/documents/index.js';
 import './modules/auth/types.js';
 
 export interface AppOptions {
@@ -118,6 +119,9 @@ export function createApp(opts?: AppOptions): express.Application {
 
   // Auth routes (/login, /logout)
   app.use(createAuthRouter());
+
+  // Documents routes (/solicitudes/:id/documentos/:kind)
+  app.use(createDocumentRouter());
 
   // Root endpoint
   app.get('/', (req, res) => {

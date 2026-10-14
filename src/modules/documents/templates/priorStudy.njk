@@ -1,0 +1,187 @@
+{% extends "documentBase.njk" %}
+
+{% block title %}Estudio Previo (v{{ version }}) — {{ eventName }} — SGEC{% endblock %}
+
+{% block docContent %}
+<div class="doc-header">
+  <h1>SECRETARÍA DE CULTURA DE PEREIRA</h1>
+  <h2>Oficina de Administración de Escenarios y Bienes Culturales</h2>
+</div>
+
+<div class="doc-title">
+  ESTUDIO PREVIO — ARRENDAMIENTO DE ESPACIO CULTURAL
+  <div style="font-size: 10pt; font-weight: normal; margin-top: 4px; text-transform: none;">
+    Versión {{ version }} · Fecha de expedición: {{ cityAndDate }}
+  </div>
+</div>
+
+<div class="doc-section">
+  <div class="doc-section-title">1. Descripción de la necesidad y justificación</div>
+  <p>
+    La Secretaría de Cultura del Municipio de Pereira tiene a su cargo la administración, conservación y uso óptimo de los bienes e inmuebles de interés cultural y artístico del municipio, entre ellos el <strong>{{ venue.name }}</strong> y sus auditorios y salas representativas.
+  </p>
+  <p>
+    En atención a la solicitud presentada por el(la) interesado(a) <strong>{{ customer.name }}</strong> para la realización de la actividad cultural y artística denominada <strong>«{{ eventName }}»</strong>, se hace procedente y conveniente autorizar el arrendamiento temporal del espacio solicitado. Esta actividad contribuye a dinamizar el acceso de la ciudadanía a la cultura, fomenta la formación de públicos y garantiza el aprovechamiento eficiente y transparente de la infraestructura pública municipal conforme al Manual de Procedimientos de la Secretaría.
+  </p>
+</div>
+
+<div class="doc-section">
+  <div class="doc-section-title">2. Objeto contractual</div>
+  <p class="no-indent">
+    {{ contractObject }}
+  </p>
+  <table class="doc-table">
+    <tr>
+      <th style="width: 30%;">Escenario y Espacio:</th>
+      <td><strong>{{ venue.name }}</strong> — {{ space.name }}</td>
+    </tr>
+    <tr>
+      <th>Ubicación:</th>
+      <td>{{ venue.address }}</td>
+    </tr>
+    <tr>
+      <th>Arrendatario:</th>
+      <td>
+        {{ customer.name }} ({{ customer.documentType }} No. {{ customer.documentNumber }})
+        {% if customer.legalRepresentative %} — Rep. Legal: {{ customer.legalRepresentative }}{% endif %}
+      </td>
+    </tr>
+    <tr>
+      <th>Evento:</th>
+      <td>«{{ eventName }}»</td>
+    </tr>
+    {% if eventDescription %}
+    <tr>
+      <th>Descripción:</th>
+      <td>{{ eventDescription }}</td>
+    </tr>
+    {% endif %}
+  </table>
+</div>
+
+<div class="doc-section">
+  <div class="doc-section-title">3. Plazo y cronograma de ejecución</div>
+  <p>
+    El plazo de uso del escenario cultural comprende las siguientes fechas y franjas horarias verificadas en la agenda institucional:
+  </p>
+  <table class="doc-table">
+    <tr>
+      <th style="width: 30%;">Franja Horaria Autorizada:</th>
+      <td><strong>{{ formattedDateRange }}</strong></td>
+    </tr>
+    <tr>
+      <th>Duración Total Liquidada:</th>
+      <td>{{ durationText }}</td>
+    </tr>
+    <tr>
+      <th>Aforo Máximo Autorizado:</th>
+      <td>{{ space.capacity }} personas</td>
+    </tr>
+  </table>
+</div>
+
+<div class="doc-section">
+  <div class="doc-section-title">4. Análisis económico y cálculo detallado del valor</div>
+  <p>
+    El valor del arrendamiento se fundamenta en la aplicación estricta del Acuerdo de Tarifas vigente expedido por la entidad, considerando la destinación del evento (<strong>{{ purposeLabel }}</strong>) y la unidad de cobro fijada para el espacio (<strong>cobro por {{ tariffDetails.pricingUnitLabel }}</strong>).
+  </p>
+  <table class="doc-table">
+    <thead>
+      <tr>
+        <th>Concepto / Tarifa</th>
+        <th style="text-align: center;">Unidad</th>
+        <th style="text-align: right;">Precio Unitario</th>
+        <th style="text-align: center;">Cantidad</th>
+        <th style="text-align: right;">Total Liquidado</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Uso de {{ space.name }} ({{ purposeLabel }})</td>
+        <td style="text-align: center;">{{ tariffDetails.pricingUnitLabel }}</td>
+        <td style="text-align: right;">{{ tariffDetails.formattedUnitPrice }}</td>
+        <td style="text-align: center;">{{ tariffDetails.unitsBilled }} {{ tariffDetails.unitsBilledLabel }}</td>
+        <td style="text-align: right;"><strong>{{ tariffDetails.formattedAmount }}</strong></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p class="no-indent">
+    <strong>Fórmula de cálculo:</strong> {{ tariffDetails.calculationFormula }} = {{ tariffDetails.formattedAmount }}<br>
+    <strong>Valor total en letras:</strong> {{ tariffDetails.amountInWords }}.
+  </p>
+</div>
+
+<div class="doc-section">
+  <div class="doc-section-title">5. Obligaciones principales del arrendatario</div>
+  <p class="no-indent">
+    El arrendatario asumirá expresamente las siguientes obligaciones contractuales:
+  </p>
+  <ol>
+    <li>Destinar el espacio cultural única y exclusivamente para la realización del evento «{{ eventName }}».</li>
+    <li>Respetar estrictamente el aforo máximo de {{ space.capacity }} personas y garantizar el cumplimiento de las directrices de seguridad física y evacuación.</li>
+    <li>Abstenerse de fumar, ingresar sustancias psicoactivas o comercializar bebidas alcohólicas sin los permisos administrativos correspondientes.</li>
+    <li>Recibir el escenario mediante acta de entrega con inventario técnico y devolverlo en iguales condiciones de aseo, funcionalidad y conservación.</li>
+    <li>Responder económica y legalmente por cualquier daño, deterioro o pérdida que sufran las instalaciones, equipos técnicos o silletería durante el evento.</li>
+    <li>Acatar los horarios pactados de inicio, desarrollo, montaje y desmontaje.</li>
+  </ol>
+</div>
+
+<div class="doc-section">
+  <div class="doc-section-title">6. Análisis de riesgos básicos</div>
+  <table class="doc-table">
+    <thead>
+      <tr>
+        <th style="width: 25%;">Riesgo Identificado</th>
+        <th style="width: 35%;">Consecuencia Posible</th>
+        <th style="width: 40%;">Medida de Mitigación</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Deterioro o daño técnico</strong></td>
+        <td>Afectación a equipos de sonido, luces o infraestructura.</td>
+        <td>Acta de entrega y recibo previa y posterior; cláusula de responsabilidad civil directa a cargo del arrendatario.</td>
+      </tr>
+      <tr>
+        <td><strong>Superación de aforo</strong></td>
+        <td>Riesgo de seguridad para los asistentes.</td>
+        <td>Acompañamiento del personal logístico y control estricto de accesos según la capacidad de {{ space.capacity }} personas.</td>
+      </tr>
+      <tr>
+        <td><strong>Incumplimiento de horario</strong></td>
+        <td>Cruce con actividades posteriores en la agenda cultural.</td>
+        <td>Reserva programada en agenda con márgenes operativos y supervisión de los operarios del escenario.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="doc-section">
+  <div class="doc-section-title">7. Normatividad aplicable</div>
+  <p class="no-indent">
+    El presente trámite y la celebración del respectivo contrato se sustentan en las siguientes disposiciones normativas:
+  </p>
+  <ul>
+    <li>Ley 397 de 1997 – Ley General de Cultura.</li>
+    <li>Ley 1170 de 2007 – Ley de Teatro.</li>
+    <li>Ley 1493 de 2011 – Espectáculo público de las artes escénicas.</li>
+    <li>Decreto 1080 de 2015 – Decreto Único Reglamentario del Sector Cultura.</li>
+    <li>Acto Administrativo de especificaciones técnicas de alquiler de escenarios.</li>
+    <li>Acuerdo de Tarifas vigente.</li>
+  </ul>
+</div>
+
+<div class="doc-signatures">
+  <div class="signature-block">
+    <div class="signature-line"></div>
+    <div class="signature-name">Auxiliar Administrativo</div>
+    <div class="signature-role">Elaboró Estudio Previo</div>
+  </div>
+  <div class="signature-block">
+    <div class="signature-line"></div>
+    <div class="signature-name">Jefe de la Oficina de Administración de Escenarios y Bienes Culturales</div>
+    <div class="signature-role">Revisó y Aprobó</div>
+  </div>
+</div>
+{% endblock %}
