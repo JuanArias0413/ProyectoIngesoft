@@ -5,7 +5,7 @@ Bitácora viva. Solo se **agrega** al final de cada sección; no se reescribe el
 ## Estado actual
 - **Fase en curso:** Fase 1 (Dominio núcleo)
 - **Última tarea completada:** F1.2
-- **Último commit verde:** en proceso (F1.2)
+- **Último commit verde:** 2a0c816
 - **Resultado de pruebas:** 54 pruebas pasadas (11 archivos)
 - **Siguiente tarea:** F1.3
 
@@ -19,7 +19,7 @@ Bitácora viva. Solo se **agrega** al final de cada sección; no se reescribe el
 2026-10-13 23:02 · F0.6 · orquestador · Auth y RBAC con sesiones postgres, bcryptjs, CSRF, rate limit y middlewares · 56f3f99
 2026-10-13 23:03 · F0.7 · orquestador · Seed mínimo 6 roles y utilidades de prueba (db helper, factories, loginAs) · 9a9a333
 2026-10-13 23:05 · F1.1 · orquestador · Catálogo con entidades de dominio, repositorios y seed completo §13 · 6579870
-2026-10-13 23:10 · F1.2 · orquestador · Estrategia de precios (HourlyPricing, DailyPricing) y utilidad amountToWords con pruebas unitarias · {commit}
+2026-10-13 23:10 · F1.2 · orquestador · Estrategia de precios (HourlyPricing, DailyPricing) y utilidad amountToWords con pruebas unitarias · 2a0c816
 
 ## Compuertas
 ### Compuerta G0 · 2026-10-13 23:03
