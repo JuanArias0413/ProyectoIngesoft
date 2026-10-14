@@ -8,6 +8,9 @@ import {
   draftContractSchema,
   registerPaymentSchema,
   submitToLegalSchema,
+  approveLegalSchema,
+  returnLegalSchema,
+  resubmitToLegalSchema,
 } from './schemas.js';
 import { RegisterRentalUseCase } from '../application/registerRentalUseCase.js';
 import { RespondRentalUseCase } from '../application/respondRentalUseCase.js';
@@ -17,9 +20,12 @@ import { DraftContractUseCase } from '../application/draftContractUseCase.js';
 import { UpdateContractUseCase } from '../application/updateContractUseCase.js';
 import { RegisterPaymentUseCase } from '../application/registerPaymentUseCase.js';
 import { SubmitToLegalUseCase } from '../application/submitToLegalUseCase.js';
+import { ApproveLegalUseCase } from '../application/approveLegalUseCase.js';
+import { ReturnLegalUseCase } from '../application/returnLegalUseCase.js';
+import { ResubmitToLegalUseCase } from '../application/resubmitToLegalUseCase.js';
 import { resolveStoragePath } from '../infra/fileStorage.js';
 
-function parseBody<T>(schema: z.ZodSchema<T>, data: unknown): T {
+function parseBody<T extends z.ZodTypeAny>(schema: T, data: unknown): z.output<T> {
   const result = schema.safeParse(data);
   if (!result.success) {
     const errorMessages = result.error.errors.map((e) => `${e.path.join('.')}: ${e.message}`);
@@ -38,6 +44,9 @@ export class RentalController {
     private readonly updateContractUseCase?: UpdateContractUseCase,
     private readonly registerPaymentUseCase?: RegisterPaymentUseCase,
     private readonly submitToLegalUseCase?: SubmitToLegalUseCase,
+    private readonly approveLegalUseCase?: ApproveLegalUseCase,
+    private readonly returnLegalUseCase?: ReturnLegalUseCase,
+    private readonly resubmitToLegalUseCase?: ResubmitToLegalUseCase,
   ) {}
 
   public async register(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -449,6 +458,129 @@ export class RentalController {
         message: 'Solicitud enviada a revisión jurídica con éxito',
         rentalRequestId: result.rentalRequest.id,
         status: result.rentalRequest.status,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public async approveLegal(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const user = req.session?.user;
+      if (!user) {
+        res.status(401).json({ error: 'No autenticado' });
+        return;
+      }
+
+      if (!this.approveLegalUseCase) {
+        res.status(500).json({ error: 'Caso de uso ApproveLegalUseCase no inyectado' });
+        return;
+      }
+
+      const id = String(req.params.id);
+      const input = parseBody(approveLegalSchema, req.body);
+
+      const result = await this.approveLegalUseCase.execute({
+        rentalRequestId: id,
+        documentsOk: input.documentsOk,
+        customerDataOk: input.customerDataOk,
+        clausesOk: input.clausesOk,
+        observations: input.observations,
+        actorId: user.id,
+        actorRole: user.role,
+      });
+
+      if (req.accepts('html') && !req.xhr && !req.path.startsWith('/api')) {
+        res.redirect(`/solicitudes/${id}`);
+        return;
+      }
+
+      res.status(200).json({
+        message: 'Revisión jurídica aprobada con éxito',
+        rentalRequestId: result.rentalRequest.id,
+        status: result.rentalRequest.status,
+        legalReview: result.legalReview,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public async returnLegal(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const user = req.session?.user;
+      if (!user) {
+        res.status(401).json({ error: 'No autenticado' });
+        return;
+      }
+
+      if (!this.returnLegalUseCase) {
+        res.status(500).json({ error: 'Caso de uso ReturnLegalUseCase no inyectado' });
+        return;
+      }
+
+      const id = String(req.params.id);
+      const input = parseBody(returnLegalSchema, req.body);
+
+      const result = await this.returnLegalUseCase.execute({
+        rentalRequestId: id,
+        observations: input.observations,
+        actorId: user.id,
+        actorRole: user.role,
+      });
+
+      if (req.accepts('html') && !req.xhr && !req.path.startsWith('/api')) {
+        res.redirect(`/solicitudes/${id}`);
+        return;
+      }
+
+      res.status(200).json({
+        message: 'Contrato devuelto con observaciones para corrección',
+        rentalRequestId: result.rentalRequest.id,
+        status: result.rentalRequest.status,
+        legalReview: result.legalReview,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public async resubmitToLegal(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const user = req.session?.user;
+      if (!user) {
+        res.status(401).json({ error: 'No autenticado' });
+        return;
+      }
+
+      if (!this.resubmitToLegalUseCase) {
+        res.status(500).json({ error: 'Caso de uso ResubmitToLegalUseCase no inyectado' });
+        return;
+      }
+
+      const id = String(req.params.id);
+      const input = parseBody(resubmitToLegalSchema, req.body || {});
+
+      const result = await this.resubmitToLegalUseCase.execute({
+        rentalRequestId: id,
+        object: input.object,
+        additionalClauses: input.additionalClauses,
+        note: input.note || input.notes,
+        actorId: user.id,
+        actorRole: user.role,
+      });
+
+      if (req.accepts('html') && !req.xhr && !req.path.startsWith('/api')) {
+        res.redirect(`/solicitudes/${id}`);
+        return;
+      }
+
+      res.status(200).json({
+        message: 'Solicitud subsanada y reenviada a revisión jurídica',
+        rentalRequestId: result.rentalRequest.id,
+        status: result.rentalRequest.status,
+        contract: result.contract,
+        version: result.version,
       });
     } catch (error) {
       next(error);

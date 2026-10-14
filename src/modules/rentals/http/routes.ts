@@ -9,6 +9,9 @@ import { DraftContractUseCase } from '../application/draftContractUseCase.js';
 import { UpdateContractUseCase } from '../application/updateContractUseCase.js';
 import { RegisterPaymentUseCase } from '../application/registerPaymentUseCase.js';
 import { SubmitToLegalUseCase } from '../application/submitToLegalUseCase.js';
+import { ApproveLegalUseCase } from '../application/approveLegalUseCase.js';
+import { ReturnLegalUseCase } from '../application/returnLegalUseCase.js';
+import { ResubmitToLegalUseCase } from '../application/resubmitToLegalUseCase.js';
 import { rentalUploadMiddleware } from '../infra/fileStorage.js';
 import { AvailabilityService } from '../../agenda/application/availabilityService.js';
 import { PrismaReservationRepository } from '../../agenda/infra/prismaReservationRepository.js';
@@ -37,6 +40,9 @@ export function createRentalRouter(controller?: RentalController): Router {
       new UpdateContractUseCase(prisma, new DocumentRenderer(prisma)),
       new RegisterPaymentUseCase(prisma),
       new SubmitToLegalUseCase(prisma),
+      new ApproveLegalUseCase(prisma),
+      new ReturnLegalUseCase(prisma),
+      new ResubmitToLegalUseCase(prisma, new DocumentRenderer(prisma)),
     );
 
   // F2.1 — Registrar solicitud (CAR-01, AC-01.x)
@@ -160,6 +166,46 @@ export function createRentalRouter(controller?: RentalController): Router {
     requireAuth,
     requirePermission('rentals:submit-legal'),
     (req, res, next) => ctrl.submitToLegal(req, res, next),
+  );
+
+  // F2.6 — T7 approveLegal, T8 returnLegal, T9 resubmitToLegal (CAR-07, AC-07.1 a AC-07.4)
+  router.post(
+    '/solicitudes/:id/transiciones/approveLegal',
+    requireAuth,
+    requirePermission('rentals:approve-legal'),
+    (req, res, next) => ctrl.approveLegal(req, res, next),
+  );
+  router.post(
+    '/solicitudes/:id/aprobar-juridica',
+    requireAuth,
+    requirePermission('rentals:approve-legal'),
+    (req, res, next) => ctrl.approveLegal(req, res, next),
+  );
+
+  router.post(
+    '/solicitudes/:id/transiciones/returnLegal',
+    requireAuth,
+    requirePermission('rentals:return-legal'),
+    (req, res, next) => ctrl.returnLegal(req, res, next),
+  );
+  router.post(
+    '/solicitudes/:id/devolver-juridica',
+    requireAuth,
+    requirePermission('rentals:return-legal'),
+    (req, res, next) => ctrl.returnLegal(req, res, next),
+  );
+
+  router.post(
+    '/solicitudes/:id/transiciones/resubmitToLegal',
+    requireAuth,
+    requirePermission('rentals:resubmit-legal'),
+    (req, res, next) => ctrl.resubmitToLegal(req, res, next),
+  );
+  router.post(
+    '/solicitudes/:id/reenviar-juridica',
+    requireAuth,
+    requirePermission('rentals:resubmit-legal'),
+    (req, res, next) => ctrl.resubmitToLegal(req, res, next),
   );
 
   // Descarga autenticada de archivos

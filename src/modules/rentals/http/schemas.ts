@@ -46,10 +46,15 @@ export const submitToLegalSchema = z.object({
   note: z.string().optional(),
 });
 
+const booleanCheckbox = z.preprocess(
+  (val) => val === true || val === 'true' || val === 'on' || val === 1 || val === '1',
+  z.boolean(),
+);
+
 export const approveLegalSchema = z.object({
-  documentsOk: z.boolean(),
-  customerDataOk: z.boolean(),
-  clausesOk: z.boolean(),
+  documentsOk: booleanCheckbox,
+  customerDataOk: booleanCheckbox,
+  clausesOk: booleanCheckbox,
   observations: z.string().optional(),
 });
 
@@ -60,6 +65,7 @@ export const returnLegalSchema = z.object({
 export const resubmitToLegalSchema = z.object({
   object: z.string().optional(),
   additionalClauses: z.string().optional(),
+  note: z.string().optional(),
   notes: z.string().optional(),
 });
 

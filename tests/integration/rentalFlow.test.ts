@@ -1023,6 +1023,190 @@ describe('SGEC Release 1.0 — Rental Lifecycle & Flow Integration (rentalFlow.t
   });
 
   // =========================================================================
+  // CAR-07: Revisión jurídica (AC-07.1 a AC-07.4)
+  // =========================================================================
+  describe('CAR-07: Revisión jurídica (T7 approveLegal, T8 returnLegal, T9 resubmitToLegal)', () => {
+    it('AC-07.1: solicitud enviada por auxiliar queda en LEGAL_REVIEW y usuario Jurídica la visualiza', async () => {
+      const { agent: _legalAgent } = await loginAs(app, UserRole.LEGAL);
+      const paid = await createRentalInState(RentalStatus.PAID);
+      const rentalId = paid.rental.id;
+
+      // Auxiliar la envía a jurídica
+      const { agent: assistantAgent, csrfToken: assistantCsrf } = await loginAs(app, UserRole.ADMIN_ASSISTANT);
+      const resSubmit = await assistantAgent
+        .post(`/solicitudes/${rentalId}/transiciones/submitToLegal`)
+        .set('Accept', 'application/json')
+        .set('X-CSRF-Token', assistantCsrf)
+        .send({ note: 'Expediente remitido a Jurídica' });
+
+      expect(resSubmit.status).toBe(200);
+      expect(resSubmit.body.status).toBe('LEGAL_REVIEW');
+
+      // Jurídica la consulta en la base de datos
+      const reqDb = await prisma.rentalRequest.findUnique({
+        where: { id: rentalId },
+      });
+      expect(reqDb!.status).toBe(RentalStatus.LEGAL_REVIEW);
+    });
+
+    it('AC-07.2: Jurídica aprueba solo si marca las 3 verificaciones; rechaza con 400 si falta alguna', async () => {
+      const { agent: legalAgent, csrfToken: legalCsrf } = await loginAs(app, UserRole.LEGAL);
+      const inReview = await createRentalInState(RentalStatus.LEGAL_REVIEW);
+      const rentalId = inReview.rental.id;
+
+      // 1. Intento incompleto: falta clausesOk
+      const resIncomplete = await legalAgent
+        .post(`/solicitudes/${rentalId}/transiciones/approveLegal`)
+        .set('Accept', 'application/json')
+        .set('X-CSRF-Token', legalCsrf)
+        .send({
+          documentsOk: true,
+          customerDataOk: true,
+          clausesOk: false,
+          observations: 'Falta validar cláusulas',
+        });
+
+      expect(resIncomplete.status).toBe(400);
+      expect(resIncomplete.body.error).toMatch(/tres verificaciones obligatorias/i);
+
+      // 2. Aprobación completa con las 3 verificaciones
+      const resApprove = await legalAgent
+        .post(`/solicitudes/${rentalId}/transiciones/approveLegal`)
+        .set('Accept', 'application/json')
+        .set('X-CSRF-Token', legalCsrf)
+        .send({
+          documentsOk: true,
+          customerDataOk: true,
+          clausesOk: true,
+          observations: 'Documentación en regla, representación validada y cláusulas normativas conformes.',
+        });
+
+      expect(resApprove.status).toBe(200);
+      expect(resApprove.body.status).toBe('PENDING_SIGNATURE');
+      expect(resApprove.body.legalReview).toBeDefined();
+      expect(resApprove.body.legalReview.decision).toBe('APPROVED');
+      expect(resApprove.body.legalReview.round).toBe(1);
+
+      // Verificar en BD
+      const reviewDb = await prisma.legalReview.findFirst({
+        where: { rentalRequestId: rentalId },
+      });
+      expect(reviewDb).not.toBeNull();
+      expect(reviewDb!.decision).toBe('APPROVED');
+      expect(reviewDb!.documentsOk).toBe(true);
+      expect(reviewDb!.customerDataOk).toBe(true);
+      expect(reviewDb!.clausesOk).toBe(true);
+
+      const reqDb = await prisma.rentalRequest.findUnique({
+        where: { id: rentalId },
+      });
+      expect(reqDb!.status).toBe(RentalStatus.PENDING_SIGNATURE);
+    });
+
+    it('AC-07.3: Jurídica devuelve con observaciones (≥10 chars); Auxiliar subsana y reenvía (Rondas 1 y 2)', async () => {
+      const { agent: legalAgent, csrfToken: legalCsrf } = await loginAs(app, UserRole.LEGAL);
+      const inReview = await createRentalInState(RentalStatus.LEGAL_REVIEW);
+      const rentalId = inReview.rental.id;
+
+      // 1. Devolución con menos de 10 caracteres rechazada
+      const resShort = await legalAgent
+        .post(`/solicitudes/${rentalId}/transiciones/returnLegal`)
+        .set('Accept', 'application/json')
+        .set('X-CSRF-Token', legalCsrf)
+        .send({ observations: 'Corregir' });
+
+      expect(resShort.status).toBe(400);
+      expect(resShort.body.error).toMatch(/10 caracteres/i);
+
+      // 2. Devolución válida (Ronda 1)
+      const resReturn = await legalAgent
+        .post(`/solicitudes/${rentalId}/transiciones/returnLegal`)
+        .set('Accept', 'application/json')
+        .set('X-CSRF-Token', legalCsrf)
+        .send({
+          observations: 'Ajustar la cláusula de indemnidad por daños patrimoniales según normativa local.',
+        });
+
+      expect(resReturn.status).toBe(200);
+      expect(resReturn.body.status).toBe('RETURNED_BY_LEGAL');
+      expect(resReturn.body.legalReview.decision).toBe('RETURNED');
+      expect(resReturn.body.legalReview.round).toBe(1);
+
+      // 3. Auxiliar subsana y reenvía a Jurídica (T9 resubmitToLegal)
+      const { agent: assistantAgent, csrfToken: assistantCsrf } = await loginAs(app, UserRole.ADMIN_ASSISTANT);
+      const resResubmit = await assistantAgent
+        .post(`/solicitudes/${rentalId}/transiciones/resubmitToLegal`)
+        .set('Accept', 'application/json')
+        .set('X-CSRF-Token', assistantCsrf)
+        .send({
+          additionalClauses: 'El arrendatario responderá solidariamente por daños según la normativa distrital ajustada.',
+          note: 'Se ajustó la cláusula de indemnidad conforme a los hallazgos de la Ronda 1.',
+        });
+
+      expect(resResubmit.status).toBe(200);
+      expect(resResubmit.body.status).toBe('LEGAL_REVIEW');
+
+      // 4. Jurídica evalúa Ronda 2 y aprueba
+      const resApproveR2 = await legalAgent
+        .post(`/solicitudes/${rentalId}/transiciones/approveLegal`)
+        .set('Accept', 'application/json')
+        .set('X-CSRF-Token', legalCsrf)
+        .send({
+          documentsOk: true,
+          customerDataOk: true,
+          clausesOk: true,
+          observations: 'Cláusula corregida satisfactoriamente para la Ronda 2.',
+        });
+
+      expect(resApproveR2.status).toBe(200);
+      expect(resApproveR2.body.status).toBe('PENDING_SIGNATURE');
+      expect(resApproveR2.body.legalReview.round).toBe(2);
+
+      // Verificar historial de ambas rondas en BD
+      const reviews = await prisma.legalReview.findMany({
+        where: { rentalRequestId: rentalId },
+        orderBy: { round: 'asc' },
+      });
+      expect(reviews.length).toBe(2);
+      expect(reviews[0].round).toBe(1);
+      expect(reviews[0].decision).toBe('RETURNED');
+      expect(reviews[1].round).toBe(2);
+      expect(reviews[1].decision).toBe('APPROVED');
+    });
+
+    it('AC-07.4: solo el rol LEGAL puede aprobar o devolver; auxiliar o secretario reciben 403', async () => {
+      const inReview = await createRentalInState(RentalStatus.LEGAL_REVIEW);
+      const rentalId = inReview.rental.id;
+
+      // 1. Auxiliar intentando aprobar
+      const { agent: assistantAgent, csrfToken: assistantCsrf } = await loginAs(app, UserRole.ADMIN_ASSISTANT);
+      const resApproveByAssistant = await assistantAgent
+        .post(`/solicitudes/${rentalId}/transiciones/approveLegal`)
+        .set('Accept', 'application/json')
+        .set('X-CSRF-Token', assistantCsrf)
+        .send({
+          documentsOk: true,
+          customerDataOk: true,
+          clausesOk: true,
+        });
+
+      assertForbidden(resApproveByAssistant);
+
+      // 2. Secretario intentando devolver
+      const { agent: secretaryAgent, csrfToken: secCsrf } = await loginAs(app, UserRole.SECRETARY);
+      const resReturnBySecretary = await secretaryAgent
+        .post(`/solicitudes/${rentalId}/transiciones/returnLegal`)
+        .set('Accept', 'application/json')
+        .set('X-CSRF-Token', secCsrf)
+        .send({
+          observations: 'Observación no autorizada desde el despacho del Secretario',
+        });
+
+      assertForbidden(resReturnBySecretary);
+    });
+  });
+
+  // =========================================================================
   // Fábrica de Estados del Ciclo de Vida (createRentalInState)
   // =========================================================================
   describe('Ciclo de vida completo vía helper createRentalInState', () => {
