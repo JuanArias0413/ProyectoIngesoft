@@ -1,0 +1,12 @@
+{% extends "layouts/base.njk" %}
+
+{% block content %}
+<article style="max-width: 600px; margin: 2rem auto; text-align: center;">
+  <h2 style="color: #c92a2a;">403 · Acceso denegado</h2>
+  <p>{{ message | default("No tiene los permisos requeridos para acceder a este recurso o ejecutar esta acción.") }}</p>
+  <p><small>Si considera que debería tener acceso, comuníquese con el administrador del sistema.</small></p>
+  <div style="margin-top: 1.5rem;">
+    <a href="/" role="button" class="outline">Volver al inicio</a>
+  </div>
+</article>
+{% endblock %}

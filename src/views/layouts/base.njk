@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ title | default("SGEC — Secretaría de Cultura de Pereira") }}</title>
+  <link rel="stylesheet" href="/vendor/pico.min.css">
+  <style>
+    :root {
+      --primary: #106b3a;
+      --primary-hover: #0c522c;
+    }
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    main.container {
+      flex: 1;
+      padding-top: 1.5rem;
+      padding-bottom: 2rem;
+    }
+    header.container-fluid {
+      border-bottom: 1px solid var(--muted-border-color, #e0e0e0);
+      padding: 0.75rem 1.5rem;
+      background-color: var(--card-background-color, #fff);
+    }
+    header nav ul li strong {
+      font-size: 1.15rem;
+      color: var(--primary);
+    }
+    footer.container-fluid {
+      border-top: 1px solid var(--muted-border-color, #e0e0e0);
+      padding: 1rem 1.5rem;
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--muted-color, #666);
+    }
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+  </style>
+  <script src="/vendor/htmx.min.js"></script>
+  {% block head %}{% endblock %}
+</head>
+<body>
+  <header class="container-fluid">
+    <nav>
+      <ul>
+        <li>
+          <a href="/" style="text-decoration: none;">
+            <strong>SGEC</strong>
+            <span style="font-size: 0.85rem; color: #555; margin-left: 0.5rem;">Secretaría de Cultura de Pereira</span>
+          </a>
+        </li>
+      </ul>
+      <ul>
+        {% if user %}
+          <li><small>{{ user.name }} ({{ user.role }})</small></li>
+          <li>
+            <form action="/logout" method="POST" style="margin: 0; display: inline;">
+              <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+              <button type="submit" class="outline secondary" style="padding: 0.25rem 0.75rem; font-size: 0.85rem;">Cerrar sesión</button>
+            </form>
+          </li>
+        {% else %}
+          <li><a href="/login" role="button" class="outline" style="padding: 0.25rem 0.75rem; font-size: 0.85rem;">Ingresar</a></li>
+        {% endif %}
+      </ul>
+    </nav>
+  </header>
+
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="container-fluid">
+    <small>SGEC — Sistema de Gestión de Escenarios y Bienes Culturales · Alcaldía de Pereira · Proyecto académico</small>
+  </footer>
+</body>
+</html>

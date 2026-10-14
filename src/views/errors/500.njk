@@ -1,0 +1,14 @@
+{% extends "layouts/base.njk" %}
+
+{% block content %}
+<article style="max-width: 600px; margin: 2rem auto; text-align: center;">
+  <h2 style="color: #c92a2a;">500 · Error del servidor</h2>
+  <p>{{ message | default("Ocurrió un error inesperado al procesar su solicitud.") }}</p>
+  {% if reqId %}
+    <p><small>ID de seguimiento: <code>{{ reqId }}</code></small></p>
+  {% endif %}
+  <div style="margin-top: 1.5rem;">
+    <a href="/" role="button" class="outline">Volver al inicio</a>
+  </div>
+</article>
+{% endblock %}

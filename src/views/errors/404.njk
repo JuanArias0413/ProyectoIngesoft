@@ -1,0 +1,11 @@
+{% extends "layouts/base.njk" %}
+
+{% block content %}
+<article style="max-width: 600px; margin: 2rem auto; text-align: center;">
+  <h2 style="color: #495057;">404 · Página no encontrada</h2>
+  <p>{{ message | default("La página o recurso que busca no existe o fue movido.") }}</p>
+  <div style="margin-top: 1.5rem;">
+    <a href="/" role="button" class="outline">Volver al inicio</a>
+  </div>
+</article>
+{% endblock %}
