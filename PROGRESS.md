@@ -4,10 +4,10 @@ Bitácora viva. Solo se **agrega** al final de cada sección; no se reescribe el
 
 ## Estado actual
 - **Fase en curso:** Fase 2 (Flujo del alquiler)
-- **Última tarea completada:** F2.12 (UI)
-- **Último commit verde:** cfca816
+- **Última tarea completada:** F2.2 (Backend)
+- **Último commit verde:** 4485b54
 - **Resultado de pruebas:** 754 pruebas pasadas (19 archivos)
-- **Siguiente tarea:** F2.2
+- **Siguiente tarea:** F2.3
 
 ## Bitácora (una línea por tarea terminada)
 `AAAA-MM-DD HH:MM · Fx.y · agente · resumen · hash del commit`
@@ -27,6 +27,7 @@ Bitácora viva. Solo se **agrega** al final de cada sección; no se reescribe el
 2026-10-13 23:39 · F2.10 · documentos · Servicio DocumentRenderer, snapshots versionados, plantillas Nunjucks A4 e integración HTTP · 0054b2b
 2026-10-13 23:41 · F2.11 · ui · Layout base, navegación por rol, login institucional, dashboard y mensajes flash · cfca816
 2026-10-13 23:41 · F2.12 · ui · Pantallas completas con disponibilidad HTMX, listado filtrable, detalle con modales de acción por rol, agenda 30d y tarifas · cfca816
+2026-10-13 23:48 · F2.2 · backend · T2 respond con cálculo de tarifa, congelamiento de cotización, radicado y generación de oficio · 4485b54
 
 ## Compuertas
 ### Compuerta G0 · 2026-10-13 23:03
