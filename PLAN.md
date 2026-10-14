@@ -58,7 +58,7 @@ Reglas de paralelismo: las fases 0 y 1 las hace **solo el orquestador**, en orde
 - [x] **F2.4** T4 `draftContract` + edición de objeto/cláusulas + versiones. (CAR-05)
 - [x] **F2.5** T5 `registerPayment` + T6 `submitToLegal`. (CAR-06)
 - [x] **F2.6** T7, T8, T9: revisión jurídica por rondas. (CAR-07)
-- [ ] **F2.7** T10 `signAndNumber` con numeración atómica + T11 `cancel`. (CAR-08, A-11)
+- [x] **F2.7** T10 `signAndNumber` con numeración atómica + T11 `cancel`. (CAR-08, A-11)
 - [ ] **F2.8** Consultas: listado filtrable/paginado y detalle con línea de tiempo. (CAR-09)
 - [ ] **F2.9** Permisos por ruta completos y verificados (CAR-19, AC-19.2).
 
