@@ -4,6 +4,7 @@ export * from './domain/entities.js';
 export * from './domain/repository.js';
 export * from './application/documentRenderer.js';
 export * from './application/registerRentalUseCase.js';
+export * from './application/respondRentalUseCase.js';
 export * from './infra/prismaRentalRepositories.js';
 export * from './http/schemas.js';
 export * from './http/controller.js';

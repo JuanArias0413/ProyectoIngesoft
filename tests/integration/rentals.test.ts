@@ -7,6 +7,8 @@ import { seedCatalog, seedDocumentRequirements } from '../../prisma/seed.js';
 import { loginAs } from '../helpers/auth.js';
 import { createRentalRouter } from '../../src/modules/rentals/http/routes.js';
 
+import { cleanDatabase } from '../helpers/db.js';
+
 describe('CAR-01: Registrar solicitud de alquiler (F2.1)', () => {
   const app = createApp({
     configureRoutes: (expressApp) => {
@@ -15,6 +17,7 @@ describe('CAR-01: Registrar solicitud de alquiler (F2.1)', () => {
   }) as unknown as Express;
 
   beforeAll(async () => {
+    await cleanDatabase();
     await seedCatalog();
     await seedDocumentRequirements();
   });
@@ -264,3 +267,113 @@ describe('CAR-01: Registrar solicitud de alquiler (F2.1)', () => {
     expect(res.status).toBe(403);
   });
 });
+
+describe('CAR-03: Oficio de respuesta y cotización (F2.2)', () => {
+  const app = createApp({
+    configureRoutes: (expressApp) => {
+      expressApp.use(createRentalRouter());
+    },
+  }) as unknown as Express;
+
+  beforeAll(async () => {
+    await seedCatalog();
+    await seedDocumentRequirements();
+  });
+
+  async function createRegisteredRental(dayOffset = 10) {
+    const { agent, csrfToken } = await loginAs(app, UserRole.ADMIN_ASSISTANT);
+    const futureDate = new Date(Date.now() + dayOffset * 24 * 60 * 60 * 1000);
+    futureDate.setHours(9, 0, 0, 0);
+    const endDate = new Date(futureDate.getTime() + 3 * 60 * 60 * 1000); // 3 hours
+
+    const res = await agent
+      .post('/solicitudes')
+      .set('Accept', 'application/json')
+      .set('X-CSRF-Token', csrfToken)
+      .send({
+        customer: {
+          type: 'NATURAL',
+          documentType: 'CC',
+          documentNumber: `2099${Math.floor(100000 + Math.random() * 900000)}`,
+          name: 'Beatriz Morales',
+          email: 'beatriz@example.com',
+          phone: '3123456789',
+          address: 'Carrera 8 # 19-20',
+        },
+        spaceId: 'space-auditorio-principal',
+        eventName: 'Seminario de Historia Local',
+        eventDescription: 'Conferencias magistrales sobre la historia de Pereira.',
+        purpose: 'NON_LUCRATIVE', // Auditorio Principal no lucrativo: 250.000 / hora -> 3 horas = 750.000
+        expectedAttendees: 100,
+        startsAt: futureDate.toISOString(),
+        endsAt: endDate.toISOString(),
+        channel: 'EMAIL',
+      });
+
+    expect(res.status).toBe(201);
+    return { rentalRequestId: res.body.rentalRequestId, agent, csrfToken };
+  }
+
+  it('AC-03.1: cotiza con la tarifa vigente, congela valor y pasa a RESPONDED', async () => {
+    const { rentalRequestId, agent, csrfToken } = await createRegisteredRental(10);
+
+    const res = await agent
+      .post(`/solicitudes/${rentalRequestId}/responder`)
+      .set('Accept', 'application/json')
+      .set('X-CSRF-Token', csrfToken)
+      .send({
+        responseRadicado: 'RAD-OUT-2026-0045',
+      });
+
+    expect(res.status).toBe(200);
+    expect(res.body.status).toBe('RESPONDED');
+    expect(res.body.quotedAmountPesos).toBe(750000); // 3 horas * 250.000
+    expect(res.body.responseRadicado).toBe('RAD-OUT-2026-0045');
+
+    // Verificar en BD
+    const dbRental = await prisma.rentalRequest.findUnique({
+      where: { id: rentalRequestId },
+      include: {
+        stateTransitions: true,
+        generatedDocuments: true,
+      },
+    });
+
+    expect(dbRental!.status).toBe('RESPONDED');
+    expect(dbRental!.quotedAmountPesos).toBe(750000);
+    expect(dbRental!.responseRadicado).toBe('RAD-OUT-2026-0045');
+    expect(dbRental!.stateTransitions.length).toBe(2);
+    expect(dbRental!.stateTransitions[1].transition).toBe('respond');
+  });
+
+  it('AC-03.3: rechaza la respuesta si falta el radicado del oficio (regla A-02)', async () => {
+    const { rentalRequestId, agent, csrfToken } = await createRegisteredRental(11);
+
+    const res = await agent
+      .post(`/solicitudes/${rentalRequestId}/responder`)
+      .set('Accept', 'application/json')
+      .set('X-CSRF-Token', csrfToken)
+      .send({
+        responseRadicado: '',
+      });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toContain('radicado');
+  });
+
+  it('CAR-19: rol sin permiso rentals:respond (p.ej. LEGAL) recibe 403 Forbidden', async () => {
+    const { rentalRequestId } = await createRegisteredRental(12);
+    const { agent: legalAgent, csrfToken: legalCsrf } = await loginAs(app, UserRole.LEGAL);
+
+    const res = await legalAgent
+      .post(`/solicitudes/${rentalRequestId}/responder`)
+      .set('Accept', 'application/json')
+      .set('X-CSRF-Token', legalCsrf)
+      .send({
+        responseRadicado: 'RAD-OUT-ILLEGAL',
+      });
+
+    expect(res.status).toBe(403);
+  });
+});
+

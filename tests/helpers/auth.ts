@@ -1,4 +1,4 @@
-import type { Express } from 'express';
+import type { Application, Express } from 'express';
 import request from 'supertest';
 import { UserRole } from '@prisma/client';
 import { createUser } from './factories.js';
@@ -15,7 +15,7 @@ export interface AuthenticatedAgent {
 }
 
 export async function loginAs(
-  app: Express,
+  app: Application | Express,
   role: UserRole = UserRole.ADMIN_ASSISTANT,
 ): Promise<AuthenticatedAgent> {
   const user = await createUser(role);

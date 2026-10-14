@@ -73,9 +73,18 @@ describe('DocumentRenderer Service & Templates', () => {
         documentNumber: '1098765432',
       });
 
-      // Seed requirement
-      await prisma.documentRequirement.create({
-        data: {
+      // Seed requirement (upsert in case already seeded by cleanDatabase)
+      await prisma.documentRequirement.upsert({
+        where: {
+          customerType_code: {
+            customerType: CustomerType.NATURAL,
+            code: 'CC',
+          },
+        },
+        update: {
+          name: 'Documento de identidad al 150%',
+        },
+        create: {
           customerType: CustomerType.NATURAL,
           code: 'CC',
           name: 'Documento de identidad al 150%',
