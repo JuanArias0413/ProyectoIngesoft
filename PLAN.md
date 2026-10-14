@@ -44,7 +44,7 @@ Reglas de paralelismo: las fases 0 y 1 las hace **solo el orquestador**, en orde
   *Listo cuando:* pruebas unitarias con casos límite (fracciones de hora, cruce de días, sin tarifa).
 - [x] **F1.3** Agenda: repositorio de reservas, servicio de disponibilidad (rango semiabierto, A-05), traducción del error `23P01` a `ConflictError`.
   *Listo cuando:* pruebas de integración: libre, solapado, contiguo, liberado, y carrera concurrente (dos inserciones simultáneas → una falla).
-- [ ] **F1.4** Máquina de estados (patrón State): interfaz, estados concretos, fábrica, contexto, `StateTransition`, ejecución transaccional con efectos desacoplados.
+- [x] **F1.4** Máquina de estados (patrón State): interfaz, estados concretos, fábrica, contexto, `StateTransition`, ejecución transaccional con efectos desacoplados.
   *Listo cuando:* pruebas table-driven de **todas** las combinaciones estado × transición × rol; cobertura 100% del módulo; documentado en `docs/ARCHITECTURE.md` (borrador con diagrama).
 
 **G1:** compuerta en verde. Congela la forma de `RentalContext` y de los casos de uso (contrato para los demás agentes); anótala en `DECISIONS.md`.

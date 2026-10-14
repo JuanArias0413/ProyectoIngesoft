@@ -39,4 +39,11 @@ Formato: `D-nn · fecha · contexto · decisión · alternativas · consecuencia
 - **Alternativas:** depender únicamente de validación en aplicación (vulnerable a concurrencia); bloqueos de tabla pesados.
 - **Consecuencias:** garantiza el objetivo ON-3 sin condiciones de carrera y con mensajes amigables para el usuario.
 
+## D-08 · 2026-10-13 · Máquina de estados (patrón State) y congelación del contrato RentalContext
+- **Contexto:** F1.4 concluye el dominio núcleo del trámite de alquiler. Las fases posteriores (Fase 2 en adelante) construirán casos de uso y pantallas sobre la máquina de estados.
+- **Decisión:** interfaz `RentalState` con 10 clases de estado concretas, fábrica `stateFor(status)`, y clase `RentalContext` que encapsula la solicitud y delega en el estado actual. Las transiciones se invocan exclusivamente mediante `context.transition(transition, actorRole, payload, actorId)`. Las transiciones no soportadas en el estado lanzan `InvalidTransitionError` (409); roles no autorizados lanzan `ForbiddenError` (403); precondiciones insatisfechas lanzan `ValidationError` (400). Cada transición exitosa genera un registro auditable inmutable `StateTransitionRecord`. La interfaz y comportamiento de `RentalContext` quedan congelados como contrato vinculante para las siguientes fases.
+- **Alternativas:** librerías externas de máquinas de estados (XState/Machina) que ocultan el patrón exigido por la asignatura; sentencias `switch` en servicios (violan el principio Open/Closed y dificultan la extensibilidad hacia 2.0 y 3.0).
+- **Consecuencias:** modelo de dominio 100% puro en memoria, sin acoplamiento a base de datos, testeado exhaustivamente con 618 pruebas unitarias table-driven que cubren todas las combinaciones estado × transición × rol.
+
+
 

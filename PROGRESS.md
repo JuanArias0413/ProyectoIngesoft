@@ -4,10 +4,10 @@ Bitácora viva. Solo se **agrega** al final de cada sección; no se reescribe el
 
 ## Estado actual
 - **Fase en curso:** Fase 1 (Dominio núcleo)
-- **Última tarea completada:** F1.3
-- **Último commit verde:** bf50bd8
-- **Resultado de pruebas:** 61 pruebas pasadas (12 archivos)
-- **Siguiente tarea:** F1.4
+- **Última tarea completada:** F1.4
+- **Último commit verde:** pendiente (F1.4)
+- **Resultado de pruebas:** 679 pruebas pasadas (13 archivos)
+- **Siguiente tarea:** G1 (Compuerta Fase 1)
 
 ## Bitácora (una línea por tarea terminada)
 `AAAA-MM-DD HH:MM · Fx.y · agente · resumen · hash del commit`
@@ -21,6 +21,7 @@ Bitácora viva. Solo se **agrega** al final de cada sección; no se reescribe el
 2026-10-13 23:05 · F1.1 · orquestador · Catálogo con entidades de dominio, repositorios y seed completo §13 · 6579870
 2026-10-13 23:10 · F1.2 · orquestador · Estrategia de precios (HourlyPricing, DailyPricing) y utilidad amountToWords con pruebas unitarias · 2a0c816
 2026-10-13 23:14 · F1.3 · orquestador · Repositorio de reservas, servicio de disponibilidad (semiabierto A-05) y traducción de 23P01 a ConflictError · bf50bd8
+2026-10-13 23:22 · F1.4 · orquestador · Máquina de estados (patrón State), 10 estados, tabla exhaustiva de 618 pruebas y ARCHITECTURE.md · TBD
 
 ## Compuertas
 ### Compuerta G0 · 2026-10-13 23:03
