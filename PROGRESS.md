@@ -4,10 +4,10 @@ Bitácora viva. Solo se **agrega** al final de cada sección; no se reescribe el
 
 ## Estado actual
 - **Fase en curso:** Fase 3 (Integración y pulido)
-- **Última tarea completada:** F2.9 (Auth / RBAC por ruta) & Compuerta G2
-- **Último commit verde:** f0cbb48
-- **Resultado de pruebas:** 779 pruebas pasadas (19 archivos)
-- **Siguiente tarea:** F3.1
+- **Última tarea completada:** F3.1 (Integración, contenedor y costuras)
+- **Último commit verde:** c768d67
+- **Resultado de pruebas:** 780 pruebas pasadas (19 archivos)
+- **Siguiente tarea:** F3.2
 
 ## Bitácora (una línea por tarea terminada)
 `AAAA-MM-DD HH:MM · Fx.y · agente · resumen · hash del commit`
@@ -35,6 +35,7 @@ Bitácora viva. Solo se **agrega** al final de cada sección; no se reescribe el
 2026-10-14 00:32 · F2.7 · backend · T10 signAndNumber atómico (ARR-AAAA-NNNN) y T11 cancel con liberación de reserva y nota A-11 · 1971ffa
 2026-10-14 00:41 · F2.8 · backend · Consultas: listado filtrable/paginado y detalle con línea de tiempo y allowedTransitions (CAR-09) · 6959f2f
 2026-10-14 00:49 · F2.9 · auth · Permisos por ruta RBAC completos y verificados con 20 intentos no autorizados (CAR-19, AC-19.2) · f0cbb48
+2026-10-14 00:56 · F3.1 · orquestador · Centralización de contenedor de dependencias, unificación de formateadores Bogotá y barril de exportaciones · c768d67
 
 ## Compuertas
 ### Compuerta G0 · 2026-10-13 23:03
