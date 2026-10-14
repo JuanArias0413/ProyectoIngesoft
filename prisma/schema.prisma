@@ -1,0 +1,337 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  OFFICE_HEAD
+  ADMIN_ASSISTANT
+  LEGAL
+  SECRETARY
+  OPERATIONS_TECH
+  MAINTENANCE_TECH
+}
+
+enum PricingUnit {
+  HOUR
+  DAY
+}
+
+enum EventPurpose {
+  LUCRATIVE
+  NON_LUCRATIVE
+}
+
+enum CustomerType {
+  NATURAL
+  LEGAL
+}
+
+enum RentalStatus {
+  REGISTERED
+  RESPONDED
+  DOCUMENTS_VERIFIED
+  CONTRACT_DRAFTED
+  PAID
+  LEGAL_REVIEW
+  RETURNED_BY_LEGAL
+  PENDING_SIGNATURE
+  LEGALIZED
+  CANCELLED
+}
+
+enum ReservationStatus {
+  HELD
+  CONFIRMED
+  RELEASED
+}
+
+enum RequestChannel {
+  VERBAL
+  WRITTEN
+  EMAIL
+}
+
+enum LegalDecision {
+  APPROVED
+  RETURNED
+}
+
+enum DocumentKind {
+  RESPONSE_LETTER
+  PRIOR_STUDY
+  CONTRACT
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  role         UserRole
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  verifiedDocuments RequestDocument[]
+  signedContracts   Contract[]
+  legalReviews      LegalReview[]
+  generatedDocs     GeneratedDocument[]
+  stateTransitions  StateTransition[]
+}
+
+model Venue {
+  id          String   @id @default(uuid())
+  name        String
+  address     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdById String?
+  updatedById String?
+
+  spaces Space[]
+}
+
+model Space {
+  id          String      @id @default(uuid())
+  venueId     String
+  name        String
+  capacity    Int
+  pricingUnit PricingUnit
+  active      Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  createdById String?
+  updatedById String?
+
+  venue          Venue           @relation(fields: [venueId], references: [id])
+  tariffs        Tariff[]
+  reservations   Reservation[]
+  rentalRequests RentalRequest[]
+}
+
+model Tariff {
+  id          String       @id @default(uuid())
+  spaceId     String
+  purpose     EventPurpose
+  unit        PricingUnit
+  pricePesos  Int
+  validFrom   DateTime
+  validTo     DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  createdById String?
+  updatedById String?
+
+  space          Space           @relation(fields: [spaceId], references: [id])
+  rentalRequests RentalRequest[]
+}
+
+model DocumentRequirement {
+  id           String       @id @default(uuid())
+  customerType CustomerType
+  code         String
+  name         String
+  mandatory    Boolean      @default(true)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  @@unique([customerType, code])
+}
+
+model Customer {
+  id                  String       @id @default(uuid())
+  type                CustomerType
+  documentType        String
+  documentNumber      String
+  name                String
+  legalRepresentative String?
+  email               String
+  phone               String
+  address             String
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+  createdById         String?
+  updatedById         String?
+
+  rentalRequests RentalRequest[]
+
+  @@unique([type, documentNumber])
+}
+
+model RentalRequest {
+  id                 String         @id @default(uuid())
+  status             RentalStatus   @default(REGISTERED)
+  customerId         String
+  spaceId            String
+  eventName          String
+  eventDescription   String
+  purpose            EventPurpose
+  expectedAttendees  Int
+  startsAt           DateTime       @db.Timestamptz(3)
+  endsAt             DateTime       @db.Timestamptz(3)
+  channel            RequestChannel
+  receivedAt         DateTime       @default(now())
+  requestRadicado    String?
+  responseRadicado   String?
+  quotedAmountPesos  Int?
+  quotedTariffId     String?
+  cancelReason       String?
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+  createdById        String?
+  updatedById        String?
+
+  customer           Customer            @relation(fields: [customerId], references: [id])
+  space              Space               @relation(fields: [spaceId], references: [id])
+  quotedTariff       Tariff?             @relation(fields: [quotedTariffId], references: [id])
+  reservations       Reservation[]
+  requestDocuments   RequestDocument[]
+  contract           Contract?
+  payment            Payment?
+  legalReviews       LegalReview[]
+  generatedDocuments GeneratedDocument[]
+  stateTransitions   StateTransition[]
+
+  @@index([status])
+  @@index([customerId])
+}
+
+model Reservation {
+  id              String            @id @default(uuid())
+  spaceId         String
+  rentalRequestId String
+  startsAt        DateTime          @db.Timestamptz(3)
+  endsAt          DateTime          @db.Timestamptz(3)
+  status          ReservationStatus @default(HELD)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  createdById     String?
+  updatedById     String?
+
+  space         Space         @relation(fields: [spaceId], references: [id])
+  rentalRequest RentalRequest @relation(fields: [rentalRequestId], references: [id])
+
+  @@index([spaceId, startsAt])
+}
+
+model RequestDocument {
+  id              String    @id @default(uuid())
+  rentalRequestId String
+  requirementCode String
+  receivedAt      DateTime?
+  verifiedAt      DateTime?
+  verifiedById    String?
+  fileKey         String?
+  notes           String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  createdById     String?
+  updatedById     String?
+
+  rentalRequest RentalRequest @relation(fields: [rentalRequestId], references: [id])
+  verifiedBy    User?         @relation(fields: [verifiedById], references: [id])
+}
+
+model Contract {
+  id                String    @id @default(uuid())
+  rentalRequestId   String    @unique
+  number            String?   @unique
+  object            String
+  valuePesos        Int
+  additionalClauses String?
+  signedAt          DateTime?
+  signedById        String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  createdById       String?
+  updatedById       String?
+
+  rentalRequest RentalRequest @relation(fields: [rentalRequestId], references: [id])
+  signedBy      User?         @relation(fields: [signedById], references: [id])
+}
+
+model Payment {
+  id              String   @id @default(uuid())
+  rentalRequestId String   @unique
+  receiptNumber   String
+  bankName        String
+  voucherNumber   String
+  paidAt          DateTime
+  amountPesos     Int
+  invoiceNumber   String
+  invoiceDate     DateTime
+  voucherFileKey  String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  createdById     String?
+  updatedById     String?
+
+  rentalRequest RentalRequest @relation(fields: [rentalRequestId], references: [id])
+}
+
+model LegalReview {
+  id              String        @id @default(uuid())
+  rentalRequestId String
+  round           Int
+  reviewerId      String
+  documentsOk     Boolean
+  customerDataOk  Boolean
+  clausesOk       Boolean
+  decision        LegalDecision
+  observations    String?
+  reviewedAt      DateTime      @default(now())
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  rentalRequest RentalRequest @relation(fields: [rentalRequestId], references: [id])
+  reviewer      User          @relation(fields: [reviewerId], references: [id])
+}
+
+model GeneratedDocument {
+  id              String       @id @default(uuid())
+  rentalRequestId String
+  kind            DocumentKind
+  version         Int
+  html            String
+  generatedById   String
+  generatedAt     DateTime     @default(now())
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  rentalRequest RentalRequest @relation(fields: [rentalRequestId], references: [id])
+  generatedBy   User          @relation(fields: [generatedById], references: [id])
+}
+
+model StateTransition {
+  id              String   @id @default(uuid())
+  rentalRequestId String
+  fromStatus      String?
+  toStatus        String
+  transition      String
+  actorId         String
+  note            String?
+  occurredAt      DateTime @default(now())
+  createdAt       DateTime @default(now())
+
+  rentalRequest RentalRequest @relation(fields: [rentalRequestId], references: [id])
+  actor         User          @relation(fields: [actorId], references: [id])
+}
+
+model ContractSequence {
+  year      Int @id
+  lastValue Int @default(0)
+}
+
+model Session {
+  sid    String   @id @db.VarChar
+  sess   Json     @db.Json
+  expire DateTime @db.Timestamp(6)
+
+  @@index([expire], map: "IDX_session_expire")
+  @@map("session")
+}
