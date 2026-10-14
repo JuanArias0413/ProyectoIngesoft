@@ -1019,6 +1019,31 @@ describe('SGEC Release 1.0 — Rental Lifecycle & Flow Integration (rentalFlow.t
         .send({});
 
       expect(resSubmitBlocked.status).toBe(409);
+
+      // RBAC: intento de registrar pago o enviar a jurídica con rol sin permiso (403)
+      const { agent: legalAgent, csrfToken: legalCsrf } = await loginAs(app, UserRole.LEGAL);
+      const drafted2 = await createRentalInState(RentalStatus.CONTRACT_DRAFTED);
+      const resPayForbidden = await legalAgent
+        .post(`/solicitudes/${drafted2.rental.id}/transiciones/registerPayment`)
+        .set('Accept', 'application/json')
+        .set('X-CSRF-Token', legalCsrf)
+        .send({
+          receiptNumber: 'REC-UNAUTH',
+          bankName: 'Banco',
+          voucherNumber: 'TX-UNAUTH',
+          invoiceNumber: 'FAC-UNAUTH',
+          invoiceDate: '2026-10-15',
+          amountPesos: drafted2.rental.quotedAmountPesos!,
+        });
+      assertForbidden(resPayForbidden);
+
+      const paid2 = await createRentalInState(RentalStatus.PAID);
+      const resSubmitForbidden = await legalAgent
+        .post(`/solicitudes/${paid2.rental.id}/transiciones/submitToLegal`)
+        .set('Accept', 'application/json')
+        .set('X-CSRF-Token', legalCsrf)
+        .send({});
+      assertForbidden(resSubmitForbidden);
     });
   });
 
@@ -1203,6 +1228,201 @@ describe('SGEC Release 1.0 — Rental Lifecycle & Flow Integration (rentalFlow.t
         });
 
       assertForbidden(resReturnBySecretary);
+    });
+  });
+
+  // =========================================================================
+  // CAR-08: Firma y numeración atómica (T10) y Cancelación (T11)
+  // =========================================================================
+  describe('CAR-08: Firma, numeración atómica y cancelación (T10 signAndNumber, T11 cancel)', () => {
+    it('AC-08.1: Secretario firma y numera contrato en PENDING_SIGNATURE; genera ARR-AAAA-NNNN y snapshot final', async () => {
+      const { agent: secAgent, csrfToken: secCsrf } = await loginAs(app, UserRole.SECRETARY);
+      const pending = await createRentalInState(RentalStatus.PENDING_SIGNATURE);
+      const rentalId = pending.rental.id;
+
+      const resSign = await secAgent
+        .post(`/solicitudes/${rentalId}/transiciones/signAndNumber`)
+        .set('Accept', 'application/json')
+        .set('X-CSRF-Token', secCsrf)
+        .send({ notes: 'Firma protocolaria en despacho' });
+
+      expect(resSign.status).toBe(200);
+      expect(resSign.body.status).toBe('LEGALIZED');
+      expect(resSign.body.contractNumber).toMatch(/^ARR-\d{4}-\d{4}$/);
+
+      // Verificación en base de datos
+      const reqDb = await prisma.rentalRequest.findUnique({
+        where: { id: rentalId },
+        include: {
+          contract: true,
+          reservations: true,
+          generatedDocuments: true,
+          stateTransitions: true,
+        },
+      });
+
+      expect(reqDb!.status).toBe(RentalStatus.LEGALIZED);
+      expect(reqDb!.contract!.number).toBe(resSign.body.contractNumber);
+      expect(reqDb!.contract!.signedAt).toBeDefined();
+      expect(reqDb!.contract!.signedById).toBeDefined();
+      expect(reqDb!.reservations[0].status).toBe(ReservationStatus.CONFIRMED);
+
+      // Snapshot final del contrato generado
+      const finalContractDoc = reqDb!.generatedDocuments.find(
+        (d) => d.kind === 'CONTRACT' && d.html.includes(resSign.body.contractNumber),
+      );
+      expect(finalContractDoc).toBeDefined();
+
+      // Transición registrada
+      const lastTransition = reqDb!.stateTransitions[reqDb!.stateTransitions.length - 1];
+      expect(lastTransition.transition).toBe('signAndNumber');
+      expect(lastTransition.toStatus).toBe('LEGALIZED');
+    });
+
+    it('AC-08.2: solicitud queda LEGALIZED, reserva CONFIRMED y no permite transiciones adicionales (inmutable)', async () => {
+      const { agent: secAgent, csrfToken: secCsrf } = await loginAs(app, UserRole.SECRETARY);
+      const legalized = await createRentalInState(RentalStatus.LEGALIZED);
+      const rentalId = legalized.rental.id;
+
+      // 1. Intento de volver a firmar
+      const resDoubleSign = await secAgent
+        .post(`/solicitudes/${rentalId}/transiciones/signAndNumber`)
+        .set('Accept', 'application/json')
+        .set('X-CSRF-Token', secCsrf)
+        .send({});
+
+      expect(resDoubleSign.status).toBe(409);
+
+      // 2. Intento de cancelar solicitud ya legalizada por parte del Auxiliar
+      const { agent: assistantAgent, csrfToken: assistantCsrf } = await loginAs(app, UserRole.ADMIN_ASSISTANT);
+      const resCancelLegalized = await assistantAgent
+        .post(`/solicitudes/${rentalId}/transiciones/cancel`)
+        .set('Accept', 'application/json')
+        .set('X-CSRF-Token', assistantCsrf)
+        .send({ reason: 'Intento de cancelar contrato ya legalizado' });
+
+      expect(resCancelLegalized.status).toBe(409);
+    });
+
+    it('AC-08.3: firmas concurrentes nunca generan el mismo número de contrato consecutivo', async () => {
+      const { agent: secAgent, csrfToken: secCsrf } = await loginAs(app, UserRole.SECRETARY);
+
+      // Crear 3 solicitudes independientes listas para firmar
+      const p1 = await createRentalInState(RentalStatus.PENDING_SIGNATURE);
+      const p2 = await createRentalInState(RentalStatus.PENDING_SIGNATURE);
+      const p3 = await createRentalInState(RentalStatus.PENDING_SIGNATURE);
+
+      // Ejecutar 3 firmas en paralelo
+      const [res1, res2, res3] = await Promise.all([
+        secAgent
+          .post(`/solicitudes/${p1.rental.id}/transiciones/signAndNumber`)
+          .set('Accept', 'application/json')
+          .set('X-CSRF-Token', secCsrf)
+          .send({}),
+        secAgent
+          .post(`/solicitudes/${p2.rental.id}/transiciones/signAndNumber`)
+          .set('Accept', 'application/json')
+          .set('X-CSRF-Token', secCsrf)
+          .send({}),
+        secAgent
+          .post(`/solicitudes/${p3.rental.id}/transiciones/signAndNumber`)
+          .set('Accept', 'application/json')
+          .set('X-CSRF-Token', secCsrf)
+          .send({}),
+      ]);
+
+      expect(res1.status).toBe(200);
+      expect(res2.status).toBe(200);
+      expect(res3.status).toBe(200);
+
+      const num1 = res1.body.contractNumber;
+      const num2 = res2.body.contractNumber;
+      const num3 = res3.body.contractNumber;
+
+      // Todos los números deben ser únicos
+      const setNumbers = new Set([num1, num2, num3]);
+      expect(setNumbers.size).toBe(3);
+
+      // Extraer números enteros consecutivos
+      const getConsecutive = (numStr: string) => parseInt(numStr.split('-')[2], 10);
+      const sortedVals = [getConsecutive(num1), getConsecutive(num2), getConsecutive(num3)].sort((a, b) => a - b);
+      expect(sortedVals[1]).toBe(sortedVals[0] + 1);
+      expect(sortedVals[2]).toBe(sortedVals[1] + 1);
+    });
+
+    it('AC-08.4: cancelación desde estado activo libera reserva y exige motivo >= 10 caracteres', async () => {
+      const { agent: assistantAgent, csrfToken: assistantCsrf } = await loginAs(app, UserRole.ADMIN_ASSISTANT);
+      const registered = await createRentalInState(RentalStatus.REGISTERED);
+      const rentalId = registered.rental.id;
+
+      // 1. Motivo muy corto (< 10 caracteres) -> 400
+      const resShort = await assistantAgent
+        .post(`/solicitudes/${rentalId}/transiciones/cancel`)
+        .set('Accept', 'application/json')
+        .set('X-CSRF-Token', assistantCsrf)
+        .send({ reason: 'Muy corto' });
+
+      expect(resShort.status).toBe(400);
+
+      // 2. Cancelación válida por Auxiliar
+      const resCancel = await assistantAgent
+        .post(`/solicitudes/${rentalId}/transiciones/cancel`)
+        .set('Accept', 'application/json')
+        .set('X-CSRF-Token', assistantCsrf)
+        .send({ reason: 'El solicitante desiste por motivos de fuerza mayor' });
+
+      expect(resCancel.status).toBe(200);
+      expect(resCancel.body.status).toBe('CANCELLED');
+
+      const reqDb = await prisma.rentalRequest.findUnique({
+        where: { id: rentalId },
+        include: { reservations: true, stateTransitions: true },
+      });
+
+      expect(reqDb!.status).toBe(RentalStatus.CANCELLED);
+      expect(reqDb!.cancelReason).toBe('El solicitante desiste por motivos de fuerza mayor');
+      expect(reqDb!.reservations[0].status).toBe(ReservationStatus.RELEASED);
+
+      // 3. Cancelación después de pago anota advertencia A-11 en la transición
+      const paid = await createRentalInState(RentalStatus.PAID);
+      const resCancelPaid = await assistantAgent
+        .post(`/solicitudes/${paid.rental.id}/transiciones/cancel`)
+        .set('Accept', 'application/json')
+        .set('X-CSRF-Token', assistantCsrf)
+        .send({ reason: 'Cancelación solicitada con pago ya registrado' });
+
+      expect(resCancelPaid.status).toBe(200);
+      const paidReqDb = await prisma.rentalRequest.findUnique({
+        where: { id: paid.rental.id },
+        include: { stateTransitions: true },
+      });
+      const lastTransition = paidReqDb!.stateTransitions[paidReqDb!.stateTransitions.length - 1];
+      expect(lastTransition.note).toContain('A-11');
+      expect(lastTransition.note).toContain('devolución');
+    });
+
+    it('AC-08.5: Jefe de Oficina puede cancelar; Jurídica o Secretario reciben 403', async () => {
+      // 1. Jefe de Oficina cancela exitosamente
+      const { agent: headAgent, csrfToken: headCsrf } = await loginAs(app, UserRole.OFFICE_HEAD);
+      const reqHead = await createRentalInState(RentalStatus.RESPONDED);
+      const resHeadCancel = await headAgent
+        .post(`/solicitudes/${reqHead.rental.id}/transiciones/cancel`)
+        .set('Accept', 'application/json')
+        .set('X-CSRF-Token', headCsrf)
+        .send({ reason: 'Cancelación administrativa por cruce institucional' });
+
+      expect(resHeadCancel.status).toBe(200);
+
+      // 2. Jurídica intenta cancelar -> 403
+      const { agent: legalAgent, csrfToken: legalCsrf } = await loginAs(app, UserRole.LEGAL);
+      const reqLegal = await createRentalInState(RentalStatus.LEGAL_REVIEW);
+      const resLegalCancel = await legalAgent
+        .post(`/solicitudes/${reqLegal.rental.id}/transiciones/cancel`)
+        .set('Accept', 'application/json')
+        .set('X-CSRF-Token', legalCsrf)
+        .send({ reason: 'Jurídica no puede cancelar solicitudes directamente' });
+
+      assertForbidden(resLegalCancel);
     });
   });
 

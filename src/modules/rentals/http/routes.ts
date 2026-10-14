@@ -12,6 +12,8 @@ import { SubmitToLegalUseCase } from '../application/submitToLegalUseCase.js';
 import { ApproveLegalUseCase } from '../application/approveLegalUseCase.js';
 import { ReturnLegalUseCase } from '../application/returnLegalUseCase.js';
 import { ResubmitToLegalUseCase } from '../application/resubmitToLegalUseCase.js';
+import { SignAndNumberUseCase } from '../application/signAndNumberUseCase.js';
+import { CancelRentalUseCase } from '../application/cancelRentalUseCase.js';
 import { rentalUploadMiddleware } from '../infra/fileStorage.js';
 import { AvailabilityService } from '../../agenda/application/availabilityService.js';
 import { PrismaReservationRepository } from '../../agenda/infra/prismaReservationRepository.js';
@@ -43,6 +45,8 @@ export function createRentalRouter(controller?: RentalController): Router {
       new ApproveLegalUseCase(prisma),
       new ReturnLegalUseCase(prisma),
       new ResubmitToLegalUseCase(prisma, new DocumentRenderer(prisma)),
+      new SignAndNumberUseCase(prisma, new DocumentRenderer(prisma)),
+      new CancelRentalUseCase(prisma),
     );
 
   // F2.1 — Registrar solicitud (CAR-01, AC-01.x)
@@ -206,6 +210,34 @@ export function createRentalRouter(controller?: RentalController): Router {
     requireAuth,
     requirePermission('rentals:resubmit-legal'),
     (req, res, next) => ctrl.resubmitToLegal(req, res, next),
+  );
+
+  // F2.7 — Firma y numeración (CAR-08, T10, AC-08.1 a AC-08.3)
+  router.post(
+    '/solicitudes/:id/transiciones/signAndNumber',
+    requireAuth,
+    requirePermission('rentals:sign-number'),
+    (req, res, next) => ctrl.signAndNumber(req, res, next),
+  );
+  router.post(
+    '/solicitudes/:id/firmar',
+    requireAuth,
+    requirePermission('rentals:sign-number'),
+    (req, res, next) => ctrl.signAndNumber(req, res, next),
+  );
+
+  // F2.7 — Cancelación de solicitud (CAR-08, T11, A-11)
+  router.post(
+    '/solicitudes/:id/transiciones/cancel',
+    requireAuth,
+    requirePermission('rentals:cancel'),
+    (req, res, next) => ctrl.cancel(req, res, next),
+  );
+  router.post(
+    '/solicitudes/:id/cancelar',
+    requireAuth,
+    requirePermission('rentals:cancel'),
+    (req, res, next) => ctrl.cancel(req, res, next),
   );
 
   // Descarga autenticada de archivos

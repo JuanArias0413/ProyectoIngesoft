@@ -11,6 +11,8 @@ import {
   approveLegalSchema,
   returnLegalSchema,
   resubmitToLegalSchema,
+  signAndNumberSchema,
+  cancelRentalSchema,
 } from './schemas.js';
 import { RegisterRentalUseCase } from '../application/registerRentalUseCase.js';
 import { RespondRentalUseCase } from '../application/respondRentalUseCase.js';
@@ -23,6 +25,8 @@ import { SubmitToLegalUseCase } from '../application/submitToLegalUseCase.js';
 import { ApproveLegalUseCase } from '../application/approveLegalUseCase.js';
 import { ReturnLegalUseCase } from '../application/returnLegalUseCase.js';
 import { ResubmitToLegalUseCase } from '../application/resubmitToLegalUseCase.js';
+import { SignAndNumberUseCase } from '../application/signAndNumberUseCase.js';
+import { CancelRentalUseCase } from '../application/cancelRentalUseCase.js';
 import { resolveStoragePath } from '../infra/fileStorage.js';
 
 function parseBody<T extends z.ZodTypeAny>(schema: T, data: unknown): z.output<T> {
@@ -47,6 +51,8 @@ export class RentalController {
     private readonly approveLegalUseCase?: ApproveLegalUseCase,
     private readonly returnLegalUseCase?: ReturnLegalUseCase,
     private readonly resubmitToLegalUseCase?: ResubmitToLegalUseCase,
+    private readonly signAndNumberUseCase?: SignAndNumberUseCase,
+    private readonly cancelRentalUseCase?: CancelRentalUseCase,
   ) {}
 
   public async register(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -581,6 +587,86 @@ export class RentalController {
         status: result.rentalRequest.status,
         contract: result.contract,
         version: result.version,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public async signAndNumber(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const user = req.session?.user;
+      if (!user) {
+        res.status(401).json({ error: 'No autenticado' });
+        return;
+      }
+
+      if (!this.signAndNumberUseCase) {
+        res.status(500).json({ error: 'Caso de uso SignAndNumberUseCase no inyectado' });
+        return;
+      }
+
+      const id = String(req.params.id);
+      const input = parseBody(signAndNumberSchema, req.body || {});
+
+      const result = await this.signAndNumberUseCase.execute({
+        rentalRequestId: id,
+        actorId: user.id,
+        actorRole: user.role,
+        notes: input.notes,
+      });
+
+      if (req.accepts('html') && !req.xhr && !req.path.startsWith('/api')) {
+        res.redirect(`/solicitudes/${id}`);
+        return;
+      }
+
+      res.status(200).json({
+        message: 'Contrato firmado y numerado oficialmente (legalizado)',
+        rentalRequestId: result.rentalRequest.id,
+        status: result.rentalRequest.status,
+        contractNumber: result.contractNumber,
+        contract: result.contract,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public async cancel(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const user = req.session?.user;
+      if (!user) {
+        res.status(401).json({ error: 'No autenticado' });
+        return;
+      }
+
+      if (!this.cancelRentalUseCase) {
+        res.status(500).json({ error: 'Caso de uso CancelRentalUseCase no inyectado' });
+        return;
+      }
+
+      const id = String(req.params.id);
+      const input = parseBody(cancelRentalSchema, req.body || {});
+
+      const result = await this.cancelRentalUseCase.execute({
+        rentalRequestId: id,
+        reason: input.reason,
+        actorId: user.id,
+        actorRole: user.role,
+      });
+
+      if (req.accepts('html') && !req.xhr && !req.path.startsWith('/api')) {
+        res.redirect(`/solicitudes/${id}`);
+        return;
+      }
+
+      res.status(200).json({
+        message: 'Solicitud cancelada con éxito',
+        rentalRequestId: result.rentalRequest.id,
+        status: result.rentalRequest.status,
+        cancelReason: result.rentalRequest.cancelReason,
+        previousStatus: result.previousStatus,
       });
     } catch (error) {
       next(error);

@@ -69,6 +69,10 @@ export const resubmitToLegalSchema = z.object({
   notes: z.string().optional(),
 });
 
+export const signAndNumberSchema = z.object({
+  notes: z.string().optional(),
+});
+
 export const cancelRentalSchema = z.object({
   reason: z.string().min(10, 'El motivo de cancelación debe tener al menos 10 caracteres'),
 });
