@@ -375,6 +375,44 @@ describe('SGEC Release 1.0 — Rental Lifecycle & Flow Integration (rentalFlow.t
       expect(docRes.text).toContain('Oficio de Respuesta');
     });
 
+    it('AC-03.2: Oficio contiene requisitos según cliente, valor en letras y números, y datos de consignación', async () => {
+      const { agent, csrfToken } = await loginAs(app, UserRole.ADMIN_ASSISTANT);
+
+      const registered = await createRentalInState(RentalStatus.REGISTERED, {
+        spaceId: 'space-auditorio-principal',
+      });
+
+      await agent
+        .post(`/solicitudes/${registered.rental.id}/transiciones/respond`)
+        .set('Accept', 'application/json')
+        .set('X-CSRF-Token', csrfToken)
+        .send({ responseRadicado: 'RAD-RESP-2026-OF-0099' });
+
+      const docRes = await agent.get(`/solicitudes/${registered.rental.id}/documentos/RESPONSE_LETTER`);
+      expect(docRes.status).toBe(200);
+
+      const html = docRes.text;
+      // Destinatario y contacto
+      expect(html).toContain(registered.customer.name);
+      expect(html).toContain(registered.customer.documentNumber);
+      // Asunto y radicado
+      expect(html).toContain('RAD-RESP-2026-OF-0099');
+      expect(html).toContain('Respuesta a solicitud de alquiler');
+      // Escenario
+      expect(html).toContain('Auditorio Principal');
+      // Requisitos documentales
+      expect(html).toContain('Documentos exigidos para el trámite contractual');
+      expect(html).toContain('Documento de identidad');
+      // Valor en letras y números
+      expect(html).toContain('Valor en Letras:');
+      expect(html).toContain('pesos M/CTE');
+      // Datos de consignación
+      expect(html).toContain('Bancolombia');
+      expect(html).toContain('Cuenta de Ahorros');
+      // Firma tipográfica
+      expect(html).toContain('Jefe de la Oficina de Administración de Escenarios y Bienes Culturales');
+    });
+
     it('AC-03.3: T2 rechaza si no hay radicado con 400', async () => {
       const { agent, csrfToken } = await loginAs(app, UserRole.ADMIN_ASSISTANT);
       const registered = await createRentalInState(RentalStatus.REGISTERED);
