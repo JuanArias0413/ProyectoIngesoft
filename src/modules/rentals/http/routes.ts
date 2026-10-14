@@ -5,6 +5,8 @@ import { RegisterRentalUseCase } from '../application/registerRentalUseCase.js';
 import { RespondRentalUseCase } from '../application/respondRentalUseCase.js';
 import { VerifyDocumentsUseCase } from '../application/verifyDocumentsUseCase.js';
 import { ManageDocumentsUseCase } from '../application/manageDocumentsUseCase.js';
+import { DraftContractUseCase } from '../application/draftContractUseCase.js';
+import { UpdateContractUseCase } from '../application/updateContractUseCase.js';
 import { rentalUploadMiddleware } from '../infra/fileStorage.js';
 import { AvailabilityService } from '../../agenda/application/availabilityService.js';
 import { PrismaReservationRepository } from '../../agenda/infra/prismaReservationRepository.js';
@@ -29,6 +31,8 @@ export function createRentalRouter(controller?: RentalController): Router {
       ),
       new VerifyDocumentsUseCase(prisma),
       new ManageDocumentsUseCase(prisma),
+      new DraftContractUseCase(prisma, new DocumentRenderer(prisma)),
+      new UpdateContractUseCase(prisma, new DocumentRenderer(prisma)),
     );
 
   // F2.1 — Registrar solicitud (CAR-01, AC-01.x)
@@ -96,6 +100,33 @@ export function createRentalRouter(controller?: RentalController): Router {
     requireAuth,
     requirePermission('rentals:verify-docs'),
     (req, res, next) => ctrl.verifyDocumentsTransition(req, res, next),
+  );
+
+  // F2.4 — T4 draftContract + edición de objeto/cláusulas + versiones (CAR-05, AC-05.1 a AC-05.3)
+  router.post(
+    '/solicitudes/:id/transiciones/draftContract',
+    requireAuth,
+    requirePermission('rentals:draft-contract'),
+    (req, res, next) => ctrl.draftContract(req, res, next),
+  );
+  router.post(
+    '/solicitudes/:id/elaborar-contrato',
+    requireAuth,
+    requirePermission('rentals:draft-contract'),
+    (req, res, next) => ctrl.draftContract(req, res, next),
+  );
+
+  router.patch(
+    '/solicitudes/:id/contrato',
+    requireAuth,
+    requirePermission('rentals:draft-contract'),
+    (req, res, next) => ctrl.updateContract(req, res, next),
+  );
+  router.post(
+    '/solicitudes/:id/contrato',
+    requireAuth,
+    requirePermission('rentals:draft-contract'),
+    (req, res, next) => ctrl.updateContract(req, res, next),
   );
 
   // Descarga autenticada de archivos

@@ -2,11 +2,17 @@ import fs from 'node:fs';
 import type { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { ValidationError } from '../../../shared/errors.js';
-import { registerRentalSchema, respondRentalSchema } from './schemas.js';
+import {
+  registerRentalSchema,
+  respondRentalSchema,
+  draftContractSchema,
+} from './schemas.js';
 import { RegisterRentalUseCase } from '../application/registerRentalUseCase.js';
 import { RespondRentalUseCase } from '../application/respondRentalUseCase.js';
 import { VerifyDocumentsUseCase } from '../application/verifyDocumentsUseCase.js';
 import { ManageDocumentsUseCase } from '../application/manageDocumentsUseCase.js';
+import { DraftContractUseCase } from '../application/draftContractUseCase.js';
+import { UpdateContractUseCase } from '../application/updateContractUseCase.js';
 import { resolveStoragePath } from '../infra/fileStorage.js';
 
 function parseBody<T>(schema: z.ZodSchema<T>, data: unknown): T {
@@ -24,6 +30,8 @@ export class RentalController {
     private readonly respondRentalUseCase?: RespondRentalUseCase,
     private readonly verifyDocumentsUseCase?: VerifyDocumentsUseCase,
     private readonly manageDocumentsUseCase?: ManageDocumentsUseCase,
+    private readonly draftContractUseCase?: DraftContractUseCase,
+    private readonly updateContractUseCase?: UpdateContractUseCase,
   ) {}
 
   public async register(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -275,4 +283,85 @@ export class RentalController {
       next(error);
     }
   }
+
+  public async draftContract(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const user = req.session?.user;
+      if (!user) {
+        res.status(401).json({ error: 'No autenticado' });
+        return;
+      }
+
+      if (!this.draftContractUseCase) {
+        res.status(500).json({ error: 'Caso de uso DraftContractUseCase no inyectado' });
+        return;
+      }
+
+      const id = String(req.params.id);
+      const input = parseBody(draftContractSchema, req.body || {});
+
+      const result = await this.draftContractUseCase.execute({
+        rentalRequestId: id,
+        object: input.object,
+        additionalClauses: input.additionalClauses,
+        actorId: user.id,
+        actorRole: user.role,
+      });
+
+      if (req.accepts('html') && !req.xhr && !req.path.startsWith('/api')) {
+        res.redirect(`/solicitudes/${id}`);
+        return;
+      }
+
+      res.status(200).json({
+        message: 'Estudio previo y minuta de contrato elaborados con éxito (v1)',
+        rentalRequestId: result.rentalRequest.id,
+        status: result.rentalRequest.status,
+        contract: result.contract,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public async updateContract(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const user = req.session?.user;
+      if (!user) {
+        res.status(401).json({ error: 'No autenticado' });
+        return;
+      }
+
+      if (!this.updateContractUseCase) {
+        res.status(500).json({ error: 'Caso de uso UpdateContractUseCase no inyectado' });
+        return;
+      }
+
+      const id = String(req.params.id);
+      const input = parseBody(draftContractSchema, req.body || {});
+
+      const result = await this.updateContractUseCase.execute({
+        rentalRequestId: id,
+        object: input.object,
+        additionalClauses: input.additionalClauses,
+        actorId: user.id,
+        actorRole: user.role,
+      });
+
+      if (req.accepts('html') && !req.xhr && !req.path.startsWith('/api')) {
+        res.redirect(`/solicitudes/${id}`);
+        return;
+      }
+
+      res.status(200).json({
+        message: 'Contrato actualizado con éxito',
+        rentalRequestId: id,
+        contract: result.contract,
+        version: result.version,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
+

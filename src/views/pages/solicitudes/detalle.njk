@@ -139,6 +139,9 @@
 
       {# T5: Registrar Pago (CONTRACT_DRAFTED -> PAID) por ADMIN_ASSISTANT #}
       {% if s.status == 'CONTRACT_DRAFTED' and activeUser.role == 'ADMIN_ASSISTANT' %}
+        <button type="button" class="outline" onclick="document.getElementById('dialog-editar-contrato').showModal()" style="margin: 0;">
+          Editar Minuta / Cláusulas
+        </button>
         <button type="button" class="primary" onclick="document.getElementById('dialog-registrar-pago').showModal()" style="margin: 0; font-weight: 700;">
           Registrar Pago y Facturación
         </button>
@@ -146,6 +149,9 @@
 
       {# T6: Enviar a Jurídica (PAID -> LEGAL_REVIEW) por ADMIN_ASSISTANT #}
       {% if s.status == 'PAID' and activeUser.role == 'ADMIN_ASSISTANT' %}
+        <button type="button" class="outline" onclick="document.getElementById('dialog-editar-contrato').showModal()" style="margin: 0;">
+          Editar Minuta / Cláusulas
+        </button>
         <form action="/solicitudes/{{ s.id }}/transiciones/submitToLegal" method="POST" style="margin: 0;">
           <input type="hidden" name="_csrf" value="{{ csrfToken }}">
           <button type="submit" class="primary" style="margin: 0; font-weight: 700;">
@@ -537,6 +543,39 @@
     </form>
   </div>
 </dialog>
+
+{# Modal Editar Contrato (CAR-05, AC-05.2) #}
+{% if s.contract %}
+<dialog id="dialog-editar-contrato" aria-labelledby="dialog-editar-title">
+  <div class="dialog-card">
+    <div class="dialog-header">
+      <h3 id="dialog-editar-title" class="dialog-title">Editar Objeto y Cláusulas del Contrato</h3>
+    </div>
+    <form action="/solicitudes/{{ s.id }}/contrato" method="POST">
+      <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+      <p style="font-size: 0.9rem; color: var(--sgec-text-muted);">
+        Al guardar las modificaciones se generará automáticamente una nueva versión incremental del Estudio Previo y la Minuta del Contrato (AC-05.2).
+      </p>
+      <div class="form-group">
+        <label for="editObject">
+          Objeto Contractual <span style="color: #c92a2a;">*</span>
+        </label>
+        <textarea id="editObject" name="object" rows="3" required>{{ s.contract.object }}</textarea>
+      </div>
+      <div class="form-group">
+        <label for="editAdditionalClauses">
+          Cláusulas Adicionales
+        </label>
+        <textarea id="editAdditionalClauses" name="additionalClauses" rows="3">{{ s.contract.additionalClauses | default("") }}</textarea>
+      </div>
+      <div class="dialog-footer">
+        <button type="button" class="outline secondary" onclick="this.closest('dialog').close()" style="margin: 0;">Cancelar</button>
+        <button type="submit" class="primary" style="margin: 0;">Guardar y Regenerar Versión</button>
+      </div>
+    </form>
+  </div>
+</dialog>
+{% endif %}
 
 {# Modal T5: Registrar Pago #}
 <dialog id="dialog-registrar-pago" aria-labelledby="dialog-pago-title">

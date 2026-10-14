@@ -652,6 +652,202 @@ describe('SGEC Release 1.0 — Rental Lifecycle & Flow Integration (rentalFlow.t
   });
 
   // =========================================================================
+  // CAR-05: Estudio Previo y Contrato (AC-05.1 a AC-05.3, T4 draftContract)
+  // =========================================================================
+  describe('CAR-05: Elaboración, Edición y Versiones de Contrato', () => {
+    it('AC-05.1: desde DOCUMENTS_VERIFIED, el auxiliar elabora el contrato (POST /solicitudes/:id/transiciones/draftContract) generando estudio previo y minuta v1', async () => {
+      const { agent: assistantAgent, csrfToken } = await loginAs(app, UserRole.ADMIN_ASSISTANT);
+      const verified = await createRentalInState(RentalStatus.DOCUMENTS_VERIFIED);
+      const rentalId = verified.rental.id;
+
+      const payload = {
+        object: 'Arrendamiento temporal del auditorio para conferencia magistral sobre patrimonio pereirano.',
+        additionalClauses: 'El arrendatario asume la responsabilidad total de los equipos audiovisuales suministrados.',
+      };
+
+      const res = await assistantAgent
+        .post(`/solicitudes/${rentalId}/transiciones/draftContract`)
+        .set('Accept', 'application/json')
+        .set('X-CSRF-Token', csrfToken)
+        .send(payload);
+
+      expect(res.status).toBe(200);
+      expect(res.body.status).toBe(RentalStatus.CONTRACT_DRAFTED);
+      expect(res.body.contract).toBeDefined();
+      expect(res.body.contract.object).toBe(payload.object);
+      expect(res.body.contract.additionalClauses).toBe(payload.additionalClauses);
+      expect(res.body.contract.valuePesos).toBe(verified.rental.quotedAmountPesos);
+
+      // Verificar persistencia en base de datos
+      const rentalDb = await prisma.rentalRequest.findUnique({
+        where: { id: rentalId },
+        include: { contract: true, stateTransitions: true, generatedDocuments: true },
+      });
+
+      expect(rentalDb!.status).toBe(RentalStatus.CONTRACT_DRAFTED);
+      expect(rentalDb!.contract).toBeDefined();
+      expect(rentalDb!.contract!.object).toBe(payload.object);
+      expect(rentalDb!.contract!.additionalClauses).toBe(payload.additionalClauses);
+      expect(rentalDb!.contract!.valuePesos).toBe(verified.rental.quotedAmountPesos);
+
+      // Transición registrada
+      expect(
+        rentalDb!.stateTransitions.some(
+          (t) => t.transition === 'draftContract' && t.toStatus === 'CONTRACT_DRAFTED',
+        ),
+      ).toBe(true);
+
+      // Documentos generados v1 (estudio previo y contrato)
+      const priorStudyDocs = rentalDb!.generatedDocuments.filter(
+        (d) => d.kind === 'PRIOR_STUDY' && d.version === 1,
+      );
+      const contractDocs = rentalDb!.generatedDocuments.filter(
+        (d) => d.kind === 'CONTRACT' && d.version === 1,
+      );
+      expect(priorStudyDocs.length).toBe(1);
+      expect(contractDocs.length).toBe(1);
+      expect(contractDocs[0].html).toContain(payload.object);
+      expect(contractDocs[0].html).toContain(payload.additionalClauses);
+
+      // Precondición: rechaza si la solicitud no está en DOCUMENTS_VERIFIED (409 Conflict por transición inválida)
+      const registered = await createRentalInState(RentalStatus.REGISTERED);
+      const resInvalidState = await assistantAgent
+        .post(`/solicitudes/${registered.rental.id}/transiciones/draftContract`)
+        .set('Accept', 'application/json')
+        .set('X-CSRF-Token', csrfToken)
+        .send(payload);
+      expect(resInvalidState.status).toBe(409);
+
+      // RBAC: rechaza si un rol no autorizado intenta elaborar contrato
+      const { agent: legalAgent, csrfToken: legalCsrf } = await loginAs(app, UserRole.LEGAL);
+      const verified2 = await createRentalInState(RentalStatus.DOCUMENTS_VERIFIED);
+      const resForbidden = await legalAgent
+        .post(`/solicitudes/${verified2.rental.id}/transiciones/draftContract`)
+        .set('Accept', 'application/json')
+        .set('X-CSRF-Token', legalCsrf)
+        .send(payload);
+      assertForbidden(resForbidden);
+    });
+
+    it('AC-05.2: el auxiliar puede editar object y additionalClauses antes de enviar a revisión, creando nuevas versiones incrementales', async () => {
+      const { agent: assistantAgent, csrfToken } = await loginAs(app, UserRole.ADMIN_ASSISTANT);
+      const verified = await createRentalInState(RentalStatus.DOCUMENTS_VERIFIED);
+      const rentalId = verified.rental.id;
+
+      // Elaborar versión 1
+      await assistantAgent
+        .post(`/solicitudes/${rentalId}/transiciones/draftContract`)
+        .set('Accept', 'application/json')
+        .set('X-CSRF-Token', csrfToken)
+        .send({
+          object: 'Objeto inicial versión 1',
+          additionalClauses: 'Cláusula inicial versión 1',
+        });
+
+      // 1. Primera edición (versión 2)
+      const update1 = {
+        object: 'Objeto contractual modificado y ajustado con especificaciones técnicas.',
+        additionalClauses: 'El arrendatario se compromete a no fijar afiches en paredes patrimoniales.',
+      };
+
+      const res1 = await assistantAgent
+        .post(`/solicitudes/${rentalId}/contrato`)
+        .set('Accept', 'application/json')
+        .set('X-CSRF-Token', csrfToken)
+        .send(update1);
+
+      expect(res1.status).toBe(200);
+      expect(res1.body.version).toBe(2);
+      expect(res1.body.contract.object).toBe(update1.object);
+      expect(res1.body.contract.additionalClauses).toBe(update1.additionalClauses);
+
+      // Verificar en BD versión 2 generada
+      const docsV2 = await prisma.generatedDocument.findMany({
+        where: { rentalRequestId: rentalId, version: 2 },
+      });
+      expect(docsV2.length).toBe(2); // PRIOR_STUDY y CONTRACT
+      const contractV2 = docsV2.find((d) => d.kind === 'CONTRACT');
+      expect(contractV2!.html).toContain(update1.object);
+      expect(contractV2!.html).toContain(update1.additionalClauses);
+
+      // 2. Segunda edición con PATCH (versión 3)
+      const update2 = {
+        object: 'Objeto contractual v3 definitivo con aval de planeación cultural.',
+        additionalClauses: 'Se prohíbe el uso de pirotecnia y confeti metálico en el recinto.',
+      };
+
+      const res2 = await assistantAgent
+        .patch(`/solicitudes/${rentalId}/contrato`)
+        .set('Accept', 'application/json')
+        .set('X-CSRF-Token', csrfToken)
+        .send(update2);
+
+      expect(res2.status).toBe(200);
+      expect(res2.body.version).toBe(3);
+      expect(res2.body.contract.object).toBe(update2.object);
+
+      // 3. Intento de edición cuando la solicitud ya está en LEGAL_REVIEW (debe ser rechazado)
+      const inReview = await createRentalInState(RentalStatus.LEGAL_REVIEW);
+      const resBlocked = await assistantAgent
+        .post(`/solicitudes/${inReview.rental.id}/contrato`)
+        .set('Accept', 'application/json')
+        .set('X-CSRF-Token', csrfToken)
+        .send({ object: 'Intento no permitido en revisión' });
+      expect(resBlocked.status).toBe(400);
+      expect(resBlocked.body.error).toMatch(/revisión jurídica|estado actual/i);
+    });
+
+    it('AC-05.3: estudio previo y contrato son imprimibles (A4) y accesibles vía GET /solicitudes/:id/documentos/:kind', async () => {
+      const { agent: assistantAgent, csrfToken } = await loginAs(app, UserRole.ADMIN_ASSISTANT);
+      const verified = await createRentalInState(RentalStatus.DOCUMENTS_VERIFIED);
+      const rentalId = verified.rental.id;
+
+      // Elaborar contrato real usando DocumentRenderer
+      await assistantAgent
+        .post(`/solicitudes/${rentalId}/transiciones/draftContract`)
+        .set('Accept', 'application/json')
+        .set('X-CSRF-Token', csrfToken)
+        .send({
+          object: 'Arrendamiento de espacio para concierto de cámara de música andina colombiana.',
+          additionalClauses: 'Se prohíbe el ingreso de bebidas alcohólicas y alimentos perecederos al escenario.',
+        });
+
+      // 1. Ver Estudio Previo (A4)
+      const resPriorStudy = await assistantAgent.get(`/solicitudes/${rentalId}/documentos/PRIOR_STUDY`);
+      expect(resPriorStudy.status).toBe(200);
+      expect(resPriorStudy.headers['content-type']).toContain('text/html');
+      expect(resPriorStudy.text).toContain('ESTUDIO PREVIO');
+      expect(resPriorStudy.text).toContain('A4');
+      expect(resPriorStudy.text).toContain('@page');
+
+      // 2. Ver Contrato Minuta (A4)
+      const resContract = await assistantAgent.get(`/solicitudes/${rentalId}/documentos/CONTRACT`);
+      expect(resContract.status).toBe(200);
+      expect(resContract.headers['content-type']).toContain('text/html');
+      expect(resContract.text).toContain('CONTRATO DE ARRENDAMIENTO DE ESPACIO CULTURAL');
+      expect(resContract.text).toContain('A4');
+      expect(resContract.text).toContain('CLÁUSULA PRIMERA');
+      expect(resContract.text).toContain('CLÁUSULA SEGUNDA');
+      expect(resContract.text).toContain('CLÁUSULA TERCERA');
+
+      // 3. Consulta de versión específica (?version=1)
+      const resV1 = await assistantAgent.get(`/solicitudes/${rentalId}/documentos/CONTRACT?version=1`);
+      expect(resV1.status).toBe(200);
+      expect(resV1.text).toContain('Versión documental 1');
+
+      // 4. Tipo de documento inválido devuelve 400
+      const resInvalidDoc = await assistantAgent.get(`/solicitudes/${rentalId}/documentos/INVENTARIO_BODEGA`);
+      expect(resInvalidDoc.status).toBe(400);
+
+      // 5. Descarga sin autenticación denegada
+      const unauthRes = await request(app)
+        .get(`/solicitudes/${rentalId}/documentos/CONTRACT`)
+        .set('Accept', 'application/json');
+      expect(unauthRes.status).toBe(401);
+    });
+  });
+
+  // =========================================================================
   // Fábrica de Estados del Ciclo de Vida (createRentalInState)
   // =========================================================================
   describe('Ciclo de vida completo vía helper createRentalInState', () => {
