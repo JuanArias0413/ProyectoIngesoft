@@ -5,16 +5,16 @@ Bitácora viva. Solo se **agrega** al final de cada sección; no se reescribe el
 ## Estado actual
 - **Fase en curso:** Fase 5 (Entregables académicos)
 - **Última tarea completada:** F4.4 (Revisión de código y compuerta G4)
-- **Último commit verde:** 5cf737b
+- **Último commit verde:** d3f375c
 - **Resultado de pruebas:** 788 pruebas unitarias/integración pasadas (19 archivos) + 5 pruebas E2E pasadas
 - **Siguiente tarea:** F5.1 (docs/ARCHITECTURE.md final)
 
 ## Bitácora (una línea por tarea terminada)
 `AAAA-MM-DD HH:MM · Fx.y · agente · resumen · hash del commit`
-2026-10-15 12:50 · F4.4 · orquestador · Revisión de código: verificación de capas, tipado estricto sin any y documentación D-11 · pendiente
-2026-10-15 12:48 · F4.3 · orquestador · Revisión de seguridad: CSRF, RBAC, esquemas Zod, subida segura de archivos y Helmet CSP · pendiente
-2026-10-15 12:45 · F4.2 · qa-docs · Reporte de cobertura unitaria en dominio (98.38% State, 93.68% Pricing) en docs/COVERAGE.md · pendiente
-2026-10-15 12:40 · F4.1 · qa-docs · Pruebas E2E Playwright completas (happy-path, legal-return, agenda-conflict, cancellation) en verde · pendiente
+2026-10-15 12:50 · F4.4 · orquestador · Revisión de código: verificación de capas, tipado estricto sin any y documentación D-11 · d3f375c
+2026-10-15 12:48 · F4.3 · orquestador · Revisión de seguridad: CSRF, RBAC, esquemas Zod, subida segura de archivos y Helmet CSP · d3f375c
+2026-10-15 12:45 · F4.2 · qa-docs · Reporte de cobertura unitaria en dominio (98.38% State, 93.68% Pricing) en docs/COVERAGE.md · d3f375c
+2026-10-15 12:40 · F4.1 · qa-docs · Pruebas E2E Playwright completas (happy-path, legal-return, agenda-conflict, cancellation) en verde · d3f375c
 2026-10-14 01:20 · F3.4 · orquestador · Seed demo completo con 10 solicitudes en todos los estados, idempotencia transaccional y documentos imprimibles · 5cf737b
 2026-10-14 01:10 · F3.3 · ui · Estados vacíos, mensajes flash en español, página 400 y confirmación en acciones irreversibles · 108116b
 2026-10-14 01:00 · F3.2 · ui · Reglas responsivas 360px, anillo de foco dual contrastado, accesibilidad en formularios e insignias con texto · e668625
