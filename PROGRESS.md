@@ -5,18 +5,18 @@ Bitácora viva. Solo se **agrega** al final de cada sección; no se reescribe el
 ## Estado actual
 - **Fase en curso:** Fase 6 (Cierre)
 - **Última tarea completada:** F5.6 (Documentación y entregables académicos completos)
-- **Último commit verde:** d31023d
+- **Último commit verde:** a4a4f09
 - **Resultado de pruebas:** 788 pruebas unitarias/integración pasadas (19 archivos) + 5 pruebas E2E pasadas
 - **Siguiente tarea:** F6.1 (Prueba de clon limpio)
 
 ## Bitácora (una línea por tarea terminada)
 `AAAA-MM-DD HH:MM · Fx.y · agente · resumen · hash del commit`
-2026-10-15 13:00 · F5.6 · qa-docs · Guía de extensibilidad EXTENDING.md y README.md institucional completo · pendiente
-2026-10-15 12:58 · F5.5 · qa-docs · Matriz de trazabilidad integral final TRAZABILIDAD.md · pendiente
-2026-10-15 12:57 · F5.4 · qa-docs · Protocolo de aceptación PROTOCOLO_ACEPTACION.md certificado con 37 ACs exitosos · pendiente
-2026-10-15 12:56 · F5.3 · qa-docs · Manual de usuario MANUAL_USUARIO.md con capturas reales Playwright en docs/img/ · pendiente
-2026-10-15 12:55 · F5.2 · qa-docs · Manual técnico de instalación, operación y respaldo MANUAL_TECNICO.md · pendiente
-2026-10-15 12:54 · F5.1 · qa-docs · Arquitectura del sistema ARCHITECTURE.md final con capas, State, Strategy y calidad · pendiente
+2026-10-15 13:00 · F5.6 · qa-docs · Guía de extensibilidad EXTENDING.md y README.md institucional completo · a4a4f09
+2026-10-15 12:58 · F5.5 · qa-docs · Matriz de trazabilidad integral final TRAZABILIDAD.md · a4a4f09
+2026-10-15 12:57 · F5.4 · qa-docs · Protocolo de aceptación PROTOCOLO_ACEPTACION.md certificado con 37 ACs exitosos · a4a4f09
+2026-10-15 12:56 · F5.3 · qa-docs · Manual de usuario MANUAL_USUARIO.md con capturas reales Playwright en docs/img/ · a4a4f09
+2026-10-15 12:55 · F5.2 · qa-docs · Manual técnico de instalación, operación y respaldo MANUAL_TECNICO.md · a4a4f09
+2026-10-15 12:54 · F5.1 · qa-docs · Arquitectura del sistema ARCHITECTURE.md final con capas, State, Strategy y calidad · a4a4f09
 2026-10-15 12:50 · F4.4 · orquestador · Revisión de código: verificación de capas, tipado estricto sin any y documentación D-11 · d3f375c
 2026-10-15 12:48 · F4.3 · orquestador · Revisión de seguridad: CSRF, RBAC, esquemas Zod, subida segura de archivos y Helmet CSP · d3f375c
 2026-10-15 12:45 · F4.2 · qa-docs · Reporte de cobertura unitaria en dominio (98.38% State, 93.68% Pricing) en docs/COVERAGE.md · d3f375c
