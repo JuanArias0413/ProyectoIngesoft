@@ -176,13 +176,30 @@ Bitácora viva. Solo se **agrega** al final de cada sección; no se reescribe el
   - 37 de 37 criterios de aceptación certificados formalmente en `docs/PROTOCOLO_ACEPTACION.md`.
 - **Decisión:** Release 1.0 aprobado y listo para etiquetado final `v1.0.0`.
 
+### Compuerta G7 (Rediseño Frontend e Identidad Pereira) · 2026-10-15 13:58
+- **Estado:** PASÓ (Verde)
+- **Verificaciones automáticas:**
+  - `npm run lint`: 0 errores, 0 advertencias
+  - `npm run typecheck`: 0 errores
+  - `npm test`: 789 pruebas unitarias e integración pasadas en 19 archivos (incluye nueva suite de flash vacío)
+  - `npm run test:e2e`: 6 pruebas E2E pasadas (incluye regeneración de capturas de pantalla)
+- **Correcciones y mejoras visuales:**
+  - `flash.njk`: verificación estricta de `.length > 0` para arrays y strings. 0 alertas vacías renderizadas.
+  - `base.njk`: `data-theme="light"` forzado para evitar colisión de modo oscuro del sistema con la plataforma.
+  - `app.css`: sistema de diseño cívico de Pereira incorporando el listón cívico de la bandera (`#cf1020` y `#f59e0b`), variables semánticas, reseteo completo de estilos oscuros parásitos de Pico.css en `<article > header>`, inputs, selects y tablas.
+  - `login.njk`: tarjeta moderna con borde superior cívico, tipografía nítida en Slate 900 y selector plegable de usuarios de prueba.
+  - `home/index.njk`: tarjetas de estadísticas con bordes cívicos diferenciados y bandeja de pendientes con badges y acciones directas.
+  - `solicitudes/`, `agenda/`, `tarifas/`: tablas uniformes con fondos blancos, hover suave `#f8fafc`, cabeceras estructuradas y botones con estilo institucional.
+  - Capturas actualizadas en `docs/img/` reflejando el diseño institucional de Pereira.
+
 ## Peticiones entre agentes
 `de → para · petición · estado (abierta/hecha)`
 backend → orquestador · Montar createRentalRouter() en src/app.ts · hecha
-
 
 ## Reanudaciones
 (Se anota cada uso de `/resume`.)
 - Reanudado: 2026-10-15 12:26 · Estado: F3 completada, 788 tests pasando, E2E y suites F4.1 implementadas y comiteadas (293f528) · Siguiente tarea: F4.1/F4.2 (verificación E2E y compuerta G4)
 - Reanudado: 2026-10-15 13:45 · Estado: Release 1.0 completado y etiquetado `v1.0.0`. Se inicia Fase 7 (Rediseño Frontend e Identidad Visual de Pereira): plan formulado, bugs diagnosticados, tareas agregadas a PLAN.md.
+- Completado: 2026-10-15 13:58 · Fase 7 completada al 100% (F7.1 a F7.6). Suite de pruebas en verde (789 unitarias + 6 E2E). Compuerta G7 aprobada.
+
 

@@ -4,21 +4,25 @@
    ========================================================================== */
 
 :root {
-  /* Paleta institucional */
-  --sgec-primary: #0f2b48;
-  --sgec-primary-hover: #163e68;
-  --sgec-primary-light: #e6f0fa;
+  /* Paleta institucional de Pereira */
+  --sgec-primary: #cf1020;        /* Rojo Pereirano cívico */
+  --sgec-primary-hover: #b91c1c;  /* Rojo intenso hover */
+  --sgec-primary-light: #fef2f2;  /* Tinte rojo suave */
   --sgec-primary-contrast: #ffffff;
   
-  --sgec-secondary: #2c4356;
-  --sgec-accent: #c4820a;
+  --sgec-accent: #f59e0b;         /* Amarillo / Oro Pereirano */
+  --sgec-accent-hover: #d97706;   /* Oro intenso hover */
+  --sgec-accent-light: #fffbeb;   /* Tinte dorado suave */
   
-  --sgec-bg: #f8fafc;
-  --sgec-card-bg: #ffffff;
-  --sgec-text: #1e293b;
-  --sgec-text-muted: #64748b;
-  --sgec-border: #cbd5e1;
-  --sgec-border-light: #e2e8f0;
+  --sgec-secondary: #0f172a;      /* Slate 900 institucional */
+  --sgec-secondary-hover: #1e293b;
+  
+  --sgec-bg: #f8fafc;             /* Slate 50 Neutral Canvas */
+  --sgec-card-bg: #ffffff;        /* Blanco puro */
+  --sgec-text: #0f172a;           /* Slate 900 contraste nítido */
+  --sgec-text-muted: #64748b;     /* Slate 500 */
+  --sgec-border: #cbd5e1;         /* Slate 300 */
+  --sgec-border-light: #e2e8f0;   /* Slate 200 */
   
   /* Sobrescritura de variables Pico.css */
   --pico-primary: var(--sgec-primary);
@@ -30,6 +34,12 @@
   --pico-line-height: 1.5;
   --pico-form-element-spacing-vertical: 0.65rem;
   --pico-form-element-spacing-horizontal: 0.85rem;
+  --pico-card-background-color: #ffffff;
+  --pico-card-sectionning-background-color: transparent;
+  --pico-form-element-background-color: #ffffff;
+  --pico-form-element-border-color: #cbd5e1;
+  --pico-form-element-color: #0f172a;
+  --pico-color: #0f172a;
 }
 
 /* ==========================================================================
@@ -67,12 +77,18 @@ main.main-content {
 
 header.site-header {
   flex-shrink: 0;
-  background-color: var(--sgec-primary);
+  background-color: var(--sgec-secondary);
   color: #ffffff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
   position: sticky;
   top: 0;
   z-index: 100;
+}
+
+.civic-ribbon {
+  height: 4px;
+  width: 100%;
+  background: linear-gradient(90deg, #cf1020 0%, #cf1020 50%, #f59e0b 50%, #f59e0b 100%);
 }
 
 footer.site-footer {
@@ -118,12 +134,14 @@ footer.site-footer {
 }
 
 .brand-badge {
-  background-color: rgba(255, 255, 255, 0.2);
-  color: #ffffff;
-  padding: 0.15rem 0.4rem;
+  background-color: rgba(245, 158, 11, 0.2);
+  color: #fde68a;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  padding: 0.15rem 0.45rem;
   border-radius: 4px;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: 0.05em;
 }
 
 .brand-subtitle {
@@ -444,7 +462,32 @@ footer.site-footer {
 }
 
 /* ==========================================================================
-   Formularios y Accesibilidad
+   Sobrescrituras de Pico.css para Artículos y Contenedores
+   ========================================================================== */
+
+article {
+  background-color: #ffffff !important;
+  color: var(--sgec-text) !important;
+  border-radius: 8px !important;
+}
+
+article > header {
+  margin: 0 0 1.25rem 0 !important;
+  padding: 0 !important;
+  background-color: transparent !important;
+  background: transparent !important;
+  border-bottom: none !important;
+}
+
+article > footer {
+  margin: 1.25rem 0 0 0 !important;
+  padding: 1rem 0 0 0 !important;
+  background-color: transparent !important;
+  background: transparent !important;
+}
+
+/* ==========================================================================
+   Formularios, Accesibilidad y Botones
    ========================================================================== */
 
 label {
@@ -464,6 +507,25 @@ label small,
   margin-top: 0.15rem;
 }
 
+input:not([type="submit"]):not([type="button"]):not([type="checkbox"]):not([type="radio"]),
+select,
+textarea {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 6px !important;
+  padding: 0.65rem 0.85rem !important;
+  font-size: 0.95rem !important;
+}
+
+input:not([type="submit"]):not([type="button"]):focus,
+select:focus,
+textarea:focus {
+  border-color: var(--sgec-primary) !important;
+  outline: 2px solid var(--sgec-primary) !important;
+  box-shadow: 0 0 0 3px rgba(207, 16, 32, 0.15) !important;
+}
+
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible,
@@ -474,6 +536,53 @@ summary:focus-visible {
   outline: 3px solid #0284c7 !important;
   outline-offset: 2px !important;
   box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.25) !important;
+}
+
+button:not(.secondary):not(.outline),
+[role="button"]:not(.secondary):not(.outline),
+input[type="submit"] {
+  background-color: var(--sgec-primary) !important;
+  border-color: var(--sgec-primary) !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  border-radius: 6px !important;
+  padding: 0.65rem 1.25rem !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+}
+
+button:not(.secondary):not(.outline):hover,
+[role="button"]:not(.secondary):not(.outline):hover,
+input[type="submit"]:hover {
+  background-color: var(--sgec-primary-hover) !important;
+  border-color: var(--sgec-primary-hover) !important;
+  box-shadow: 0 2px 4px rgba(207, 16, 32, 0.25) !important;
+}
+
+button.outline, [role="button"].outline {
+  border: 1px solid var(--sgec-primary) !important;
+  color: var(--sgec-primary) !important;
+  background-color: transparent !important;
+  font-weight: 600 !important;
+  border-radius: 6px !important;
+}
+
+button.outline:hover, [role="button"].outline:hover {
+  background-color: var(--sgec-primary-light) !important;
+  border-color: var(--sgec-primary-hover) !important;
+  color: var(--sgec-primary-hover) !important;
+}
+
+button.outline.secondary, [role="button"].outline.secondary {
+  border: 1px solid #cbd5e1 !important;
+  color: #475569 !important;
+  background-color: transparent !important;
+}
+
+button.outline.secondary:hover, [role="button"].outline.secondary:hover {
+  background-color: #f1f5f9 !important;
+  border-color: #94a3b8 !important;
+  color: #0f172a !important;
 }
 
 .form-group {
@@ -503,7 +612,7 @@ fieldset {
 legend {
   font-weight: 700;
   padding: 0 0.5rem;
-  color: var(--sgec-primary);
+  color: var(--sgec-secondary);
   font-size: 1.05rem;
 }
 
@@ -518,36 +627,46 @@ legend {
   margin-bottom: 1.5rem;
   background-color: #ffffff;
   border: 1px solid var(--sgec-border-light);
-  border-radius: 6px;
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 }
 
 table {
-  width: 100%;
-  margin-bottom: 0;
-  border-collapse: collapse;
+  width: 100% !important;
+  margin-bottom: 0 !important;
+  border-collapse: collapse !important;
+  background-color: #ffffff !important;
 }
 
-th {
-  background-color: #f1f5f9;
-  color: #334155;
-  font-weight: 700;
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  padding: 0.75rem 1rem;
-  border-bottom: 2px solid var(--sgec-border);
-  text-align: left;
+thead th, th {
+  background-color: #f8fafc !important;
+  color: #475569 !important;
+  font-weight: 700 !important;
+  font-size: 0.78rem !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  padding: 0.85rem 1rem !important;
+  border-bottom: 2px solid var(--sgec-border-light) !important;
+  border-top: none !important;
+  text-align: left !important;
 }
 
-td {
-  padding: 0.85rem 1rem;
-  border-bottom: 1px solid var(--sgec-border-light);
-  font-size: 0.925rem;
-  vertical-align: middle;
+tbody td, td {
+  padding: 0.85rem 1rem !important;
+  border-bottom: 1px solid var(--sgec-border-light) !important;
+  border-top: none !important;
+  font-size: 0.925rem !important;
+  vertical-align: middle !important;
+  background-color: #ffffff !important;
+  color: var(--sgec-text) !important;
 }
 
-tr:hover td {
-  background-color: #f8fafc;
+tbody tr:hover td, tr:hover td {
+  background-color: #f8fafc !important;
+}
+
+tbody tr:nth-child(even) td {
+  background-color: #ffffff !important;
 }
 
 /* ==========================================================================
@@ -555,30 +674,38 @@ tr:hover td {
    ========================================================================== */
 
 .card {
-  background-color: #ffffff;
-  border: 1px solid var(--sgec-border-light);
-  border-radius: 6px;
-  padding: 1.25rem;
-  margin-bottom: 1.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  background-color: #ffffff !important;
+  border: 1px solid var(--sgec-border-light) !important;
+  border-radius: 8px !important;
+  padding: 1.25rem !important;
+  margin-bottom: 1.5rem !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
 }
 
 .card-header {
-  border-bottom: 1px solid var(--sgec-border-light);
-  padding-bottom: 0.75rem;
-  margin-bottom: 1rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.5rem;
+  border-bottom: 1px solid var(--sgec-border-light) !important;
+  padding-bottom: 0.75rem !important;
+  margin-bottom: 1rem !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: 0.5rem !important;
 }
 
 .card-title {
-  margin: 0;
-  font-size: 1.15rem;
-  color: var(--sgec-primary);
-  font-weight: 700;
+  margin: 0 !important;
+  font-size: 1.15rem !important;
+  color: var(--sgec-secondary) !important;
+  font-weight: 700 !important;
+}
+
+.card-civic-accent {
+  border-top: 4px solid var(--sgec-primary) !important;
+}
+
+.card-gold-accent {
+  border-top: 4px solid var(--sgec-accent) !important;
 }
 
 .responsive-grid {

@@ -6,26 +6,31 @@
 
 {% if not activeUser %}
   {# Pantalla de bienvenida para usuario sin sesión #}
-  <div style="text-align: center; padding: 3rem 1rem;">
-    <h1 style="color: var(--sgec-primary); font-size: 2.25rem; margin-bottom: 0.75rem;">
+  <div style="text-align: center; padding: 4rem 1rem 3rem 1rem; max-width: 760px; margin: 0 auto;">
+    <div style="display: inline-flex; align-items: center; gap: 0.5rem; background-color: #fef2f2; border: 1px solid #fecaca; color: #cf1020; font-weight: 700; font-size: 0.825rem; padding: 0.35rem 0.85rem; border-radius: 9999px; margin-bottom: 1.5rem; text-transform: uppercase; letter-spacing: 0.05em;">
+      <span>&#127963;</span> Alcaldía de Pereira · Secretaría de Cultura
+    </div>
+    <h1 style="color: #0f172a; font-size: 2.35rem; font-weight: 800; line-height: 1.2; margin-bottom: 1rem; letter-spacing: -0.025em;">
       Sistema de Gestión de Escenarios y Bienes Culturales
     </h1>
-    <p style="font-size: 1.15rem; color: var(--sgec-text-muted); max-width: 650px; margin: 0 auto 2rem;">
-      Plataforma institucional para el trámite, disponibilidad, contratación y control de escenarios culturales de la Secretaría de Cultura de Pereira.
+    <p style="font-size: 1.15rem; color: #475569; line-height: 1.6; margin: 0 auto 2.25rem; max-width: 620px;">
+      Plataforma institucional para el trámite, disponibilidad, contratación y control de escenarios culturales del municipio de Pereira.
     </p>
-    <a href="/login" role="button" class="primary" style="padding: 0.85rem 2rem; font-size: 1.1rem; font-weight: 700; text-decoration: none;">
-      Ingresar al Sistema
-    </a>
+    <div>
+      <a href="/login" role="button" class="primary" style="padding: 0.85rem 2.25rem; font-size: 1.05rem; font-weight: 700; text-decoration: none; box-shadow: 0 4px 6px -1px rgba(207, 16, 32, 0.25);">
+        Ingresar al Sistema
+      </a>
+    </div>
   </div>
 {% else %}
 
   {# Encabezado del panel de usuario #}
-  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.75rem; border-bottom: 1px solid var(--sgec-border-light); padding-bottom: 1rem;">
+  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 1.25rem;">
     <div>
-      <h1 style="margin: 0 0 0.25rem 0; font-size: 1.75rem; color: var(--sgec-primary);">
+      <h1 style="margin: 0 0 0.25rem 0; font-size: 1.75rem; color: #0f172a; font-weight: 800;">
         Bienvenido, {{ activeUser.name }}
       </h1>
-      <p style="margin: 0; color: var(--sgec-text-muted); font-size: 0.925rem;">
+      <p style="margin: 0; color: #64748b; font-size: 0.925rem;">
         {% if activeUser.role == 'OFFICE_HEAD' %}Jefe de la Oficina de Administración de Escenarios
         {% elif activeUser.role == 'ADMIN_ASSISTANT' %}Auxiliar Administrativo — Gestión de Solicitudes y Alquileres
         {% elif activeUser.role == 'LEGAL' %}Oficina Asesora Jurídica — Revisión y Control Contractual
@@ -36,14 +41,14 @@
       </p>
     </div>
 
-    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+    <div style="display: flex; gap: 0.65rem; flex-wrap: wrap;">
       {% if activeUser.role == 'ADMIN_ASSISTANT' %}
         <a href="/solicitudes/nueva" role="button" style="margin: 0; font-weight: 700;">
           + Registrar Solicitud
         </a>
       {% endif %}
       {% if activeUser.role in ['OFFICE_HEAD', 'ADMIN_ASSISTANT', 'LEGAL', 'SECRETARY'] %}
-        <a href="/solicitudes" role="button" class="outline" style="margin: 0;">
+        <a href="/solicitudes" role="button" class="outline secondary" style="margin: 0;">
           Ver Solicitudes
         </a>
       {% endif %}
@@ -58,33 +63,33 @@
   {# Sección: Resumen de Indicadores / Métricas Rápidas #}
   {% if stats %}
     <div class="responsive-grid responsive-grid-4" style="margin-bottom: 2rem;">
-      <div class="card" style="margin: 0; text-align: center; border-left: 4px solid var(--sgec-primary);">
-        <span style="font-size: 0.825rem; color: var(--sgec-text-muted); font-weight: 600; text-transform: uppercase;">Total Activas</span>
-        <div style="font-size: 1.85rem; font-weight: 800; color: var(--sgec-primary); margin: 0.25rem 0;">{{ stats.totalActive | default(0) }}</div>
+      <div class="card" style="margin: 0; text-align: center; border-top: 4px solid #0f172a; border-radius: 8px;">
+        <span style="font-size: 0.775rem; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">Total Activas</span>
+        <div style="font-size: 2rem; font-weight: 800; color: #0f172a; margin: 0.25rem 0;">{{ stats.totalActive | default(0) }}</div>
       </div>
-      <div class="card" style="margin: 0; text-align: center; border-left: 4px solid #fab005;">
-        <span style="font-size: 0.825rem; color: var(--sgec-text-muted); font-weight: 600; text-transform: uppercase;">En Trámite</span>
-        <div style="font-size: 1.85rem; font-weight: 800; color: #b06200; margin: 0.25rem 0;">{{ stats.inProgress | default(0) }}</div>
+      <div class="card" style="margin: 0; text-align: center; border-top: 4px solid #f59e0b; border-radius: 8px;">
+        <span style="font-size: 0.775rem; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">En Trámite</span>
+        <div style="font-size: 2rem; font-weight: 800; color: #b45309; margin: 0.25rem 0;">{{ stats.inProgress | default(0) }}</div>
       </div>
-      <div class="card" style="margin: 0; text-align: center; border-left: 4px solid #389e0d;">
-        <span style="font-size: 0.825rem; color: var(--sgec-text-muted); font-weight: 600; text-transform: uppercase;">Legalizadas</span>
-        <div style="font-size: 1.85rem; font-weight: 800; color: #237804; margin: 0.25rem 0;">{{ stats.legalized | default(0) }}</div>
+      <div class="card" style="margin: 0; text-align: center; border-top: 4px solid #16a34a; border-radius: 8px;">
+        <span style="font-size: 0.775rem; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">Legalizadas</span>
+        <div style="font-size: 2rem; font-weight: 800; color: #15803d; margin: 0.25rem 0;">{{ stats.legalized | default(0) }}</div>
       </div>
-      <div class="card" style="margin: 0; text-align: center; border-left: 4px solid #868e96;">
-        <span style="font-size: 0.825rem; color: var(--sgec-text-muted); font-weight: 600; text-transform: uppercase;">Canceladas</span>
-        <div style="font-size: 1.85rem; font-weight: 800; color: #495057; margin: 0.25rem 0;">{{ stats.cancelled | default(0) }}</div>
+      <div class="card" style="margin: 0; text-align: center; border-top: 4px solid #94a3b8; border-radius: 8px;">
+        <span style="font-size: 0.775rem; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">Canceladas</span>
+        <div style="font-size: 2rem; font-weight: 800; color: #475569; margin: 0.25rem 0;">{{ stats.cancelled | default(0) }}</div>
       </div>
     </div>
   {% endif %}
 
   {# Sección: «Pendientes para mí» según rol #}
   <section aria-labelledby="pendientes-heading">
-    <div class="card" style="padding: 1.5rem;">
+    <div class="card" style="padding: 1.5rem; border-radius: 8px;">
       <div class="card-header">
-        <h2 id="pendientes-heading" class="card-title">
-          <span>&#128203;</span> Pendientes para mí
+        <h2 id="pendientes-heading" class="card-title" style="display: flex; align-items: center; gap: 0.5rem;">
+          <span style="color: #cf1020;">&#128203;</span> Pendientes para mí
         </h2>
-        <span style="font-size: 0.85rem; color: var(--sgec-text-muted);">
+        <span style="font-size: 0.85rem; color: #64748b;">
           Trámites que requieren su intervención directa
         </span>
       </div>
@@ -114,8 +119,8 @@
                     <strong>{{ req.requestRadicado | default(req.id | truncate(10)) }}</strong>
                   </td>
                   <td>
-                    <div>{{ req.customer.name | default(req.customerName) }}</div>
-                    <small style="color: var(--sgec-text-muted);">{{ req.customer.documentNumber | default(req.customerDocument) }}</small>
+                    <div style="font-weight: 600;">{{ req.customer.name | default(req.customerName) }}</div>
+                    <small style="color: #64748b;">{{ req.customer.documentNumber | default(req.customerDocument) }}</small>
                   </td>
                   <td>{{ req.eventName }}</td>
                   <td>{{ req.space.name | default(req.spaceName) }}</td>
@@ -149,12 +154,14 @@
         </div>
       {% else %}
         {# Estado vacío amigable cuando no hay pendientes #}
-        <div style="text-align: center; padding: 2.5rem 1rem;">
-          <div style="font-size: 2.5rem; color: #40c057; margin-bottom: 0.5rem;" aria-hidden="true">&#10003;</div>
-          <h3 style="font-size: 1.25rem; color: var(--sgec-primary); margin-bottom: 0.35rem;">
+        <div style="text-align: center; padding: 2.75rem 1rem;">
+          <div style="display: inline-flex; align-items: center; justify-content: center; width: 52px; height: 52px; border-radius: 50%; background-color: #f0fdf4; color: #16a34a; font-size: 1.6rem; margin-bottom: 0.85rem; border: 1px solid #bbf7d0;" aria-hidden="true">
+            &#10003;
+          </div>
+          <h3 style="font-size: 1.25rem; color: #0f172a; font-weight: 700; margin-bottom: 0.35rem;">
             No tienes trámites pendientes por atender
           </h3>
-          <p style="color: var(--sgec-text-muted); font-size: 0.9rem; max-width: 480px; margin: 0 auto 1.5rem;">
+          <p style="color: #64748b; font-size: 0.9rem; max-width: 480px; margin: 0 auto 1.5rem; line-height: 1.5;">
             {% if activeUser.role == 'ADMIN_ASSISTANT' %}
               No hay solicitudes pendientes de respuesta, registro de pago ni devoluciones de Jurídica.
             {% elif activeUser.role == 'LEGAL' %}
@@ -174,13 +181,13 @@
 
           <div style="display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap;">
             {% if activeUser.role in ['OFFICE_HEAD', 'ADMIN_ASSISTANT', 'LEGAL', 'SECRETARY'] %}
-              <a href="/solicitudes" role="button" class="outline" style="padding: 0.5rem 1.25rem; margin: 0;">
+              <a href="/solicitudes" role="button" class="outline secondary" style="padding: 0.5rem 1.25rem; margin: 0; font-size: 0.9rem;">
                 Consultar historial de solicitudes
               </a>
             {% endif %}
             {% if activeUser.role in ['OFFICE_HEAD', 'ADMIN_ASSISTANT', 'LEGAL', 'SECRETARY', 'OPERATIONS_TECH'] %}
-              <a href="/agenda" role="button" class="outline secondary" style="padding: 0.5rem 1.25rem; margin: 0;">
-                Consultar agenda de escenarios
+              <a href="/agenda" role="button" class="outline secondary" style="padding: 0.5rem 1.25rem; margin: 0; font-size: 0.9rem;">
+                Ver agenda de escenarios
               </a>
             {% endif %}
           </div>

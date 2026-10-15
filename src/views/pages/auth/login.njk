@@ -1,16 +1,20 @@
 {% extends "layouts/base.njk" %}
 
 {% block content %}
-<div style="display: flex; justify-content: center; align-items: center; min-height: 65vh;">
-  <article class="card" style="width: 100%; max-width: 460px; margin: 1rem auto; padding: 2rem;">
-    <header style="text-align: center; margin-bottom: 1.5rem; border-bottom: none; padding-bottom: 0;">
-      <h1 style="font-size: 1.6rem; color: var(--sgec-primary); margin-bottom: 0.25rem;">
+<div style="display: flex; justify-content: center; align-items: center; min-height: 70vh; padding: 1.5rem 0;">
+  <article class="card card-civic-accent" style="width: 100%; max-width: 480px; margin: 0 auto; padding: 2.25rem 2rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.05);">
+    <div style="text-align: center; margin-bottom: 1.75rem;">
+      <div style="display: inline-flex; align-items: center; justify-content: center; width: 54px; height: 54px; border-radius: 12px; background-color: #fef2f2; color: #cf1020; font-size: 1.65rem; margin-bottom: 0.85rem; border: 1px solid #fecaca; box-shadow: 0 2px 4px rgba(207, 16, 32, 0.08);">
+        &#127963;
+      </div>
+      <h1 style="font-size: 1.65rem; color: #0f172a; font-weight: 800; margin-bottom: 0.35rem; letter-spacing: -0.02em;">
         Iniciar Sesión
       </h1>
-      <p style="color: var(--sgec-text-muted); font-size: 0.9rem; margin: 0;">
-        Sistema de Gestión de Escenarios y Bienes Culturales
+      <p style="color: #64748b; font-size: 0.9rem; margin: 0; line-height: 1.4;">
+        Secretaría de Cultura · Alcaldía de Pereira<br>
+        <span style="font-size: 0.825rem; color: #94a3b8;">Sistema de Gestión de Escenarios y Bienes Culturales</span>
       </p>
-    </header>
+    </div>
 
     {% if error %}
       <div class="alert alert-error" role="alert" style="margin-bottom: 1.25rem;">
@@ -25,7 +29,7 @@
       <div class="form-group">
         <label for="email">
           Correo Electrónico Institucional
-          <span style="color: #c92a2a;">*</span>
+          <span style="color: #cf1020; font-weight: 700;">*</span>
           <small>Ejemplo: auxiliar@sgec.local</small>
         </label>
         <input
@@ -43,8 +47,8 @@
       <div class="form-group">
         <label for="password">
           Contraseña
-          <span style="color: #c92a2a;">*</span>
-          <small>Ingrese su contraseña de acceso</small>
+          <span style="color: #cf1020; font-weight: 700;">*</span>
+          <small>Ingrese su clave de acceso</small>
         </label>
         <input
           type="password"
@@ -56,24 +60,26 @@
         >
       </div>
 
-      <button type="submit" style="width: 100%; margin-top: 1rem; font-weight: 700; padding: 0.75rem;">
+      <button type="submit" style="width: 100%; margin-top: 1.25rem; font-weight: 700; padding: 0.75rem; font-size: 1rem;">
         Ingresar al Sistema
       </button>
     </form>
 
-    <footer style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--sgec-border-light); font-size: 0.8rem; color: var(--sgec-text-muted); text-align: center;">
-      <details style="border: none; padding: 0; margin: 0;">
-        <summary style="cursor: pointer; color: var(--sgec-primary); font-weight: 600;">
-          Ver usuarios semilla para desarrollo
+    <footer style="margin-top: 1.75rem; padding-top: 1.25rem; border-top: 1px solid #e2e8f0; font-size: 0.85rem; color: #64748b;">
+      <details style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 0.75rem; background-color: #f8fafc; margin: 0;">
+        <summary style="cursor: pointer; color: #0f172a; font-weight: 600; font-size: 0.825rem;">
+          Usuarios de prueba para evaluación
         </summary>
-        <div style="text-align: left; margin-top: 0.5rem; padding: 0.5rem; background: #f8fafc; border-radius: 4px; font-family: monospace; font-size: 0.75rem;">
-          <div>• <strong>Auxiliar:</strong> auxiliar@sgec.local</div>
-          <div>• <strong>Jefe:</strong> jefe@sgec.local</div>
-          <div>• <strong>Jurídica:</strong> juridica@sgec.local</div>
-          <div>• <strong>Secretario:</strong> secretario@sgec.local</div>
-          <div>• <strong>Operativo:</strong> operativo@sgec.local</div>
-          <div>• <strong>Mantenimiento:</strong> mantenimiento@sgec.local</div>
-          <div style="margin-top: 0.25rem;"><em>Clave: Cambiar123!</em></div>
+        <div style="margin-top: 0.75rem; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.775rem; color: #334155; line-height: 1.6;">
+          <div style="display: flex; justify-content: space-between; padding: 0.2rem 0; border-bottom: 1px dashed #e2e8f0;"><span>Auxiliar:</span> <code>auxiliar@sgec.local</code></div>
+          <div style="display: flex; justify-content: space-between; padding: 0.2rem 0; border-bottom: 1px dashed #e2e8f0;"><span>Jefe de Oficina:</span> <code>jefe@sgec.local</code></div>
+          <div style="display: flex; justify-content: space-between; padding: 0.2rem 0; border-bottom: 1px dashed #e2e8f0;"><span>Oficina Jurídica:</span> <code>juridica@sgec.local</code></div>
+          <div style="display: flex; justify-content: space-between; padding: 0.2rem 0; border-bottom: 1px dashed #e2e8f0;"><span>Secretario de Cultura:</span> <code>secretario@sgec.local</code></div>
+          <div style="display: flex; justify-content: space-between; padding: 0.2rem 0; border-bottom: 1px dashed #e2e8f0;"><span>Técnico Operativo:</span> <code>operativo@sgec.local</code></div>
+          <div style="display: flex; justify-content: space-between; padding: 0.2rem 0;"><span>Técnico Mantenimiento:</span> <code>mantenimiento@sgec.local</code></div>
+          <div style="margin-top: 0.5rem; padding-top: 0.4rem; border-top: 1px solid #cbd5e1; font-weight: 600; color: #b45309; text-align: center;">
+            Contraseña general: <code>Cambiar123!</code>
+          </div>
         </div>
       </details>
     </footer>

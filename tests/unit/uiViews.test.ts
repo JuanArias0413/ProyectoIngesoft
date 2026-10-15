@@ -68,6 +68,15 @@ describe('UI Views & Templates (F2.11, F2.12)', () => {
       expect(htmlWarn).toContain('alert-warning');
       expect(htmlWarn).toContain('Alerta preventiva');
     });
+
+    it('does not render any alert boxes when flash arrays are empty', () => {
+      const html = env.render('partials/flash.njk', {
+        flash: { success: [], error: [], info: [], warning: [] },
+      });
+      expect(html.trim()).toBe('');
+      expect(html).not.toContain('alert');
+      expect(html).not.toContain('flash-container');
+    });
   });
 
   describe('partials/pagination.njk', () => {
