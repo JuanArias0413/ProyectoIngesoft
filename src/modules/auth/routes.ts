@@ -9,7 +9,7 @@ export function createAuthRouter(): Router {
 
   const loginLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: env.NODE_ENV === 'test' ? 1000 : 10,
+    max: env.NODE_ENV === 'production' ? 10 : 1000,
     message: { error: 'Demasiados intentos fallidos. Intente de nuevo más tarde.' },
     standardHeaders: true,
     legacyHeaders: false,

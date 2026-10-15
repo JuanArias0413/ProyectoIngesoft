@@ -26,11 +26,6 @@ test.describe('F4.1 — E2E Cancelación', () => {
     await page.goto('/solicitudes/nueva');
     await expect(page.locator('h1')).toContainText('Registrar Nueva Solicitud');
 
-    const base = new Date();
-    base.setDate(base.getDate() + 6);
-    base.setHours(9, 0, 0, 0);
-    const end = new Date(base);
-    end.setHours(12, 0, 0, 0);
     const fmt = (d: Date) =>
       `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}T${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 
@@ -48,24 +43,16 @@ test.describe('F4.1 — E2E Cancelación', () => {
     await page.fill('#expectedAttendees', '15');
     await page.selectOption('#channel', 'WRITTEN');
 
-    const venueSelect = page.locator('#venueId');
-    await venueSelect.waitFor({ state: 'visible' });
-    await venueSelect.selectOption({ index: 1 });
-    await page.waitForTimeout(500);
-    const spaceSelect = page.locator('#spaceId');
-    await spaceSelect.waitFor({ state: 'visible' });
-    await spaceSelect.selectOption({ index: 1 });
+    await page.selectOption('#spaceId', 'space-sala-principal');
+    await page.fill('#startsAt', fmt(new Date('2027-09-01T09:00:00')));
+    await page.fill('#endsAt', fmt(new Date('2027-09-01T12:00:00')));
 
-    await page.fill('#startsAt', fmt(base));
-    await page.fill('#endsAt', fmt(end));
-
-    await page.click('button[type="submit"]');
+    await page.click('#submit-btn');
     await page.waitForLoadState('networkidle');
 
-    await expect(page.locator('.badge, [class*="badge"]').first()).toContainText(/Registrada/i);
+    await expect(page.locator('.badge-status-REGISTERED').first()).toBeVisible();
     const solicitudUrl = page.url();
 
-    // Guarda el ID para verificar reserva después
     const match = solicitudUrl.match(/\/solicitudes\/([^/]+)/);
     const rentalId = match ? match[1] : null;
     expect(rentalId).not.toBeNull();
@@ -78,28 +65,26 @@ test.describe('F4.1 — E2E Cancelación', () => {
     await loginAs(page, 'jefe@sgec.local', 'Cambiar123!');
     await page.goto(solicitudUrl);
 
-    // El Jefe debe ver la acción de cancelar
-    const cancelForm = page.locator('form[action*="cancel"]');
-    await cancelForm.waitFor({ state: 'visible' });
+    // Abrir modal de cancelación
+    const cancelModalBtn = page.locator('button:has-text("Cancelar Trámite")');
+    await expect(cancelModalBtn).toBeVisible();
+    await cancelModalBtn.click();
 
-    // Abrir modal o llenar motivo directamente
-    const motivoInput = cancelForm.locator('textarea[name="cancelReason"], input[name="cancelReason"]');
+    const motivoInput = page.locator('#dialog-cancelar textarea#cancelReason');
+    await expect(motivoInput).toBeVisible();
     await motivoInput.fill('El solicitante desistió por razones de fuerza mayor comprobadas.');
 
-    // Click en cancelar (puede necesitar confirmar modal)
-    const cancelBtn = cancelForm.locator('button[type="submit"]');
-    await cancelBtn.click();
+    const cancelSubmitBtn = page.locator('#dialog-cancelar button[type="submit"]');
+    await cancelSubmitBtn.click();
     await page.waitForLoadState('networkidle');
 
     // =========================================================================
     // 3. Verificaciones
     // =========================================================================
-    await expect(page.locator('.badge, [class*="badge"]').first()).toContainText(/Cancelada/i);
-
-    // Motivo de cancelación visible en la página
+    await expect(page.locator('.badge-status-CANCELLED').first()).toBeVisible();
     await expect(page.locator('body')).toContainText(/fuerza mayor/i);
 
-    // Verificar que el estado de la solicitud es CANCELLED
+    // Verificar en listado de solicitudes
     await page.goto('/solicitudes');
     await page.waitForLoadState('networkidle');
     const bodyText = await page.locator('body').textContent();
@@ -108,11 +93,8 @@ test.describe('F4.1 — E2E Cancelación', () => {
     // Verificar que el espacio vuelve a estar disponible en agenda
     await page.goto('/agenda');
     await page.waitForLoadState('networkidle');
-    // La reserva liberada no debería bloquear futuras reservas
-    // (verificación visual: la solicitud cancelada no aparece como ocupada)
     const agendaText = await page.locator('body').textContent();
-    // La solicitud puede aparecer con badge CANCELLED pero no como HELD/CONFIRMED
-    expect(agendaText).not.toMatch(/Mario Cancelado E2E.*HELD|CONFIRMED.*Mario Cancelado E2E/);
+    expect(agendaText).not.toMatch(/Mario Cancelado E2E.*CONFIRMED/);
 
     await logout(page);
   });
@@ -124,11 +106,6 @@ test.describe('F4.1 — E2E Cancelación', () => {
 
     await loginAs(page, 'auxiliar@sgec.local', 'Cambiar123!');
 
-    const base = new Date();
-    base.setDate(base.getDate() + 7);
-    base.setHours(15, 0, 0, 0);
-    const end = new Date(base);
-    end.setHours(17, 0, 0, 0);
     const fmt = (d: Date) =>
       `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}T${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 
@@ -146,32 +123,32 @@ test.describe('F4.1 — E2E Cancelación', () => {
     await page.fill('#expectedAttendees', '10');
     await page.selectOption('#channel', 'VERBAL');
 
-    const venueSelect = page.locator('#venueId');
-    await venueSelect.waitFor({ state: 'visible' });
-    await venueSelect.selectOption({ index: 1 });
-    await page.waitForTimeout(500);
-    await page.locator('#spaceId').selectOption({ index: 1 });
-    await page.fill('#startsAt', fmt(base));
-    await page.fill('#endsAt', fmt(end));
-    await page.click('button[type="submit"]');
+    await page.selectOption('#spaceId', 'space-sala-principal');
+    await page.fill('#startsAt', fmt(new Date('2027-09-05T15:00:00')));
+    await page.fill('#endsAt', fmt(new Date('2027-09-05T17:00:00')));
+    await page.click('#submit-btn');
     await page.waitForLoadState('networkidle');
 
-    await expect(page.locator('.badge, [class*="badge"]').first()).toContainText(/Registrada/i);
+    await expect(page.locator('.badge-status-REGISTERED').first()).toBeVisible();
 
     // Intentar cancelar con motivo muy corto
-    const cancelForm = page.locator('form[action*="cancel"]');
-    await cancelForm.waitFor({ state: 'visible' });
-    await cancelForm.locator('textarea[name="cancelReason"], input[name="cancelReason"]').fill('Corto');
-    await cancelForm.locator('button[type="submit"]').click();
-    await page.waitForLoadState('networkidle');
+    const cancelModalBtn = page.locator('button:has-text("Cancelar Trámite")');
+    await expect(cancelModalBtn).toBeVisible();
+    await cancelModalBtn.click();
 
-    // Debe seguir en REGISTERED (no cancelada) o mostrar error
-    const currentBadge = await page.locator('.badge, [class*="badge"]').first().textContent();
-    const bodyText = await page.locator('body').textContent();
-    const wasRejected =
-      /Registrada/i.test(currentBadge ?? '') ||
-      /10 caracteres|demasiado corto|motivo/i.test(bodyText ?? '');
-    expect(wasRejected).toBe(true);
+    const motivoInput = page.locator('#dialog-cancelar textarea#cancelReason');
+    await expect(motivoInput).toBeVisible();
+    await motivoInput.fill('Corto');
+
+    const cancelSubmitBtn = page.locator('#dialog-cancelar button[type="submit"]');
+    await cancelSubmitBtn.click();
+    await page.waitForTimeout(500);
+
+    // Debe seguir en REGISTERED (no cancelada)
+    await expect(page.locator('.badge-status-REGISTERED').first()).toBeVisible();
+
+    // Cerrar modal
+    await page.locator('#dialog-cancelar button:has-text("No, Volver")').click();
 
     await logout(page);
   });

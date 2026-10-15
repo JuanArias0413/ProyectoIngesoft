@@ -18,11 +18,8 @@ test.describe('F4.1 — E2E Conflicto de Agenda', () => {
 
     await loginAs(page, 'auxiliar@sgec.local', 'Cambiar123!');
 
-    const base = new Date();
-    base.setDate(base.getDate() + 5);
-    base.setHours(10, 0, 0, 0);
-    const end = new Date(base);
-    end.setHours(14, 0, 0, 0);
+    const base = new Date('2027-07-15T10:00:00');
+    const end = new Date('2027-07-15T14:00:00');
 
     const fmt = (d: Date) =>
       `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}T${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
@@ -43,24 +40,18 @@ test.describe('F4.1 — E2E Conflicto de Agenda', () => {
       await page.fill('#expectedAttendees', '20');
       await page.selectOption('#channel', 'VERBAL');
 
-      const venueSelect = page.locator('#venueId');
-      await venueSelect.waitFor({ state: 'visible' });
-      await venueSelect.selectOption({ index: 1 });
-      await page.waitForTimeout(500);
-      const spaceSelect = page.locator('#spaceId');
-      await spaceSelect.waitFor({ state: 'visible' });
-      await spaceSelect.selectOption({ index: 1 });
+      await page.selectOption('#spaceId', 'space-sala-principal');
 
       await page.fill('#startsAt', fmt(base));
       await page.fill('#endsAt', fmt(end));
 
-      await page.click('button[type="submit"]');
+      await page.click('#submit-btn');
       await page.waitForLoadState('networkidle');
     };
 
     // Primera solicitud — debe registrarse exitosamente
     await fillAndSubmitRequest('77700001', 'Cliente Conflicto E2E Uno');
-    await expect(page.locator('.badge, [class*="badge"]').first()).toContainText(/Registrada/i);
+    await expect(page.locator('.badge-status-REGISTERED').first()).toBeVisible();
 
     // Segunda solicitud — mismo espacio, franja solapada → debe rechazarse
     await fillAndSubmitRequest('77700002', 'Cliente Conflicto E2E Dos');
@@ -75,13 +66,7 @@ test.describe('F4.1 — E2E Conflicto de Agenda', () => {
 
     // Verifica que la disponibilidad HTMX marca "No disponible"
     await page.goto('/solicitudes/nueva');
-    const venueSelect = page.locator('#venueId');
-    await venueSelect.waitFor({ state: 'visible' });
-    await venueSelect.selectOption({ index: 1 });
-    await page.waitForTimeout(500);
-    const spaceSelect = page.locator('#spaceId');
-    await spaceSelect.waitFor({ state: 'visible' });
-    await spaceSelect.selectOption({ index: 1 });
+    await page.selectOption('#spaceId', 'space-sala-principal');
     await page.fill('#startsAt', fmt(base));
     await page.fill('#endsAt', fmt(end));
 

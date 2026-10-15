@@ -15,6 +15,9 @@ export async function loginAs(
 }
 
 export async function logout(page: Page): Promise<void> {
+  await page.evaluate(() => {
+    document.querySelectorAll('dialog[open]').forEach((d) => (d as HTMLDialogElement).close());
+  }).catch(() => {});
   const logoutBtn = page.locator('form[action="/logout"] button[type="submit"]');
   if (await logoutBtn.isVisible()) {
     await logoutBtn.click();

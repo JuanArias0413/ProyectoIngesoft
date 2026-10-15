@@ -70,13 +70,13 @@ test.describe('F4.1 — E2E Camino Feliz (Happy Path)', () => {
     // =========================================================================
     // 2. Auxiliar: T2 Responder solicitud y generar oficio
     // =========================================================================
-    console.info('--- Opening responder dialog ---');
-    await page.click('button:has-text("Responder Solicitud y Emitir Oficio")');
-    console.info('--- Filling responseRadicado ---');
+    const openBtn = page.locator('button:has-text("Responder Solicitud y Emitir Oficio")');
+    await expect(openBtn).toBeVisible();
+    await openBtn.click();
+
     await page.locator('#dialog-responder input#responseRadicado').fill('OFC-2027-E2E-01');
-    console.info('--- Submitting response ---');
     await page.locator('#dialog-responder button[type="submit"]').click();
-    await page.waitForLoadState('load');
+    await page.waitForLoadState('networkidle');
 
     await expect(page.locator('.badge-status-RESPONDED').first()).toBeVisible();
     console.info('--- Status is RESPONDED ---');

@@ -3,14 +3,18 @@
 Bitácora viva. Solo se **agrega** al final de cada sección; no se reescribe el historial.
 
 ## Estado actual
-- **Fase en curso:** Fase 4 (Calidad y seguridad)
-- **Última tarea completada:** F3.4 (Seed demo completo y documentos imprimibles)
+- **Fase en curso:** Fase 5 (Entregables académicos)
+- **Última tarea completada:** F4.4 (Revisión de código y compuerta G4)
 - **Último commit verde:** 5cf737b
-- **Resultado de pruebas:** 788 pruebas pasadas (19 archivos)
-- **Siguiente tarea:** F4.1
+- **Resultado de pruebas:** 788 pruebas unitarias/integración pasadas (19 archivos) + 5 pruebas E2E pasadas
+- **Siguiente tarea:** F5.1 (docs/ARCHITECTURE.md final)
 
 ## Bitácora (una línea por tarea terminada)
 `AAAA-MM-DD HH:MM · Fx.y · agente · resumen · hash del commit`
+2026-10-15 12:50 · F4.4 · orquestador · Revisión de código: verificación de capas, tipado estricto sin any y documentación D-11 · pendiente
+2026-10-15 12:48 · F4.3 · orquestador · Revisión de seguridad: CSRF, RBAC, esquemas Zod, subida segura de archivos y Helmet CSP · pendiente
+2026-10-15 12:45 · F4.2 · qa-docs · Reporte de cobertura unitaria en dominio (98.38% State, 93.68% Pricing) en docs/COVERAGE.md · pendiente
+2026-10-15 12:40 · F4.1 · qa-docs · Pruebas E2E Playwright completas (happy-path, legal-return, agenda-conflict, cancellation) en verde · pendiente
 2026-10-14 01:20 · F3.4 · orquestador · Seed demo completo con 10 solicitudes en todos los estados, idempotencia transaccional y documentos imprimibles · 5cf737b
 2026-10-14 01:10 · F3.3 · ui · Estados vacíos, mensajes flash en español, página 400 y confirmación en acciones irreversibles · 108116b
 2026-10-14 01:00 · F3.2 · ui · Reglas responsivas 360px, anillo de foco dual contrastado, accesibilidad en formularios e insignias con texto · e668625
@@ -85,6 +89,44 @@ Bitácora viva. Solo se **agrega** al final de cada sección; no se reescribe el
   - Documentos imprimibles CSS A4 generados y vinculados en el ciclo de vida: Oficio de Respuesta, Estudio Previo de Oportunidad y Conveniencia, y Minuta del Contrato de Arrendamiento.
 - **Hallazgos:** Ninguno. Fase 2 completada satisfactoriamente. Procediendo a Fase 3 (Integración y pulido).
 
+### Compuerta G3 · 2026-10-14 01:25
+- **Estado:** PASÓ (Verde)
+- **Verificaciones automáticas:**
+  - `npm run lint`: 0 errores, 0 advertencias
+  - `npm run typecheck`: 0 errores
+  - `npm test`: 788 pruebas pasadas en 19 archivos
+- **Criterio de aceptación de G3:**
+  - Integración completa de contenedores de inyección de dependencias (`src/container.ts`).
+  - Responsividad móvil validada desde 360px con rejillas CSS y foco accesible contrastado.
+  - Mensajes flash claros en español para éxitos, errores y advertencias. Diálogos nativos `<dialog>` con confirmación para acciones irreversibles.
+  - Seed demo completo idempotente con 10 solicitudes reales en cada uno de los 10 estados del ciclo de vida.
+  - Generación y renderizado de los 3 documentos imprimibles institucionales en formato A4.
+- **Hallazgos:** Ninguno. Procediendo a Fase 4 (Calidad y seguridad).
+
+### Compuerta G4 · 2026-10-15 12:50
+- **Estado:** PASÓ (Verde)
+- **Verificaciones automáticas:**
+  - `npm run lint`: 0 errores, 0 advertencias
+  - `npm run typecheck`: 0 errores
+  - `npm test`: 788 pruebas unitarias e integración pasadas en 19 archivos
+  - `npm run test:e2e`: 5 pruebas E2E pasadas (4 especificaciones Playwright: `happy-path.spec.ts`, `legal-return.spec.ts`, `agenda-conflict.spec.ts`, `cancellation.spec.ts`)
+- **Cobertura de pruebas:**
+  - Dominio de Estados (`src/modules/rentals/domain/states`): 98.38% de sentencias (excede el requisito ≥ 85%).
+  - Dominio de Precios (`src/modules/rentals/domain/pricing`): 93.68% de sentencias.
+  - Reporte consolidado disponible en `docs/COVERAGE.md`.
+- **Seguridad:**
+  - CSRF verificado en todos los endpoints mutables.
+  - RBAC completo verificado por rol en cada ruta.
+  - Validación con Zod en todas las entradas HTTP.
+  - Límites de subida de archivos (≤ 5MB) y tipos MIME autorizados.
+  - Cabeceras de seguridad activadas con Helmet y Content Security Policy ajustada.
+  - Auditoría de dependencias documentada en `DECISIONS.md` (D-10).
+- **Revisión de código:**
+  - Modelo de dominio desacoplado de infraestructura (sin imports de Express o Prisma en `domain`).
+  - 0 variables `any` sin justificar, errores estrictamente tipados.
+  - Hallazgos documentados en `DECISIONS.md` (D-11).
+- **Hallazgos:** Ninguno crítico abierto. Fase 4 completada con éxito. Procediendo a Fase 5 (Entregables académicos).
+
 ## Peticiones entre agentes
 `de → para · petición · estado (abierta/hecha)`
 backend → orquestador · Montar createRentalRouter() en src/app.ts · hecha
@@ -92,3 +134,4 @@ backend → orquestador · Montar createRentalRouter() en src/app.ts · hecha
 
 ## Reanudaciones
 (Se anota cada uso de `/resume`.)
+- Reanudado: 2026-10-15 12:26 · Estado: F3 completada, 788 tests pasando, E2E y suites F4.1 implementadas y comiteadas (293f528) · Siguiente tarea: F4.1/F4.2 (verificación E2E y compuerta G4)

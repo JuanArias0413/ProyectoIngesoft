@@ -86,10 +86,10 @@ Reglas de paralelismo: las fases 0 y 1 las hace **solo el orquestador**, en orde
 
 ## Fase 4 — Calidad y seguridad
 
-- [ ] **F4.1** E2E Playwright: camino feliz (auxiliar, jurídica, secretario; el jefe consulta), devolución de Jurídica, conflicto de agenda, cancelación.
-- [ ] **F4.2** Cobertura: unitaria ≥ 85% en dominio; reportar en `docs/`.
-- [ ] **F4.3** Revisión de seguridad con lista de verificación: CSRF en todos los POST, autorización en cada ruta, validación Zod en cada entrada, subida de archivos, cabeceras, secretos fuera del repo, `npm audit`.
-- [ ] **F4.4** Revisión de código por un agente que **no** escribió ese código (patrón State, capas, nombres, funciones largas, TODOs). Corregir hallazgos.
+- [x] **F4.1** E2E Playwright: camino feliz (auxiliar, jurídica, secretario; el jefe consulta), devolución de Jurídica, conflicto de agenda, cancelación.
+- [x] **F4.2** Cobertura: unitaria ≥ 85% en dominio; reportar en `docs/`.
+- [x] **F4.3** Revisión de seguridad con lista de verificación: CSRF en todos los POST, autorización en cada ruta, validación Zod en cada entrada, subida de archivos, cabeceras, secretos fuera del repo, `npm audit`.
+- [x] **F4.4** Revisión de código por un agente que **no** escribió ese código (patrón State, capas, nombres, funciones largas, TODOs). Corregir hallazgos.
 
 **G4:** todo en verde, sin hallazgos críticos abiertos.
 

@@ -26,6 +26,9 @@ test.describe('F4.1 — E2E Devolución de Jurídica', () => {
     await page.goto('/solicitudes/nueva');
     await expect(page.locator('h1')).toContainText('Registrar Nueva Solicitud');
 
+    const fmt = (d: Date) =>
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}T${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+
     // Cliente
     await page.selectOption('#customerType', 'NATURAL');
     await page.selectOption('#documentType', 'CC');
@@ -42,87 +45,86 @@ test.describe('F4.1 — E2E Devolución de Jurídica', () => {
     await page.fill('#expectedAttendees', '30');
     await page.selectOption('#channel', 'EMAIL');
 
-    // Espacio y fechas (mañana, 3 horas)
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 3);
-    const dayAfter = new Date(tomorrow);
-    dayAfter.setHours(tomorrow.getHours() + 3);
-    const fmt = (d: Date) =>
-      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}T${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+    // Espacio y fechas (2027-10-01)
+    await page.selectOption('#spaceId', 'space-sala-principal');
+    await page.fill('#startsAt', fmt(new Date('2027-10-01T09:00:00')));
+    await page.fill('#endsAt', fmt(new Date('2027-10-01T13:00:00')));
 
-    const venueSelect = page.locator('#venueId');
-    await venueSelect.waitFor({ state: 'visible' });
-    await venueSelect.selectOption({ index: 1 });
-    await page.waitForTimeout(500);
-    const spaceSelect = page.locator('#spaceId');
-    await spaceSelect.waitFor({ state: 'visible' });
-    await spaceSelect.selectOption({ index: 1 });
-
-    await page.fill('#startsAt', fmt(tomorrow));
-    await page.fill('#endsAt', fmt(dayAfter));
-
-    await page.click('button[type="submit"]');
+    await page.click('#submit-btn');
     await page.waitForLoadState('networkidle');
 
     // Verificar REGISTERED
-    await expect(page.locator('.badge, [class*="badge"]').first()).toContainText(/Registrada/i);
+    await expect(page.locator('.badge-status-REGISTERED').first()).toBeVisible();
     const solicitudUrl = page.url();
+
+    const match = solicitudUrl.match(/\/solicitudes\/([^/]+)/);
+    const rentalId = match ? match[1] : null;
+    expect(rentalId).not.toBeNull();
 
     // =========================================================================
     // 2. Auxiliar: Responder con radicado
     // =========================================================================
-    const respondForm = page.locator('form[action*="/transiciones/respond"]');
-    await respondForm.waitFor({ state: 'visible' });
-    await respondForm.locator('input[name="responseRadicado"]').fill('RAD-LEGAL-2026-001');
-    await respondForm.locator('button[type="submit"]').click();
+    await page.click('button:has-text("Responder Solicitud y Emitir Oficio")');
+    await page.locator('#dialog-responder input#responseRadicado').fill('RAD-LEGAL-2027-001');
+    await page.locator('#dialog-responder button[type="submit"]').click();
     await page.waitForLoadState('networkidle');
-    await expect(page.locator('.badge, [class*="badge"]').first()).toContainText(/Respondida/i);
+
+    await expect(page.locator('.badge-status-RESPONDED').first()).toBeVisible();
 
     // =========================================================================
     // 3. Auxiliar: Verificar documentos
     // =========================================================================
-    const verifyBtn = page.locator('button:has-text("Verificar"), form[action*="verifyDocuments"] button').first();
-    if (await verifyBtn.isVisible()) {
-      await verifyBtn.click();
-      await page.waitForLoadState('networkidle');
+    let verifyCount = 0;
+    while (verifyCount < 10) {
+      const verifyButton = page.locator('form[action*="/verificar"] button[type="submit"]').first();
+      if ((await verifyButton.count()) === 0 || !(await verifyButton.isVisible())) {
+        break;
+      }
+      verifyCount++;
+      await verifyButton.click();
+      await page.waitForLoadState('load');
     }
-    await expect(page.locator('.badge, [class*="badge"]').first()).toContainText(/Documentos verificados/i);
+
+    const approveDocsBtn = page.locator(
+      'form[action*="/transiciones/verifyDocuments"] button[type="submit"]',
+    );
+    await expect(approveDocsBtn).toBeVisible();
+    await approveDocsBtn.click();
+    await page.waitForLoadState('load');
+
+    await expect(page.locator('.badge-status-DOCUMENTS_VERIFIED').first()).toBeVisible();
 
     // =========================================================================
     // 4. Auxiliar: Elaborar contrato
     // =========================================================================
-    const draftBtn = page.locator('form[action*="draftContract"] button, button:has-text("Elaborar contrato")').first();
-    await draftBtn.waitFor({ state: 'visible' });
-    await draftBtn.click();
-    await page.waitForLoadState('networkidle');
-    await expect(page.locator('.badge, [class*="badge"]').first()).toContainText(/Contrato elaborado/i);
+    await page.click('button:has-text("Elaborar Estudio Previo y Contrato")');
+    await page.locator('#dialog-elaborar-contrato button[type="submit"]').click();
+    await page.waitForLoadState('load');
+
+    await expect(page.locator('.badge-status-CONTRACT_DRAFTED').first()).toBeVisible();
 
     // =========================================================================
     // 5. Auxiliar: Registrar pago
     // =========================================================================
-    const payForm = page.locator('form[action*="registerPayment"]');
-    await payForm.waitFor({ state: 'visible' });
-    await payForm.locator('input[name="receiptNumber"]').fill('REC-E2E-LEGAL-001');
-    await payForm.locator('input[name="bankName"]').fill('Bancolombia');
-    await payForm.locator('input[name="voucherNumber"]').fill('VOUCH-E2E-LEGAL-001');
-    const amountInput = payForm.locator('input[name="amountPesos"]');
-    const amountValue = await amountInput.getAttribute('placeholder') ?? '750000';
-    await amountInput.fill(amountValue.replace(/[^0-9]/g, '') || '750000');
-    await payForm.locator('input[name="invoiceNumber"]').fill('FAC-E2E-LEGAL-001');
-    const today = new Date().toISOString().split('T')[0];
-    await payForm.locator('input[name="invoiceDate"]').fill(today);
-    await payForm.locator('button[type="submit"]').click();
-    await page.waitForLoadState('networkidle');
-    await expect(page.locator('.badge, [class*="badge"]').first()).toContainText(/Pagado/i);
+    await page.click('button:has-text("Registrar Pago y Facturación")');
+    await page.locator('#dialog-registrar-pago input#receiptNumber').fill('REC-E2E-LEGAL-001');
+    await page.locator('#dialog-registrar-pago input#bankName').fill('Bancolombia');
+    await page.locator('#dialog-registrar-pago input#voucherNumber').fill('VOUCH-E2E-LEGAL-001');
+    await page.locator('#dialog-registrar-pago input#paidAt').fill('2027-06-01');
+    await page.locator('#dialog-registrar-pago input#invoiceNumber').fill('FAC-E2E-LEGAL-001');
+    await page.locator('#dialog-registrar-pago input#invoiceDate').fill('2027-06-01');
+    await page.locator('#dialog-registrar-pago button[type="submit"]').click();
+    await page.waitForLoadState('load');
+
+    await expect(page.locator('.badge-status-PAID').first()).toBeVisible();
 
     // =========================================================================
     // 6. Auxiliar: Enviar a Jurídica
     // =========================================================================
-    const submitLegalBtn = page.locator('form[action*="submitToLegal"] button').first();
-    await submitLegalBtn.waitFor({ state: 'visible' });
-    await submitLegalBtn.click();
-    await page.waitForLoadState('networkidle');
-    await expect(page.locator('.badge, [class*="badge"]').first()).toContainText(/revisión jurídica/i);
+    await page.click('button:has-text("Enviar Contrato a Revisión Jurídica")');
+    await page.waitForLoadState('load');
+
+    await expect(page.locator('.badge-status-LEGAL_REVIEW').first()).toBeVisible();
 
     // =========================================================================
     // 7. Jurídica: DEVOLVER con observación (Ronda 1)
@@ -131,14 +133,16 @@ test.describe('F4.1 — E2E Devolución de Jurídica', () => {
     await loginAs(page, 'juridica@sgec.local', 'Cambiar123!');
     await page.goto(solicitudUrl);
 
-    const returnForm = page.locator('form[action*="returnLegal"]');
-    await returnForm.waitFor({ state: 'visible' });
-    await returnForm.locator('textarea[name="observations"], input[name="observations"]').fill(
-      'El clausulado no especifica las obligaciones de limpieza post-evento.',
-    );
-    await returnForm.locator('button[type="submit"]').click();
+    await expect(page.locator('.badge-status-LEGAL_REVIEW').first()).toBeVisible();
+
+    await page.click('button:has-text("Devolver con Observaciones")');
+    await page
+      .locator('#dialog-devolver-juridica textarea#returnObservations')
+      .fill('El clausulado no especifica las obligaciones de aseo y entrega post-evento.');
+    await page.locator('#dialog-devolver-juridica button[type="submit"]').click();
     await page.waitForLoadState('networkidle');
-    await expect(page.locator('.badge, [class*="badge"]').first()).toContainText(/Devuelto por Jurídica/i);
+
+    await expect(page.locator('.badge-status-RETURNED_BY_LEGAL').first()).toBeVisible();
 
     // =========================================================================
     // 8. Auxiliar: Corregir y reenviar (Ronda 2)
@@ -147,20 +151,19 @@ test.describe('F4.1 — E2E Devolución de Jurídica', () => {
     await loginAs(page, 'auxiliar@sgec.local', 'Cambiar123!');
     await page.goto(solicitudUrl);
 
-    // Editar cláusulas adicionales si el formulario está disponible
-    const editClausesForm = page.locator('form[action*="contrato"]');
-    if (await editClausesForm.isVisible()) {
-      const clausesInput = editClausesForm.locator('textarea[name="additionalClauses"]');
-      await clausesInput.fill('El arrendatario se compromete a dejar el espacio en condiciones de limpieza iguales a las de entrega.');
-      await editClausesForm.locator('button[type="submit"]').click();
-      await page.waitForLoadState('networkidle');
-    }
+    await expect(page.locator('.badge-status-RETURNED_BY_LEGAL').first()).toBeVisible();
 
-    const resubmitBtn = page.locator('form[action*="resubmitToLegal"] button').first();
-    await resubmitBtn.waitFor({ state: 'visible' });
-    await resubmitBtn.click();
+    await page.click('button:has-text("Corregir y Reenviar a Jurídica")');
+    await page
+      .locator('#dialog-reenviar-juridica textarea#resubmitClauses')
+      .fill('El arrendatario se compromete a entregar el espacio en perfecto estado de limpieza.');
+    await page
+      .locator('#dialog-reenviar-juridica textarea#resubmitNote')
+      .fill('Se subsanaron las observaciones de limpieza indicadas por Jurídica.');
+    await page.locator('#dialog-reenviar-juridica button[type="submit"]').click();
     await page.waitForLoadState('networkidle');
-    await expect(page.locator('.badge, [class*="badge"]').first()).toContainText(/revisión jurídica/i);
+
+    await expect(page.locator('.badge-status-LEGAL_REVIEW').first()).toBeVisible();
 
     // =========================================================================
     // 9. Jurídica: APROBAR (Ronda 2)
@@ -169,22 +172,24 @@ test.describe('F4.1 — E2E Devolución de Jurídica', () => {
     await loginAs(page, 'juridica@sgec.local', 'Cambiar123!');
     await page.goto(solicitudUrl);
 
-    const approveForm = page.locator('form[action*="approveLegal"]');
-    await approveForm.waitFor({ state: 'visible' });
-    const checks = approveForm.locator('input[type="checkbox"]');
-    const count = await checks.count();
-    for (let i = 0; i < count; i++) {
-      await checks.nth(i).check();
-    }
-    await approveForm.locator('button[type="submit"]').click();
-    await page.waitForLoadState('networkidle');
-    await expect(page.locator('.badge, [class*="badge"]').first()).toContainText(/Pendiente de firma/i);
+    await expect(page.locator('.badge-status-LEGAL_REVIEW').first()).toBeVisible();
 
-    // Verificar historial: 2 rondas de revisión
-    const timeline = page.locator('[class*="timeline"], .timeline, ol, ul').first();
-    const timelineText = await timeline.textContent();
-    expect(timelineText).toMatch(/returnLegal|Devuelto|RETURNED/i);
-    expect(timelineText).toMatch(/approveLegal|Aprobado|APPROVED/i);
+    await page.click('button:has-text("Aprobar Revisión Jurídica")');
+    await page.locator('#dialog-aprobar-juridica input#checkDocumentsOk').check();
+    await page.locator('#dialog-aprobar-juridica input#checkCustomerDataOk').check();
+    await page.locator('#dialog-aprobar-juridica input#checkClausesOk').check();
+    await page
+      .locator('#dialog-aprobar-juridica textarea#legalApproveNotes')
+      .fill('Aprobado en segunda ronda tras verificar cláusula de aseo.');
+    await page.locator('#dialog-aprobar-juridica button[type="submit"]').click();
+    await page.waitForLoadState('networkidle');
+
+    await expect(page.locator('.badge-status-PENDING_SIGNATURE').first()).toBeVisible();
+
+    // Verificar historial / timeline
+    const bodyContent = await page.locator('body').textContent();
+    expect(bodyContent).toMatch(/returnLegal|Devuelto|RETURNED/i);
+    expect(bodyContent).toMatch(/approveLegal|Aprobado|APPROVED/i);
 
     // =========================================================================
     // 10. Secretario: Firmar
@@ -193,12 +198,14 @@ test.describe('F4.1 — E2E Devolución de Jurídica', () => {
     await loginAs(page, 'secretario@sgec.local', 'Cambiar123!');
     await page.goto(solicitudUrl);
 
-    const signForm = page.locator('form[action*="signAndNumber"]');
-    await signForm.waitFor({ state: 'visible' });
-    await signForm.locator('button[type="submit"]').click();
+    await expect(page.locator('.badge-status-PENDING_SIGNATURE').first()).toBeVisible();
+
+    await page.click('button:has-text("Firmar y Legalizar Contrato")');
+    await page.locator('#dialog-firmar-contrato button[type="submit"]').click();
     await page.waitForLoadState('networkidle');
-    await expect(page.locator('.badge, [class*="badge"]').first()).toContainText(/Legalizado/i);
-    await expect(page.locator('body')).toContainText(/ARR-/i);
+
+    await expect(page.locator('.badge-status-LEGALIZED').first()).toBeVisible();
+    await expect(page.locator('body')).toContainText(/ARR-\d{4}-\d{4}/);
 
     await logout(page);
   });

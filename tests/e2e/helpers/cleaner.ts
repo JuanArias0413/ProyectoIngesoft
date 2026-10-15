@@ -4,8 +4,11 @@ export async function cleanupE2ERentals(): Promise<void> {
   const e2eRentals = await prisma.rentalRequest.findMany({
     where: {
       OR: [
-        { requestRadicado: { startsWith: 'SAIA-2027-E2E' } },
-        { customer: { documentNumber: { in: ['901889900-1', '901776655-2', '901665544-3', '901554433-4'] } } },
+        { requestRadicado: { contains: 'E2E' } },
+        { responseRadicado: { contains: 'E2E' } },
+        { eventName: { contains: 'E2E' } },
+        { customer: { documentNumber: { in: ['901889900-1', '901776655-2', '901665544-3', '901554433-4', '77700001', '77700002', '88899900', '55566677', '11222333'] } } },
+        { customer: { email: { contains: 'e2e' } } },
       ],
     },
     select: { id: true, customerId: true },
