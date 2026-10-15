@@ -72,7 +72,25 @@ export class RentalController {
         return;
       }
 
-      const input = parseBody(registerRentalSchema, req.body);
+      let rawBody = req.body;
+      if (rawBody && typeof rawBody === 'object' && !rawBody.customer && (rawBody.customerType || rawBody.documentNumber)) {
+        rawBody = {
+          ...rawBody,
+          customer: {
+            type: rawBody.customerType,
+            documentType: rawBody.documentType,
+            documentNumber: rawBody.documentNumber,
+            name: rawBody.name,
+            legalRepresentative: rawBody.legalRepresentative ? String(rawBody.legalRepresentative).trim() : null,
+            email: rawBody.email,
+            phone: rawBody.phone,
+            address: rawBody.address,
+          },
+          requestRadicado: rawBody.requestRadicado ? String(rawBody.requestRadicado).trim() : null,
+        };
+      }
+
+      const input = parseBody(registerRentalSchema, rawBody);
       const result = await this.registerRentalUseCase.execute({
         ...input,
         actorId: user.id,

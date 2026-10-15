@@ -268,11 +268,19 @@
                 </td>
                 {% if activeUser.role == 'ADMIN_ASSISTANT' and s.status in ['REGISTERED', 'RESPONDED'] %}
                   <td style="text-align: right;">
-                    <form action="/solicitudes/{{ s.id }}/documentos-cliente/{{ doc.requirementCode }}?_csrf={{ csrfToken }}" method="POST" enctype="multipart/form-data" style="margin: 0; display: inline-flex; gap: 0.25rem; align-items: center;">
-                      <input type="hidden" name="_csrf" value="{{ csrfToken }}">
-                      <input type="file" name="archivo" accept=".pdf,.png,.jpg,.jpeg" aria-label="Adjuntar archivo para {{ doc.requirementCode }}" style="font-size: 0.75rem; padding: 0.2rem; margin: 0; width: 140px;">
-                      <button type="submit" class="outline" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; margin: 0;">Subir</button>
-                    </form>
+                    <div style="display: inline-flex; gap: 0.5rem; align-items: center; justify-content: flex-end;">
+                      <form action="/solicitudes/{{ s.id }}/documentos-cliente/{{ doc.requirementCode }}?_csrf={{ csrfToken }}" method="POST" enctype="multipart/form-data" style="margin: 0; display: inline-flex; gap: 0.25rem; align-items: center;">
+                        <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+                        <input type="file" name="archivo" accept=".pdf,.png,.jpg,.jpeg" aria-label="Adjuntar archivo para {{ doc.requirementCode }}" style="font-size: 0.75rem; padding: 0.2rem; margin: 0; width: 140px;">
+                        <button type="submit" class="outline" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; margin: 0;">Subir</button>
+                      </form>
+                      {% if not doc.verifiedAt %}
+                        <form action="/solicitudes/{{ s.id }}/documentos/{{ doc.requirementCode }}/verificar" method="POST" style="margin: 0; display: inline;">
+                          <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+                          <button type="submit" class="primary" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; margin: 0;">Verificar</button>
+                        </form>
+                      {% endif %}
+                    </div>
                   </td>
                 {% endif %}
               </tr>

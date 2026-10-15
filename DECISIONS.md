@@ -53,3 +53,13 @@ Formato: `D-nn · fecha · contexto · decisión · alternativas · consecuencia
 
 
 
+
+## D-10 · 2026-10-14 · Seguridad: tinypool RCE en dependencias de desarrollo
+- **Contexto:** `npm audit` detecta 2 CVEs críticos (GHSA-5gmw-xhrv-c9v3, GHSA-85c8-ppgw-ccpr) en `tinypool` (transitive dep de Vitest). La corrección requiere Vitest v5 (breaking change).
+- **Decisión:** Se acepta el riesgo dado que `tinypool` es exclusivamente una dependencia de desarrollo (jamás en producción). La vulnerabilidad requiere que un atacante controle el entorno de test. Se documenta para actualización en ciclo de mantenimiento post-1.0.
+- **Consecuencias:** Sin impacto en el sistema desplegado. `npm audit fix --force` queda pendiente para 2.0.
+
+## D-11 · 2026-10-14 · Code review F4.4: guardia de estado en updateContractUseCase
+- **Contexto:** `updateContractUseCase.ts:65` usa `if (rental.status === 'LEGAL_REVIEW')` directamente, fuera de la máquina de estados.
+- **Decisión:** Se acepta como guardia de precondición válida en capa de aplicación. No altera `status` ni viola el patrón State — solo genera un mensaje de error específico para mejorar la UX. El estado no se muta; la transición solo ocurre vía `RentalContext`.
+- **Consecuencias:** Ninguna violación arquitectónica. Se documenta para refactoring opcional en 2.0 (delegar validación de editabilidad a un método del estado concreto).
