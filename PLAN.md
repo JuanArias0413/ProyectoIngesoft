@@ -106,6 +106,6 @@ Reglas de paralelismo: las fases 0 y 1 las hace **solo el orquestador**, en orde
 
 ## Fase 6 — Cierre
 
-- [ ] **F6.1** Prueba de clon limpio: clonar en carpeta temporal, `fnm use 22 && npm install && npm run setup && npm run dev`, recorrer el flujo.
-- [ ] **F6.2** Ejecutar `/verify-release` completo; actualizar `PROGRESS.md` con el resumen final.
-- [ ] **F6.3** Árbol limpio, etiqueta `v1.0.0`, `BLOCKERS.md` actualizado y publicación de la rama si hay credenciales.
+- [x] **F6.1** Prueba de clon limpio: clonar en carpeta temporal, `fnm use 22 && npm install && npm run setup && npm run dev`, recorrer el flujo.
+- [x] **F6.2** Ejecutar `/verify-release` completo; actualizar `PROGRESS.md` con el resumen final.
+- [x] **F6.3** Árbol limpio, etiqueta `v1.0.0`, `BLOCKERS.md` actualizado y publicación de la rama si hay credenciales.

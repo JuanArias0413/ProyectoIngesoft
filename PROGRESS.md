@@ -3,14 +3,17 @@
 Bitácora viva. Solo se **agrega** al final de cada sección; no se reescribe el historial.
 
 ## Estado actual
-- **Fase en curso:** Fase 6 (Cierre)
-- **Última tarea completada:** F5.6 (Documentación y entregables académicos completos)
-- **Último commit verde:** a4a4f09
-- **Resultado de pruebas:** 788 pruebas unitarias/integración pasadas (19 archivos) + 5 pruebas E2E pasadas
-- **Siguiente tarea:** F6.1 (Prueba de clon limpio)
+- **Fase en curso:** Ninguna — Release 1.0 culminado al 100%
+- **Última tarea completada:** F6.3 (Etiquetado final v1.0.0)
+- **Último commit verde:** pendiente
+- **Resultado de pruebas:** 788 pruebas unitarias/integración pasadas (19 archivos) + 6 pruebas E2E Playwright pasadas
+- **Siguiente tarea:** Ninguna (Release 1.0 completado y verificado)
 
 ## Bitácora (una línea por tarea terminada)
 `AAAA-MM-DD HH:MM · Fx.y · agente · resumen · hash del commit`
+2026-10-15 13:15 · F6.3 · orquestador · Árbol de trabajo limpio y etiquetado oficial v1.0.0 · pendiente
+2026-10-15 13:10 · F6.2 · orquestador · Verificación integral /verify-release completa: pureza de dominio, RBAC y auditoría · pendiente
+2026-10-15 13:05 · F6.1 · orquestador · Prueba de clon limpio temporal exitosa (setup, migraciones, seed y suites completas) · 94c4339
 2026-10-15 13:00 · F5.6 · qa-docs · Guía de extensibilidad EXTENDING.md y README.md institucional completo · a4a4f09
 2026-10-15 12:58 · F5.5 · qa-docs · Matriz de trazabilidad integral final TRAZABILIDAD.md · a4a4f09
 2026-10-15 12:57 · F5.4 · qa-docs · Protocolo de aceptación PROTOCOLO_ACEPTACION.md certificado con 37 ACs exitosos · a4a4f09
@@ -148,8 +151,30 @@ Bitácora viva. Solo se **agrega** al final de cada sección; no se reescribe el
   - `docs/TRAZABILIDAD.md`: Matriz de trazabilidad integral CAR → AC → Prueba y cruce exhaustivo con los procedimientos de los Releases 1.0, 2.0 y 3.0.
   - `docs/COVERAGE.md`: Reporte de cobertura unitaria que certifica 98.38% en State y 93.68% en Pricing.
   - `docs/EXTENDING.md`: Guía de extensibilidad para desarrolladores futuros.
-  - `README.md`: Portada institucional del proyecto con badges, arranque rápido y catálogo de enlaces.
 - **Hallazgos:** Los documentos coinciden 100% con el comportamiento del sistema real en ejecución. Procediendo a Fase 6 (Cierre).
+
+### Compuerta Final Release 1.0 (G-Final) · 2026-10-15 13:10
+- **Estado:** PASÓ (Verde)
+- **Verificaciones automáticas:**
+  - `npm run lint`: 0 errores, 0 advertencias
+  - `npm run typecheck`: 0 errores
+  - `npm test`: 788 pruebas unitarias e integración pasadas en 19 archivos
+  - `npm run test:e2e`: 6 pruebas E2E Playwright pasadas (100% de escenarios)
+  - `npm audit --omit=dev`: 0 vulnerabilidades críticas en dependencias de producción
+- **Prueba de clon limpio (F6.1):**
+  - Clon en `/tmp/sgec-clean-clone-test` ejecutado de principio a fin.
+  - `npm install` + `npm run setup` (detección de usuario, generación `.env`, creado de bases, migraciones Prisma y seed demo de 10 estados) exitoso.
+  - Todas las suites de lint, typecheck, vitest y playwright superadas en limpio.
+- **Pureza arquitectónica y código:**
+  - 0 variables `any` sin justificar.
+  - 0 imports de Express, Prisma o Nunjucks en capas de dominio.
+  - 0 mutaciones de `status` fuera de `RentalContext.transition()`.
+  - 0 `console.log` en `src/`.
+  - 0 pruebas ignoradas (`.skip` o `.only`).
+- **Entregables académicos:**
+  - 100% de documentos y manuales disponibles en `docs/` y referenciados en `README.md`.
+  - 37 de 37 criterios de aceptación certificados formalmente en `docs/PROTOCOLO_ACEPTACION.md`.
+- **Decisión:** Release 1.0 aprobado y listo para etiquetado final `v1.0.0`.
 
 ## Peticiones entre agentes
 `de → para · petición · estado (abierta/hecha)`
