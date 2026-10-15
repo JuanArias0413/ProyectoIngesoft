@@ -5,14 +5,14 @@ Bitácora viva. Solo se **agrega** al final de cada sección; no se reescribe el
 ## Estado actual
 - **Fase en curso:** Ninguna — Release 1.0 culminado al 100%
 - **Última tarea completada:** F6.3 (Etiquetado final v1.0.0)
-- **Último commit verde:** pendiente
+- **Último commit verde:** 5e2eaa2
 - **Resultado de pruebas:** 788 pruebas unitarias/integración pasadas (19 archivos) + 6 pruebas E2E Playwright pasadas
 - **Siguiente tarea:** Ninguna (Release 1.0 completado y verificado)
 
 ## Bitácora (una línea por tarea terminada)
 `AAAA-MM-DD HH:MM · Fx.y · agente · resumen · hash del commit`
-2026-10-15 13:15 · F6.3 · orquestador · Árbol de trabajo limpio y etiquetado oficial v1.0.0 · pendiente
-2026-10-15 13:10 · F6.2 · orquestador · Verificación integral /verify-release completa: pureza de dominio, RBAC y auditoría · pendiente
+2026-10-15 13:15 · F6.3 · orquestador · Árbol de trabajo limpio y etiquetado oficial v1.0.0 · 5e2eaa2
+2026-10-15 13:10 · F6.2 · orquestador · Verificación integral /verify-release completa: pureza de dominio, RBAC y auditoría · 5e2eaa2
 2026-10-15 13:05 · F6.1 · orquestador · Prueba de clon limpio temporal exitosa (setup, migraciones, seed y suites completas) · 94c4339
 2026-10-15 13:00 · F5.6 · qa-docs · Guía de extensibilidad EXTENDING.md y README.md institucional completo · a4a4f09
 2026-10-15 12:58 · F5.5 · qa-docs · Matriz de trazabilidad integral final TRAZABILIDAD.md · a4a4f09
