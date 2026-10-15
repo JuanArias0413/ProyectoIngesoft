@@ -184,3 +184,5 @@ backend → orquestador · Montar createRentalRouter() en src/app.ts · hecha
 ## Reanudaciones
 (Se anota cada uso de `/resume`.)
 - Reanudado: 2026-10-15 12:26 · Estado: F3 completada, 788 tests pasando, E2E y suites F4.1 implementadas y comiteadas (293f528) · Siguiente tarea: F4.1/F4.2 (verificación E2E y compuerta G4)
+- Reanudado: 2026-10-15 13:45 · Estado: Release 1.0 completado y etiquetado `v1.0.0`. Se inicia Fase 7 (Rediseño Frontend e Identidad Visual de Pereira): plan formulado, bugs diagnosticados, tareas agregadas a PLAN.md.
+

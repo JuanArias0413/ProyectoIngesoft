@@ -109,3 +109,32 @@ Reglas de paralelismo: las fases 0 y 1 las hace **solo el orquestador**, en orde
 - [x] **F6.1** Prueba de clon limpio: clonar en carpeta temporal, `fnm use 22 && npm install && npm run setup && npm run dev`, recorrer el flujo.
 - [x] **F6.2** Ejecutar `/verify-release` completo; actualizar `PROGRESS.md` con el resumen final.
 - [x] **F6.3** Árbol limpio, etiqueta `v1.0.0`, `BLOCKERS.md` actualizado y publicación de la rama si hay credenciales.
+
+## Fase 7 — Rediseño Frontend e Identidad Visual de Pereira
+
+- [ ] **F7.1** Corrección de bugs frontend críticos:
+  - Eliminar contenedores de alerta vacíos en `src/views/partials/flash.njk` validando `.length > 0` tanto para colecciones como para strings.
+  - Forzar `data-theme="light"` en `src/views/layouts/base.njk` para evitar colisión de estilos oscuros de Pico.css con el tema de la aplicación.
+  - Eliminar franjas oscuras en encabezados `<article > header>` y restablecer contraste en inputs y tablas.
+- [ ] **F7.2** Sistema de diseño institucional de Pereira en `public/css/app.css`:
+  - Paleta cívica equilibrada: Rojo Pereirano (`#cf1020` / `#dc2626`), Amarillo/Oro Pereirano (`#f59e0b` / `#d97706`), neutros modernos (Slate `#0f172a`, `#334155`, `#e2e8f0`, `#f8fafc`), y acentos funcionales (Verde esmeralda y Azul corporativo).
+  - Listón cívico Pereira (`linear-gradient(90deg, #cf1020 50%, #f59e0b 50%)`) de 4px en cabecera institucional.
+  - Restablecimiento tipográfico y de componentes: botones primarios en Rojo Cívico con hover suave, enlaces y focos con contraste WCAG AAA, tarjetas con elevación sutil.
+  - Tablas pulidas: cabeceras con fondo neutro `#f1f5f9`, texto `#475569`, filas uniformes sin rayas oscuras y hover `#f8fafc`.
+- [ ] **F7.3** Rediseño de pantalla de Inicio de Sesión (`src/views/pages/auth/login.njk`):
+  - Tarjeta moderna centrada con borde superior cívico, isotipo institucional, inputs accesibles con foco claro y botón de acción cívico.
+  - Selector plegable elegante para usuarios semilla con tipografía monospace limpia y fondo neutro.
+- [ ] **F7.4** Rediseño del Panel Principal (`src/views/pages/home/index.njk`):
+  - Tarjetas de estadísticas con indicadores cívicos diferenciados (Rojo, Oro, Verde, Slate).
+  - Bandeja "Pendientes para mí" rediseñada con estado vacío amigable, badges estandarizados y acciones directas.
+- [ ] **F7.5** Rediseño de Vistas de Solicitudes, Agenda y Tarifas:
+  - Listado de solicitudes (`solicitudes/index.njk`): barra de búsqueda y filtros modernizada, paginación integrada y badges cívicos.
+  - Detalle de solicitud (`solicitudes/detalle.njk`): línea de tiempo con nodos institucionales, pestañas/secciones limpias, acciones agrupadas con modales nativos.
+  - Agenda (`agenda/index.njk`) y Tarifas (`tarifas/index.njk`): tablas claras, legibles y adaptadas a móvil.
+- [ ] **F7.6** Verificación integral y actualización de capturas:
+  - Tests unitarios de vistas (`uiViews.test.ts`), lint, typecheck y tests de integración/E2E.
+  - Regeneración de capturas de pantalla en `docs/img/` reflejando el nuevo diseño.
+  - Registro de decisiones en `DECISIONS.md` y actualización en `PROGRESS.md`.
+
+**G7:** Interfaz visualmente atractiva, armónica con la identidad de Pereira, sin errores visuales de contraste ni alertas vacías, 100% accesible y suite de tests en verde.
+

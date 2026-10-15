@@ -63,3 +63,17 @@ Formato: `D-nn · fecha · contexto · decisión · alternativas · consecuencia
 - **Contexto:** `updateContractUseCase.ts:65` usa `if (rental.status === 'LEGAL_REVIEW')` directamente, fuera de la máquina de estados.
 - **Decisión:** Se acepta como guardia de precondición válida en capa de aplicación. No altera `status` ni viola el patrón State — solo genera un mensaje de error específico para mejorar la UX. El estado no se muta; la transición solo ocurre vía `RentalContext`.
 - **Consecuencias:** Ninguna violación arquitectónica. Se documenta para refactoring opcional en 2.0 (delegar validación de editabilidad a un método del estado concreto).
+
+## D-12 · 2026-10-15 · Sistema de Diseño Institucional de Pereira y Unificación de Tema Frontend
+- **Contexto:** Se detectaron inconsistencias visuales en navegadores con modo oscuro activo (Pico.css auto-aplicaba estilos oscuros en headers y formularios sobre fondos claros de la aplicación) y contenedores flash vacíos por evaluación veritativa de arrays vacíos en Nunjucks. Adicionalmente, se requiere dotar a la plataforma de una identidad visual representativa de Pereira (rojo y amarillo de la bandera municipal) de forma equilibrada, moderna y accesible.
+- **Decisión:** 
+  1. Forzar `<html lang="es" data-theme="light">` en `base.njk` y sobrescribir explícitamente variables y elementos de Pico.css (`article > header`, inputs, selects, tablas) para garantizar consistencia visual idéntica en cualquier sistema operativo.
+  2. Corregir `flash.njk` validando `.length > 0` tanto para colecciones como para strings, evitando renderizado de cajas vacías.
+  3. Establecer un sistema de diseño cívico equilibrado:
+     - Rojo Pereirano (`#cf1020` / `#dc2626`) como color de acento principal institucional, botones de llamada a la acción y bordes destacados.
+     - Amarillo / Oro Pereirano (`#f59e0b` / `#d97706`) para elementos de atención, advertencias y estados en revisión/proceso.
+     - Cinta cívica superior de 4px con gradiente de la bandera de Pereira en la barra de navegación institucional.
+     - Neutros modernos de alta legibilidad (Slate `#0f172a` para títulos, `#334155` para cuerpo, `#e2e8f0` para bordes sutiles y `#f8fafc` para el canvas general).
+     - Colores funcionales complementarios (Verde `#16a34a` para aprobaciones y Azul `#0284c7` para focos accesibles y documentación).
+- **Consecuencias:** Experiencia de usuario pulida, alineada con la Alcaldía de Pereira / Secretaría de Cultura, contraste WCAG AAA y eliminación completa de artefactos visuales parásitos.
+
