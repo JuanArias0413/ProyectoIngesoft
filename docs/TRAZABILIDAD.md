@@ -1,6 +1,7 @@
 # Matriz de Trazabilidad — SGEC Release 1.0
 
-Borrador inicial elaborado en Fase 2 (F2.14). Se completará y verificará de forma integral en Fase 5 (F5.5).
+Matriz de trazabilidad integral certificada en Fase 5 (F5.5).
+Verificada al 100% contra las suites de pruebas unitarias, de integración y E2E Playwright.
 
 ---
 
@@ -10,13 +11,13 @@ Mapeo exhaustivo de las características incluidas en el Release 1.0, sus criter
 
 | CAR | AC | Descripción | Tipo prueba | Archivo | Test ID / Nombre |
 |---|---|---|---|---|---|
-| CAR-01 | AC-01.1 | Auxiliar registra solicitud válida → estado `REGISTERED`, reserva `HELD`, visible en agenda | Integración | `tests/integration/rentalFlow.test.ts` | `AC-01.1: Auxiliar registra solicitud válida` |
+| CAR-01 | AC-01.1 | Auxiliar registra solicitud válida → estado `REGISTERED`, reserva `HELD`, visible en agenda | Integración / E2E | `tests/integration/rentalFlow.test.ts`<br>`tests/e2e/happy-path.spec.ts` | `AC-01.1: Auxiliar registra solicitud válida` |
 | CAR-01 | AC-01.2 | Misma cédula/NIT del cliente → reutiliza cliente (no duplica) y actualiza contacto | Integración | `tests/integration/rentalFlow.test.ts` | `AC-01.2: Reutiliza cliente existente por documento sin duplicar` |
 | CAR-01 | AC-01.3 | Rango horario inválido (fin <= inicio, <1h, >7d, en el pasado) → error 400 con mensaje claro | Integración | `tests/integration/rentalFlow.test.ts` | `AC-01.3: Rechaza rango horario inválido con 400 y mensaje en español` |
-| CAR-01 | AC-01.4 | Rango solapado con reserva activa del mismo espacio → error 409 conflicto | Integración | `tests/integration/rentalFlow.test.ts` | `AC-01.4: Rechaza solicitud con rango solapado con 409` |
+| CAR-01 | AC-01.4 | Rango solapado con reserva activa del mismo espacio → error 409 conflicto | Integración / E2E | `tests/integration/agenda.test.ts`<br>`tests/e2e/agenda-conflict.spec.ts` | `AC-01.4: Rechaza solicitud con rango solapado con 409` |
 | CAR-01 | AC-01.5 | Registro con radicado inicial guarda radicado; sin radicado no falla | Integración | `tests/integration/rentalFlow.test.ts` | `AC-01.5: Radicado opcional en registro se persiste si se informa` |
 | CAR-02 | AC-02.1 | Consulta de disponibilidad por espacio, fecha y franja → libre / no libre con detalle de bloqueo | Integración | `tests/integration/rentalFlow.test.ts` | `AC-02.1: GET /agenda/disponibilidad responde disponibilidad y reserva bloqueante` |
-| CAR-02 | AC-02.2 | Consulta de disponibilidad asíncrona mediante HTMX en formulario de registro sin recargar | E2E | `tests/e2e/rentalFlow.spec.ts` | `AC-02.2: Verificación de disponibilidad HTMX en formulario` |
+| CAR-02 | AC-02.2 | Consulta de disponibilidad asíncrona mediante HTMX en formulario de registro sin recargar | E2E | `tests/e2e/happy-path.spec.ts` | `AC-02.2: Verificación de disponibilidad HTMX en formulario` |
 | CAR-02 | AC-02.3 | Reservas liberadas (`RELEASED`) o franjas contiguas no bloquean disponibilidad | Integración | `tests/integration/agenda.test.ts` | `AC-02.3: Franjas contiguas y reservas RELEASED no generan conflicto` |
 | CAR-02 | AC-02.4 | Vista de agenda por escenario con listado de próximos 30 días de solo lectura | Integración | `tests/integration/rentalFlow.test.ts` | `AC-02.4: GET /agenda lista reservas del mes por escenario` |
 | CAR-03 | AC-03.1 | Auxiliar responde con radicado → calcula tarifa, congela valor (A-08) y genera oficio | Integración | `tests/integration/rentalFlow.test.ts` | `AC-03.1: T2 respond calcula valor, congela y genera snapshot oficio` |

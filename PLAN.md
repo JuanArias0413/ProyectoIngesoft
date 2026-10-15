@@ -95,12 +95,12 @@ Reglas de paralelismo: las fases 0 y 1 las hace **solo el orquestador**, en orde
 
 ## Fase 5 — Entregables académicos (QA/Docs)
 
-- [ ] **F5.1** `docs/ARCHITECTURE.md` final: vista de capas, estructura, diagrama de clases del State, diagrama de estados, patrones Repository y Strategy, decisiones y atributos de calidad.
-- [ ] **F5.2** `docs/MANUAL_TECNICO.md`.
-- [ ] **F5.3** `docs/MANUAL_USUARIO.md` con capturas (Playwright guarda en `docs/img/`).
-- [ ] **F5.4** `docs/PROTOCOLO_ACEPTACION.md` completo a partir de los AC (ID, CAR, precondiciones, pasos, resultado esperado, resultado obtenido, firma). Rellenar «resultado obtenido» ejecutando realmente cada caso.
-- [ ] **F5.5** `docs/TRAZABILIDAD.md` final, incluyendo tabla de actividades del procedimiento (Visión §2.1) vs. release que las cubre.
-- [ ] **F5.6** `docs/EXTENDING.md` y `README.md`.
+- [x] **F5.1** `docs/ARCHITECTURE.md` final: vista de capas, estructura, diagrama de clases del State, diagrama de estados, patrones Repository y Strategy, decisiones y atributos de calidad.
+- [x] **F5.2** `docs/MANUAL_TECNICO.md`.
+- [x] **F5.3** `docs/MANUAL_USUARIO.md` con capturas (Playwright guarda en `docs/img/`).
+- [x] **F5.4** `docs/PROTOCOLO_ACEPTACION.md` completo a partir de los AC (ID, CAR, precondiciones, pasos, resultado esperado, resultado obtenido, firma). Rellenar «resultado obtenido» ejecutando realmente cada caso.
+- [x] **F5.5** `docs/TRAZABILIDAD.md` final, incluyendo tabla de actividades del procedimiento (Visión §2.1) vs. release que las cubre.
+- [x] **F5.6** `docs/EXTENDING.md` y `README.md`.
 
 **G5:** los documentos coinciden con el comportamiento real (verificar comandos y capturas ejecutándolos).
 

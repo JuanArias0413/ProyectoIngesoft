@@ -209,3 +209,77 @@ Para soportar las unidades de cobro establecidas en el Acuerdo de Tarifas (por h
 - **Protección anti-cruces a doble nivel (ON-3):**
   1. *Nivel de aplicación:* `AvailabilityService.checkAvailability()` evalúa el rango semiabierto `[startsAt, endsAt)` (A-05) con la condición `startsAt < queryEnd AND endsAt > queryStart` para reservas activas (`HELD`, `CONFIRMED`).
   2. *Nivel de base de datos:* restricción de exclusión física `reservation_no_overlap` (`btree_gist` + `tstzrange`) en PostgreSQL 17. Cuando ocurre una colisión concurrente, la base de datos lanza el error `23P01`, que `PrismaReservationRepository` captura y transforma en un `ConflictError` tipado (código HTTP 409).
+
+---
+
+## 5. Renderizado de documentos y snapshots inmutables (D-09)
+
+- **Servicio `DocumentRenderer`:** orquesta la consulta de información requerida e interactúa con el motor de plantillas Nunjucks para compilar HTML listo para impresión.
+- **Inmutabilidad y versionamiento:** cada documento generado (Oficio de Respuesta, Estudio Previo, Contrato) se congela como un registro persistente `GeneratedDocument` (kind, version, html, generatedById, generatedAt). Los documentos servidos al usuario son snapshots estáticos inalterables (`A-15`), garantizando auditoría jurídica.
+- **Estilos de impresión CSS A4:** las plantillas (`responseLetter.njk`, `priorStudy.njk`, `contract.njk`) aplican directivas `@page { size: A4; margin: 2cm; }`, tipografía serif a 12pt, eliminación de fondos/sombras y ocultamiento de botones de acción en `@media print`.
+
+---
+
+## 6. Estructura física del código (`src/`)
+
+```
+src/
+├── app.ts                  # Configuración de Express 5, middlewares globales (Helmet, CSRF, sesión, pino)
+├── server.ts               # Punto de entrada HTTP y arranque del servidor
+├── container.ts            # Contenedor central de inyección de dependencias
+├── config/
+│   └── env.ts              # Validación de variables de entorno con Zod
+├── shared/
+│   ├── errors.ts           # Jerarquía de errores tipados (DomainError, NotFound, Conflict, etc.)
+│   ├── logger.ts           # Logger estructurado con Pino
+│   ├── middleware/         # Handlers centrales de error y soporte flash
+│   └── utils/              # Conversión a letras (amountToWords), formateadores de fecha/moneda
+├── infra/
+│   └── prisma.ts           # Instancia y extensiones de Prisma Client
+├── modules/
+│   ├── auth/               # Autenticación con sesión PG, RBAC (requirePermission), hashing bcrypt
+│   ├── catalog/            # Gestión de escenarios, espacios, tarifas y requisitos documentales
+│   ├── agenda/             # Servicio de disponibilidad y repositorio de reservas con btree_gist
+│   ├── customers/          # Clientes (personas naturales y jurídicas)
+│   ├── documents/          # Renderizador de snapshots y plantillas imprimibles A4
+│   └── rentals/            # Núcleo del trámite:
+│       ├── domain/states/  # Patrón State (10 estados, RentalContext, StateFactory)
+│       ├── domain/pricing/ # Patrón Strategy (HourlyPricing, DailyPricing)
+│       ├── application/    # Casos de uso (T1 a T11, listados, consultas)
+│       ├── http/           # Controladores, rutas y esquemas de validación Zod
+│       └── infra/          # Repositorios Prisma y almacenamiento local de archivos
+└── views/                  # Vistas Nunjucks SSR
+    ├── layouts/            # Layout base responsivo con Pico.css y HTMX
+    ├── partials/           # Navbar con filtrado por rol, badges de estado, flash messages
+    └── pages/              # Pantallas (auth, home, solicitudes, agenda, tarifas, errors)
+```
+
+---
+
+## 7. Atributos de calidad del sistema
+
+| Atributo de Calidad | Estrategia Arquitectónica en SGEC |
+|---|---|
+| **Integridad de Datos** | Restricción de exclusión PostgreSQL (`btree_gist`), transacciones atómicas Prisma en cada mutación de estado, y secuencias serializadas para números de contrato `ARR-AAAA-NNNN`. |
+| **Seguridad** | Autenticación basada en sesiones seguras en Postgres, RBAC evaluado estrictamente en servidor, tokens CSRF con doble verificación en cookie/body, cabeceras Helmet CSP y sanitización Zod. |
+| **Mantenibilidad** | Dominio puro desacoplado de frameworks, 0 dependencias externas en reglas de negocio, 100% tipado estricto en TypeScript sin `any`, y patrón State para agregar estados sin modificar estados existentes (Open/Closed). |
+| **Rendimiento** | Renderizado del lado del servidor (SSR) ultra-liviano, HTMX para transiciones reactivas sin sobrecosto de bundles JavaScript cliente, y consultas optimizadas mediante Prisma con índices en PostgreSQL. |
+| **Trazabilidad y Auditoría** | Cada transición registra inmutablemente actor, fecha exacta, estado de origen, estado destino y notas explicativas (`StateTransition`), permitiendo reconstruir la línea de tiempo completa. |
+| **Accesibilidad y Usabilidad** | Diseño responsivo desde pantallas de 360px (Pico.css adaptado), controles con foco visible contrastado, insignias de estado con color y texto simultáneo, y mensajes de confirmación en diálogos nativos. |
+
+---
+
+## 8. Registro de decisiones arquitectónicas (ADRs)
+
+- **`D-01`**: Monolito modular en capas de proceso único.
+- **`D-02`**: Patrón State para el ciclo de vida del trámite de alquiler.
+- **`D-03`**: Renderizado en servidor con Nunjucks, HTMX y Pico.css sin compilación de frontend.
+- **`D-04`**: Restricción de exclusión en base de datos (`btree_gist` + `tstzrange`) para evitar colisiones de agenda.
+- **`D-05`**: Adopción de supuestos A-01 a A-15 ante ausencia del Manual de Procedimientos.
+- **`D-06`**: Estrategias de precios (`HourlyPricing`, `DailyPricing`) y conversión gramatical en español (`amountToWords`).
+- **`D-07`**: Rango semiabierto `[startsAt, endsAt)` y captura de código Postgres `23P01` a `ConflictError` 409.
+- **`D-08`**: Contrato inmutable congelado de `RentalContext.transition()`.
+- **`D-09`**: Snapshots HTML inmutables y plantillas CSS A4 para documentos oficiales.
+- **`D-10`**: Gestión de riesgos de seguridad en dependencias de desarrollo (`tinypool` en test).
+- **`D-11`**: Validación y guardias de estado en capa de aplicación con tipado estricto.
+

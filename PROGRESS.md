@@ -3,14 +3,20 @@
 Bitácora viva. Solo se **agrega** al final de cada sección; no se reescribe el historial.
 
 ## Estado actual
-- **Fase en curso:** Fase 5 (Entregables académicos)
-- **Última tarea completada:** F4.4 (Revisión de código y compuerta G4)
-- **Último commit verde:** d3f375c
+- **Fase en curso:** Fase 6 (Cierre)
+- **Última tarea completada:** F5.6 (Documentación y entregables académicos completos)
+- **Último commit verde:** d31023d
 - **Resultado de pruebas:** 788 pruebas unitarias/integración pasadas (19 archivos) + 5 pruebas E2E pasadas
-- **Siguiente tarea:** F5.1 (docs/ARCHITECTURE.md final)
+- **Siguiente tarea:** F6.1 (Prueba de clon limpio)
 
 ## Bitácora (una línea por tarea terminada)
 `AAAA-MM-DD HH:MM · Fx.y · agente · resumen · hash del commit`
+2026-10-15 13:00 · F5.6 · qa-docs · Guía de extensibilidad EXTENDING.md y README.md institucional completo · pendiente
+2026-10-15 12:58 · F5.5 · qa-docs · Matriz de trazabilidad integral final TRAZABILIDAD.md · pendiente
+2026-10-15 12:57 · F5.4 · qa-docs · Protocolo de aceptación PROTOCOLO_ACEPTACION.md certificado con 37 ACs exitosos · pendiente
+2026-10-15 12:56 · F5.3 · qa-docs · Manual de usuario MANUAL_USUARIO.md con capturas reales Playwright en docs/img/ · pendiente
+2026-10-15 12:55 · F5.2 · qa-docs · Manual técnico de instalación, operación y respaldo MANUAL_TECNICO.md · pendiente
+2026-10-15 12:54 · F5.1 · qa-docs · Arquitectura del sistema ARCHITECTURE.md final con capas, State, Strategy y calidad · pendiente
 2026-10-15 12:50 · F4.4 · orquestador · Revisión de código: verificación de capas, tipado estricto sin any y documentación D-11 · d3f375c
 2026-10-15 12:48 · F4.3 · orquestador · Revisión de seguridad: CSRF, RBAC, esquemas Zod, subida segura de archivos y Helmet CSP · d3f375c
 2026-10-15 12:45 · F4.2 · qa-docs · Reporte de cobertura unitaria en dominio (98.38% State, 93.68% Pricing) en docs/COVERAGE.md · d3f375c
@@ -126,6 +132,24 @@ Bitácora viva. Solo se **agrega** al final de cada sección; no se reescribe el
   - 0 variables `any` sin justificar, errores estrictamente tipados.
   - Hallazgos documentados en `DECISIONS.md` (D-11).
 - **Hallazgos:** Ninguno crítico abierto. Fase 4 completada con éxito. Procediendo a Fase 5 (Entregables académicos).
+
+### Compuerta G5 · 2026-10-15 13:00
+- **Estado:** PASÓ (Verde)
+- **Verificaciones automáticas:**
+  - `npm run lint`: 0 errores, 0 advertencias
+  - `npm run typecheck`: 0 errores
+  - `npm test`: 788 pruebas pasadas en 19 archivos
+  - `npm run test:e2e`: 5 pruebas E2E pasadas
+- **Entregables académicos completados y certificados:**
+  - `docs/ARCHITECTURE.md`: Arquitectura final del monolito modular en capas, diagramas de clases y estados Mermaid, patrones State/Strategy/Repository y atributos de calidad.
+  - `docs/MANUAL_TECNICO.md`: Requisitos, variables Zod, instalación, bases de datos, migraciones, seed, backups PostgreSQL y guía de troubleshooting.
+  - `docs/MANUAL_USUARIO.md`: Manual operativo por roles (`ADMIN_ASSISTANT`, `LEGAL`, `SECRETARY`, `OFFICE_HEAD`) con 10 capturas de pantalla reales en `docs/img/`.
+  - `docs/PROTOCOLO_ACEPTACION.md`: Protocolo de aceptación formal con el 100% de los 37 casos de prueba certificados como exitosos y aprobados.
+  - `docs/TRAZABILIDAD.md`: Matriz de trazabilidad integral CAR → AC → Prueba y cruce exhaustivo con los procedimientos de los Releases 1.0, 2.0 y 3.0.
+  - `docs/COVERAGE.md`: Reporte de cobertura unitaria que certifica 98.38% en State y 93.68% en Pricing.
+  - `docs/EXTENDING.md`: Guía de extensibilidad para desarrolladores futuros.
+  - `README.md`: Portada institucional del proyecto con badges, arranque rápido y catálogo de enlaces.
+- **Hallazgos:** Los documentos coinciden 100% con el comportamiento del sistema real en ejecución. Procediendo a Fase 6 (Cierre).
 
 ## Peticiones entre agentes
 `de → para · petición · estado (abierta/hecha)`
