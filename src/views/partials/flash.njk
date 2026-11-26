@@ -1,0 +1,98 @@
+{% set successMsgs = '' %}
+{% if flash and flash.success and (flash.success | length > 0) %}
+  {% set successMsgs = flash.success %}
+{% elif success and (success | length > 0) %}
+  {% set successMsgs = success %}
+{% elif successMessage and (successMessage | length > 0) %}
+  {% set successMsgs = successMessage %}
+{% endif %}
+
+{% set errorMsgs = '' %}
+{% if flash and flash.error and (flash.error | length > 0) %}
+  {% set errorMsgs = flash.error %}
+{% elif flash and flash.danger and (flash.danger | length > 0) %}
+  {% set errorMsgs = flash.danger %}
+{% elif error and (error | length > 0) %}
+  {% set errorMsgs = error %}
+{% elif errorMessage and (errorMessage | length > 0) %}
+  {% set errorMsgs = errorMessage %}
+{% endif %}
+
+{% set infoMsgs = '' %}
+{% if flash and flash.info and (flash.info | length > 0) %}
+  {% set infoMsgs = flash.info %}
+{% elif info and (info | length > 0) %}
+  {% set infoMsgs = info %}
+{% elif infoMessage and (infoMessage | length > 0) %}
+  {% set infoMsgs = infoMessage %}
+{% endif %}
+
+{% set warningMsgs = '' %}
+{% if flash and flash.warning and (flash.warning | length > 0) %}
+  {% set warningMsgs = flash.warning %}
+{% elif warning and (warning | length > 0) %}
+  {% set warningMsgs = warning %}
+{% elif warningMessage and (warningMessage | length > 0) %}
+  {% set warningMsgs = warningMessage %}
+{% endif %}
+
+{% if (successMsgs | length > 0) or (errorMsgs | length > 0) or (infoMsgs | length > 0) or (warningMsgs | length > 0) %}
+<div class="flash-container no-print" aria-live="polite">
+  {# Success messages #}
+  {% if successMsgs | length > 0 %}
+    <div class="alert alert-success" role="alert">
+      <span class="alert-icon" aria-hidden="true">&#10003;</span>
+      <div class="alert-content">
+        {% if successMsgs is iterable and successMsgs is not string %}
+          {% for msg in successMsgs %}<div>{{ msg }}</div>{% endfor %}
+        {% else %}
+          {{ successMsgs }}
+        {% endif %}
+      </div>
+    </div>
+  {% endif %}
+
+  {# Error / Danger messages #}
+  {% if errorMsgs | length > 0 %}
+    <div class="alert alert-error" role="alert">
+      <span class="alert-icon" aria-hidden="true">&#10007;</span>
+      <div class="alert-content">
+        {% if errorMsgs is iterable and errorMsgs is not string %}
+          {% for msg in errorMsgs %}<div>{{ msg }}</div>{% endfor %}
+        {% else %}
+          {{ errorMsgs }}
+        {% endif %}
+      </div>
+    </div>
+  {% endif %}
+
+  {# Info messages #}
+  {% if infoMsgs | length > 0 %}
+    <div class="alert alert-info" role="alert">
+      <span class="alert-icon" aria-hidden="true">&#8505;</span>
+      <div class="alert-content">
+        {% if infoMsgs is iterable and infoMsgs is not string %}
+          {% for msg in infoMsgs %}<div>{{ msg }}</div>{% endfor %}
+        {% else %}
+          {{ infoMsgs }}
+        {% endif %}
+      </div>
+    </div>
+  {% endif %}
+
+  {# Warning messages #}
+  {% if warningMsgs | length > 0 %}
+    <div class="alert alert-warning" role="alert">
+      <span class="alert-icon" aria-hidden="true">&#9888;</span>
+      <div class="alert-content">
+        {% if warningMsgs is iterable and warningMsgs is not string %}
+          {% for msg in warningMsgs %}<div>{{ msg }}</div>{% endfor %}
+        {% else %}
+          {{ warningMsgs }}
+        {% endif %}
+      </div>
+    </div>
+  {% endif %}
+</div>
+{% endif %}
+

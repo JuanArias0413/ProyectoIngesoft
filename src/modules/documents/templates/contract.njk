@@ -1,0 +1,157 @@
+{% extends "documentBase.njk" %}
+
+{% block title %}Contrato de Arrendamiento {% if contractNumber %}No. {{ contractNumber }}{% else %}(Borrador v{{ version }}){% endif %} — SGEC{% endblock %}
+
+{% block docContent %}
+<div class="doc-header">
+  <h1>SECRETARÍA DE CULTURA DE PEREIRA</h1>
+  <h2>Oficina de Administración de Escenarios y Bienes Culturales</h2>
+</div>
+
+<div class="doc-title">
+  CONTRATO DE ARRENDAMIENTO DE ESPACIO CULTURAL
+  <div style="font-size: 11pt; font-weight: bold; margin-top: 6px;">
+    {% if contractNumber %}
+      No. {{ contractNumber }}
+    {% else %}
+      No. _____________________________ (Pendiente de legalización)
+    {% endif %}
+  </div>
+  <div style="font-size: 9.5pt; font-weight: normal; margin-top: 4px; text-transform: none;">
+    Versión documental {{ version }} · Fecha de expedición: Pereira, {{ generatedDateLong }}
+  </div>
+</div>
+
+<div class="doc-section">
+  <p>
+    Entre los suscritos a saber: de una parte, la <strong>SECRETARÍA DE CULTURA DEL MUNICIPIO DE PEREIRA</strong>, identificada con NIT 800.123.456-7, representada legalmente para este acto por el <strong>SECRETARIO DE CULTURA DEL MUNICIPIO DE PEREIRA</strong>, en ejercicio de sus facultades constitucionales y legales, quien en adelante se denominará <strong>EL ARRENDADOR</strong>; y de otra parte, <strong>{{ customer.name }}</strong>, identificado(a) con {{ customer.documentType }} No. {{ customer.documentNumber }}{% if customer.legalRepresentative %}, representado(a) legalmente por <strong>{{ customer.legalRepresentative }}</strong>{% endif %}, domiciliado(a) en la dirección {{ customer.address }} de la ciudad de Pereira, correo electrónico {{ customer.email }} y teléfono {{ customer.phone }}, quien en adelante se denominará <strong>EL ARRENDATARIO</strong>, hemos convenido celebrar el presente <em>CONTRATO DE ARRENDAMIENTO DE ESPACIO CULTURAL</em>, el cual se regirá por las siguientes cláusulas:
+  </p>
+</div>
+
+<div class="doc-section">
+  <div class="doc-section-title">CLÁUSULA PRIMERA — OBJETO:</div>
+  <p class="no-indent">
+    {{ contractObject }}
+  </p>
+  <p>
+    En virtud del presente contrato, EL ARRENDADOR entrega a título de arrendamiento temporal a favor de EL ARRENDATARIO el uso del espacio denominado <strong>{{ space.name }}</strong>, ubicado en las instalaciones del <strong>{{ venue.name }}</strong> ({{ venue.address }}), con destino exclusivo a la ejecución de la actividad cultural y artística denominada <strong>«{{ eventName }}»</strong>.
+  </p>
+</div>
+
+<div class="doc-section">
+  <div class="doc-section-title">CLÁUSULA SEGUNDA — PLAZO Y HORARIO:</div>
+  <p>
+    El plazo del presente arrendamiento comprende exactamente la siguiente franja horaria autorizada: <strong>{{ formattedDateRange }}</strong>. Las partes acuerdan que este término incluye el tiempo necesario para el ingreso, montaje técnico, desarrollo de la actividad, desmontaje y entrega final del inmueble.
+  </p>
+</div>
+
+<div class="doc-section">
+  <div class="doc-section-title">CLÁUSULA TERCERA — VALOR Y FORMA DE PAGO:</div>
+  <p>
+    El valor total y definitivo del presente contrato es la suma de <strong>{{ formattedAmount }}</strong> (<strong>{{ amountInWords }}</strong>), determinado conforme al Acuerdo de Tarifas vigente adoptado por el Municipio de Pereira.
+  </p>
+  <p>
+    Dicho valor ha sido consignado previamente por EL ARRENDATARIO a favor del Municipio de Pereira - Secretaría de Cultura en la Cuenta de Ahorros No. 1234-567890-89 de Bancolombia (NIT 800.123.456-7), de lo cual obra soporte verificado en el expediente del trámite.
+  </p>
+</div>
+
+<div class="doc-section">
+  <div class="doc-section-title">CLÁUSULA CUARTA — OBLIGACIONES DEL ARRENDADOR:</div>
+  <p class="no-indent">
+    EL ARRENDADOR se compromete a:
+  </p>
+  <ol>
+    <li>Poner a disposición de EL ARRENDATARIO el escenario cultural en la fecha y horario convenidos, en adecuadas condiciones de limpieza, iluminación y funcionamiento técnico.</li>
+    <li>Designar el personal técnico y logístico de acompañamiento que oriente el uso debido de los equipos y garantice la seguridad de las instalaciones.</li>
+    <li>Suscribir las actas correspondientes de entrega previa y recibo a satisfacción del inmueble.</li>
+  </ol>
+</div>
+
+<div class="doc-section">
+  <div class="doc-section-title">CLÁUSULA QUINTA — OBLIGACIONES DEL ARRENDATARIO:</div>
+  <p class="no-indent">
+    EL ARRENDATARIO se obliga a:
+  </p>
+  <ol>
+    <li>Destinar el espacio cultural única y exclusivamente a la realización del evento estipulado en la Cláusula Primera.</li>
+    <li>Respetar estrictamente el aforo máximo permitido del escenario cultural ({{ space.capacity }} personas) y acatar todas las medidas de prevención y seguridad.</li>
+    <li>Abstenerse de ceder, transferir o subarrendar a cualquier título, total o parcialmente, los derechos y obligaciones derivados del presente contrato.</li>
+    <li>No permitir el consumo de tabaco, sustancias psicoactivas ni la venta no autorizada de licores en el escenario cultural.</li>
+    <li>Acatar las instrucciones técnicas del personal de la Secretaría de Cultura y cumplir rigurosamente con los horarios acordados.</li>
+    <li>Recibir el espacio mediante inventario técnico y devolverlo al término de la reserva en el mismo estado de aseo y funcionamiento.</li>
+  </ol>
+</div>
+
+<div class="doc-section">
+  <div class="doc-section-title">CLÁUSULA SEXTA — ENTREGA Y RECIBO DEL INMUEBLE:</div>
+  <p>
+    La entrega material del espacio cultural se efectuará mediante acta formal suscrita antes del inicio del evento entre el funcionario o técnico designado por EL ARRENDADOR y EL ARRENDATARIO. Una vez finalizada la actividad, se realizará una inspección conjunta para verificar el estado de la infraestructura, equipos de sonido, luces y silletería, procediendo a la suscripción del acta de recibo a satisfacción.
+  </p>
+</div>
+
+<div class="doc-section">
+  <div class="doc-section-title">CLÁUSULA SÉPTIMA — RESPONSABILIDAD POR DAÑOS:</div>
+  <p>
+    EL ARRENDATARIO asume plena y directa responsabilidad civil y patrimonial por cualquier deterioro, daño, pérdida o sustracción que sufran las instalaciones, equipos técnicos, mobiliario o bienes muebles e inmuebles del escenario cultural durante la vigencia del arrendamiento, debidos a culpa o dolo propio, de sus dependientes, contratistas o del público asistente. En tal evento, EL ARRENDATARIO se obliga a reparar o pagar el valor de reposición de los elementos afectados dentro de los cinco (5) días hábiles siguientes al requerimiento de la entidad.
+  </p>
+</div>
+
+<div class="doc-section">
+  <div class="doc-section-title">CLÁUSULA OCTAVA — CLÁUSULAS ADICIONALES:</div>
+  {% if additionalClauses and additionalClauses.trim() %}
+  <p>{{ additionalClauses }}</p>
+  {% else %}
+  <p class="no-indent">No se estipulan cláusulas adicionales para el presente contrato.</p>
+  {% endif %}
+</div>
+
+<div class="doc-section">
+  <div class="doc-section-title">CLÁUSULA NOVENA — NORMATIVIDAD APLICABLE Y JURISDICCIÓN:</div>
+  <p>
+    El presente contrato se rige por la legislación colombiana aplicable al sector cultura y la contratación administrativa, en particular la Ley 397 de 1997, Ley 1170 de 2007, Ley 1493 de 2011, Decreto 1080 de 2015, Acto Administrativo de especificaciones técnicas de alquiler de escenarios y Acuerdo de Tarifas vigente. Cualquier controversia se someterá a la jurisdicción de lo contencioso administrativo con sede en la ciudad de Pereira, Risaralda.
+  </p>
+</div>
+
+<div class="doc-section">
+  <p class="no-indent">
+    Para constancia de lo acordado, las partes suscriben el presente documento en la ciudad de Pereira:
+  </p>
+</div>
+
+<div class="doc-signatures">
+  {% if contractNumber and signedAtFormatted %}
+  <!-- Contrato legalizado y firmado -->
+  <div class="signature-block">
+    <div style="border: 2px solid #106b3a; padding: 10px; margin-bottom: 10px; font-size: 9pt; background-color: #f7faf8;">
+      <strong>FIRMADO DIGITALMENTE</strong><br>
+      Por: {{ signedByName | default("Secretario de Cultura de Pereira") }}<br>
+      Fecha: {{ signedAtFormatted }}<br>
+      Contrato No.: {{ contractNumber }}
+    </div>
+    <div class="signature-name">SECRETARIO DE CULTURA DE PEREIRA</div>
+    <div class="signature-role">EL ARRENDADOR</div>
+  </div>
+  <div class="signature-block">
+    <div style="border: 2px solid #555; padding: 10px; margin-bottom: 10px; font-size: 9pt;">
+      <strong>ACEPTACIÓN DE TÉRMINOS Y CONDICIONES</strong><br>
+      {{ customer.name }}<br>
+      {{ customer.documentType }} No. {{ customer.documentNumber }}
+    </div>
+    <div class="signature-name">{{ customer.name }}</div>
+    <div class="signature-role">EL ARRENDATARIO</div>
+  </div>
+  {% else %}
+  <!-- Contrato en borrador / pendiente de firma -->
+  <div class="signature-block">
+    <div class="signature-line"></div>
+    <div class="signature-name">SECRETARIO DE CULTURA DE PEREIRA</div>
+    <div class="signature-role">EL ARRENDADOR</div>
+  </div>
+  <div class="signature-block">
+    <div class="signature-line"></div>
+    <div class="signature-name">{{ customer.name }}</div>
+    <div class="signature-role">EL ARRENDATARIO ({{ customer.documentType }} {{ customer.documentNumber }})</div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

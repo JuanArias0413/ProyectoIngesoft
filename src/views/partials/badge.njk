@@ -1,0 +1,57 @@
+{# Insignia de estado con color Y texto (accesible) #}
+{% macro renderBadge(statusValue, isLarge=false) %}
+  {% set s = statusValue | string | trim %}
+  {% if s == "REGISTERED" %}
+    {% set label = "Registrada" %}
+    {% set cssClass = "badge-status-REGISTERED" %}
+  {% elif s == "RESPONDED" %}
+    {% set label = "Respondida" %}
+    {% set cssClass = "badge-status-RESPONDED" %}
+  {% elif s == "DOCUMENTS_VERIFIED" %}
+    {% set label = "Documentos verificados" %}
+    {% set cssClass = "badge-status-DOCUMENTS_VERIFIED" %}
+  {% elif s == "CONTRACT_DRAFTED" %}
+    {% set label = "Contrato elaborado" %}
+    {% set cssClass = "badge-status-CONTRACT_DRAFTED" %}
+  {% elif s == "PAID" %}
+    {% set label = "Pagado" %}
+    {% set cssClass = "badge-status-PAID" %}
+  {% elif s == "LEGAL_REVIEW" %}
+    {% set label = "En revisión jurídica" %}
+    {% set cssClass = "badge-status-LEGAL_REVIEW" %}
+  {% elif s == "RETURNED_BY_LEGAL" %}
+    {% set label = "Devuelto por Jurídica" %}
+    {% set cssClass = "badge-status-RETURNED_BY_LEGAL" %}
+  {% elif s == "PENDING_SIGNATURE" %}
+    {% set label = "Pendiente de firma" %}
+    {% set cssClass = "badge-status-PENDING_SIGNATURE" %}
+  {% elif s == "LEGALIZED" %}
+    {% set label = "Legalizado" %}
+    {% set cssClass = "badge-status-LEGALIZED" %}
+  {% elif s == "CANCELLED" %}
+    {% set label = "Cancelada" %}
+    {% set cssClass = "badge-status-CANCELLED" %}
+  {% elif s == "HELD" %}
+    {% set label = "Provisional" %}
+    {% set cssClass = "badge-status-REGISTERED" %}
+  {% elif s == "CONFIRMED" %}
+    {% set label = "Confirmada" %}
+    {% set cssClass = "badge-status-LEGALIZED" %}
+  {% elif s == "RELEASED" %}
+    {% set label = "Liberada" %}
+    {% set cssClass = "badge-status-CANCELLED" %}
+  {% else %}
+    {% set label = s %}
+    {% set cssClass = "badge-status-CANCELLED" %}
+  {% endif %}
+
+  <span class="badge {{ cssClass }} {% if isLarge %}badge-lg{% endif %}" role="status" aria-label="Estado: {{ label }}">
+    <span class="badge-dot" aria-hidden="true"></span>
+    <span>{{ label }}</span>
+  </span>
+{% endmacro %}
+
+{# Uso directo cuando se incluye con {% include "partials/badge.njk" %} #}
+{% if status %}
+  {{ renderBadge(status, large | default(false)) }}
+{% endif %}

@@ -1,0 +1,21 @@
+{% extends "layouts/base.njk" %}
+
+{% block content %}
+<div style="display: flex; justify-content: center; align-items: center; min-height: 50vh;">
+  <article class="card" style="max-width: 600px; width: 100%; text-align: center; padding: 2.5rem 2rem;">
+    <div style="font-size: 3rem; color: #495057; margin-bottom: 0.5rem;" aria-hidden="true">&#128269;</div>
+    <h1 style="color: var(--sgec-primary); font-size: 1.75rem; margin-bottom: 0.5rem;">404 · Página no encontrada</h1>
+    <p style="font-size: 1.05rem; color: var(--sgec-text); margin-bottom: 1rem;">
+      {{ message | default("La página, solicitud o recurso al que intenta acceder no existe o fue movido.") }}
+    </p>
+    <p style="font-size: 0.875rem; color: var(--sgec-text-muted); margin-bottom: 2rem;">
+      Verifique la dirección URL introducida o regrese al panel principal del sistema.
+    </p>
+    <div>
+      <a href="/" role="button" class="primary" style="padding: 0.65rem 1.5rem; text-decoration: none;">
+        Volver al Inicio
+      </a>
+    </div>
+  </article>
+</div>
+{% endblock %}

@@ -1,0 +1,150 @@
+{% extends "documentBase.njk" %}
+
+{% block title %}Oficio de Respuesta — {{ responseRadicado }} — SGEC{% endblock %}
+
+{% block docContent %}
+<div class="doc-header">
+  <h1>SECRETARÍA DE CULTURA DE PEREIRA</h1>
+  <h2>Oficina de Administración de Escenarios y Bienes Culturales</h2>
+</div>
+
+<div class="doc-meta">
+  <table class="doc-meta-table">
+    <tr>
+      <td class="doc-meta-label">Ciudad y Fecha:</td>
+      <td>{{ cityAndDate }}</td>
+    </tr>
+    <tr>
+      <td class="doc-meta-label">Radicado Respuesta:</td>
+      <td><strong>{{ responseRadicado }}</strong></td>
+    </tr>
+    {% if requestRadicado %}
+    <tr>
+      <td class="doc-meta-label">Radicado Solicitud:</td>
+      <td>{{ requestRadicado }}</td>
+    </tr>
+    {% endif %}
+    <tr>
+      <td class="doc-meta-label">Destinatario:</td>
+      <td>
+        <strong>{{ customer.name }}</strong><br>
+        {{ customer.documentType }} No. {{ customer.documentNumber }}<br>
+        {% if customer.legalRepresentative %}
+        Representante Legal: {{ customer.legalRepresentative }}<br>
+        {% endif %}
+        Dirección: {{ customer.address }}<br>
+        Correo electrónico: {{ customer.email }} | Teléfono: {{ customer.phone }}
+      </td>
+    </tr>
+    <tr>
+      <td class="doc-meta-label">Asunto:</td>
+      <td><strong>Respuesta a solicitud de alquiler — {{ eventName }}</strong></td>
+    </tr>
+  </table>
+</div>
+
+<div class="doc-section">
+  <p class="no-indent">Respetado(a) señor(a):</p>
+  <p>
+    En atención a su solicitud de alquiler para el desarrollo del evento denominado <strong>«{{ eventName }}»</strong>, nos permitimos informarle que, una vez revisada la agenda institucional y técnica, el escenario cultural solicitado se encuentra <strong>disponible</strong> para las fechas y franjas horarias requeridas, bajo las siguientes condiciones preliminares:
+  </p>
+
+  <table class="doc-table">
+    <tr>
+      <th style="width: 35%;">Escenario Cultural:</th>
+      <td><strong>{{ venue.name }}</strong> — {{ space.name }}</td>
+    </tr>
+    <tr>
+      <th>Ubicación:</th>
+      <td>{{ venue.address }}</td>
+    </tr>
+    <tr>
+      <th>Fecha y Franja Solicitada:</th>
+      <td><strong>{{ formattedDateRange }}</strong></td>
+    </tr>
+    <tr>
+      <th>Propósito del Evento:</th>
+      <td>{{ purposeLabel }}</td>
+    </tr>
+    <tr>
+      <th>Aforo Máximo del Espacio:</th>
+      <td>{{ space.capacity }} personas</td>
+    </tr>
+    {% if eventDescription %}
+    <tr>
+      <th>Descripción del Evento:</th>
+      <td>{{ eventDescription }}</td>
+    </tr>
+    {% endif %}
+  </table>
+</div>
+
+<div class="doc-section">
+  <div class="doc-section-title">1. Documentos exigidos para el trámite contractual</div>
+  <p class="no-indent">
+    De acuerdo con lo establecido en el Manual de Procedimientos y según su condición de <strong>{{ customer.typeLabel }}</strong>, para iniciar la elaboración del estudio previo y contrato de arrendamiento deberá presentar la totalidad de los siguientes documentos:
+  </p>
+  <table class="doc-table">
+    <thead>
+      <tr>
+        <th style="width: 10%; text-align: center;">No.</th>
+        <th style="width: 70%;">Requisito Documental</th>
+        <th style="width: 20%; text-align: center;">Carácter</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for req in requirements %}
+      <tr>
+        <td style="text-align: center;">{{ loop.index }}</td>
+        <td>{{ req.name }}</td>
+        <td style="text-align: center;">
+          {% if req.mandatory %}
+          <strong>Obligatorio</strong>
+          {% else %}
+          Opcional
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="doc-section">
+  <div class="doc-section-title">2. Liquidación de valor y forma de pago</div>
+  <p>
+    De conformidad con el Acuerdo de Tarifas vigente adoptado por la Secretaría de Cultura de Pereira, el valor liquidado para el arrendamiento del escenario es el siguiente:
+  </p>
+  <table class="doc-table">
+    <tr>
+      <th style="width: 35%;">Valor Total a Consignar:</th>
+      <td><strong style="font-size: 12pt;">{{ formattedAmount }}</strong></td>
+    </tr>
+    <tr>
+      <th>Valor en Letras:</th>
+      <td><strong>{{ amountInWords }}</strong></td>
+    </tr>
+  </table>
+
+  <p class="no-indent">
+    El pago debe realizarse mediante consignación bancaria con los siguientes datos oficiales:
+  </p>
+  <ul>
+    <li><strong>Entidad Bancaria:</strong> Bancolombia</li>
+    <li><strong>Tipo y Número de Cuenta:</strong> Cuenta de Ahorros No. 1234-567890-89</li>
+    <li><strong>Titular:</strong> Municipio de Pereira — Secretaría de Cultura</li>
+    <li><strong>NIT:</strong> 800.123.456-7</li>
+  </ul>
+  <p>
+    Una vez consignado dicho valor, deberá aportar el comprobante original de la consignación junto con los documentos exigidos para proceder a la verificación documental, expedición de la factura oficial y firma del respectivo contrato de arrendamiento.
+  </p>
+</div>
+
+<div class="doc-signatures">
+  <div class="signature-block">
+    <div class="signature-line"></div>
+    <div class="signature-name">Jefe de la Oficina de Administración de Escenarios y Bienes Culturales</div>
+    <div class="signature-role">Secretaría de Cultura — Municipio de Pereira</div>
+  </div>
+</div>
+{% endblock %}

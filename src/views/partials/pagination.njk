@@ -1,0 +1,72 @@
+{# Paginación reutilizable #}
+{% set curPage = page | default(currentPage) | default(1) | int %}
+{% set totalP = totalPages | default(1) | int %}
+{% set totalI = totalItems | default(total) | default(0) | int %}
+{% set base = baseUrl | default("/solicitudes") %}
+
+{% if totalP > 1 or totalI > 0 %}
+<nav class="pagination-wrapper no-print" aria-label="Paginación de resultados">
+  <div class="pagination-info">
+    {% if totalI > 0 %}
+      Mostrando página <strong>{{ curPage }}</strong> de <strong>{{ totalP }}</strong> ({{ totalI }} registros en total)
+    {% else %}
+      Página <strong>{{ curPage }}</strong> de <strong>{{ totalP }}</strong>
+    {% endif %}
+  </div>
+
+  {% if totalP > 1 %}
+  <div class="pagination-controls" role="group" aria-label="Control de páginas">
+    {# Botón Anterior #}
+    {% if curPage > 1 %}
+      <a href="{{ base }}?page={{ curPage - 1 }}{% if queryString %}&{{ queryString }}{% endif %}" class="pagination-btn" aria-label="Página anterior">
+        &laquo; Anterior
+      </a>
+    {% else %}
+      <button class="pagination-btn" disabled aria-disabled="true">&laquo; Anterior</button>
+    {% endif %}
+
+    {# Números de página con rango #}
+    {% set startP = 1 %}
+    {% if (curPage - 2) > 1 %}
+      {% set startP = curPage - 2 %}
+    {% endif %}
+
+    {% set endP = totalP %}
+    {% if (curPage + 2) < totalP %}
+      {% set endP = curPage + 2 %}
+    {% endif %}
+
+    {% if startP > 1 %}
+      <a href="{{ base }}?page=1{% if queryString %}&{{ queryString }}{% endif %}" class="pagination-btn" aria-label="Página 1">1</a>
+      {% if startP > 2 %}
+        <span class="pagination-ellipsis" aria-hidden="true">&hellip;</span>
+      {% endif %}
+    {% endif %}
+
+    {% for p in range(startP, endP + 1) %}
+      {% if p == curPage %}
+        <button class="pagination-btn is-active" aria-current="page">{{ p }}</button>
+      {% else %}
+        <a href="{{ base }}?page={{ p }}{% if queryString %}&{{ queryString }}{% endif %}" class="pagination-btn" aria-label="Página {{ p }}">{{ p }}</a>
+      {% endif %}
+    {% endfor %}
+
+    {% if endP < totalP %}
+      {% if endP < totalP - 1 %}
+        <span class="pagination-ellipsis" aria-hidden="true">&hellip;</span>
+      {% endif %}
+      <a href="{{ base }}?page={{ totalP }}{% if queryString %}&{{ queryString }}{% endif %}" class="pagination-btn" aria-label="Página {{ totalP }}">{{ totalP }}</a>
+    {% endif %}
+
+    {# Botón Siguiente #}
+    {% if curPage < totalP %}
+      <a href="{{ base }}?page={{ curPage + 1 }}{% if queryString %}&{{ queryString }}{% endif %}" class="pagination-btn" aria-label="Página siguiente">
+        Siguiente &raquo;
+      </a>
+    {% else %}
+      <button class="pagination-btn" disabled aria-disabled="true">Siguiente &raquo;</button>
+    {% endif %}
+  </div>
+  {% endif %}
+</nav>
+{% endif %}
